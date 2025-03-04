@@ -65,18 +65,15 @@ body {
 
 .sidebar .logo img {
     height: 30px;
+    border-radius: 20px;
     width: auto;
-}
-
-.sidebar .logo h2 {
-    color: var(--text-dark);
-    font-size: 18px;
 }
 
 #toggle-btn {
     background: none;
     border: none;
     cursor: pointer;
+    position: relative;
 }
 
 #toggle-btn i {
@@ -87,6 +84,105 @@ body {
 
 #toggle-btn:hover i {
     transform: rotate(180deg);
+}
+
+/* Total notifications badge for collapsed sidebar */
+.sidebar.collapsed #toggle-btn .total-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--danger);
+    color: white;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    font-size: 10px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: 1.5px solid white;
+    animation: pulse-badge 2s infinite;
+    z-index: 102;
+}
+
+
+body.dark-mode #toggle-btn .total-badge {
+    border-color: var(--dark-bg);
+}
+
+/* Show total badge only when sidebar is collapsed */
+.sidebar.collapsed #toggle-btn .total-badge {
+    display: flex;
+}
+
+/* Top controls in the sidebar */
+.top-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Style for the icon items in sidebar */
+.sidebar .icon-item {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.sidebar .icon-item i {
+    font-size: 18px;
+    color: var(--dark-bg);
+}
+
+/* Notification Badge Styling */
+.icon-item .badge {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background-color: var(--danger);
+    color: white;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: 1.5px solid white;
+    animation: pulse-badge 2s infinite;
+}
+
+/* Pulse animation for badges */
+@keyframes pulse-badge {
+    0% {
+        transform: scale(1);
+    }
+
+    10% {
+        transform: scale(1.2);
+    }
+
+    20% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Dark mode badge styling */
+body.dark-mode .icon-item .badge {
+    border-color: var(--dark-bg);
 }
 
 /* Search Bar */
@@ -430,6 +526,21 @@ body.dark-mode .logout-wrapper i {
     transition: transform 0.1s;
 }
 
+/* Add to your collapsed state CSS */
+.sidebar.collapsed .top-controls .icon-item {
+    display: none;
+}
+
+/* Only keep the toggle button visible when collapsed */
+.sidebar.collapsed .top-controls {
+    justify-content: center;
+    width: 100%;
+}
+
+.sidebar.collapsed #toggle-btn {
+    margin: 0;
+}
+
 /* Dark Mode */
 
 body.dark-mode .sidebar {
@@ -488,6 +599,14 @@ body.dark-mode .logout-wrapper i {
     /* Light text in dark mode */
 }
 
+body.dark-mode .sidebar .icon-item {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .sidebar .icon-item i {
+    color: var(--light-bg);
+}
+
 #theme-toggle {
     cursor: pointer;
 }
@@ -526,26 +645,15 @@ body.dark-mode #theme-toggle {
 /* Top Icons Row */
 .top-icons {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    gap: 30px;
     align-items: center;
     margin-bottom: 30px;
 }
 
-/* Update the icon-item size to 50px circles */
-.icon-item {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 15px;
-    cursor: pointer;
-}
-
 .icon-item i {
     font-size: 20px;
-    color: #555;
+    color: var(--dark-bg);
 }
 
 .profile-icon {
@@ -813,4 +921,10 @@ body {
     margin: 0 0 5px 0;
     font-size: 14px;
     font-weight: 500;
+}
+
+/* Style for when sidebar is collapsed */
+.sidebar.collapsed .icon-item .badge {
+    /* These icons are hidden when collapsed anyway, but for safety: */
+    display: none;
 }
