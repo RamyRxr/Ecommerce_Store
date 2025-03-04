@@ -82,4 +82,56 @@ document.addEventListener("DOMContentLoaded", function () {
         const observer = new MutationObserver(updateTotalBadge);
         observer.observe(badge, { childList: true, characterData: true, subtree: true });
     });
+
+    // Get message and notification icons
+    const messageIcon = document.querySelector('.icon-item .bx-message')?.parentNode;
+    const notificationIcon = document.querySelector('.icon-item .bx-bell')?.parentNode;
+
+    if (messageIcon && notificationIcon) {
+        const messagesBox = document.querySelector('.messages-box');
+        const notificationsBox = document.querySelector('.notifications-box');
+
+        // Handle click on message icon
+        messageIcon.addEventListener('click', function (e) {
+            e.stopPropagation(); // Prevent clicks from bubbling up
+            console.log('Message icon clicked'); // Debug
+
+            // Close notification dropdown if open
+            notificationsBox?.classList.remove('active');
+
+            // Toggle message dropdown
+            messagesBox?.classList.toggle('active');
+
+            // Debug
+            console.log('Messages active:', messagesBox?.classList.contains('active'));
+        });
+
+        // Handle click on notification icon
+        notificationIcon.addEventListener('click', function (e) {
+            e.stopPropagation(); // Prevent clicks from bubbling up
+            console.log('Notification icon clicked'); // Debug
+
+            // Close message dropdown if open
+            messagesBox?.classList.remove('active');
+
+            // Toggle notification dropdown
+            notificationsBox?.classList.toggle('active');
+
+            // Debug
+            console.log('Notifications active:', notificationsBox?.classList.contains('active'));
+        });
+
+        // Close dropdowns when clicking elsewhere
+        document.addEventListener('click', function () {
+            messagesBox?.classList.remove('active');
+            notificationsBox?.classList.remove('active');
+        });
+
+        // Prevent clicks inside dropdown from closing it
+        [messagesBox, notificationsBox].forEach(box => {
+            box?.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        });
+    }
 });
