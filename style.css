@@ -1,0 +1,817 @@
+/* Color Variables - Add these at the top of your CSS file */
+:root {
+    --light-bg: #E1E3E9;
+    --dark-bg: #000012;
+    --body-bg: #0F0F12;
+
+    /* Adding more color variables for consistency */
+    --text-light: #FFFFFF;
+    --text-dark: #222222;
+    --accent: #2196F3;
+    --accent-dark: #4a90e2;
+    --danger: #ff0000;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    display: flex;
+    background-color: var(--body-bg);
+}
+
+.sidebar {
+    width: 220px;
+    background: var(--light-bg);
+    height: calc(100vh - 40px);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: fixed;
+    margin: 20px;
+    border-radius: 16px;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        0 8px 24px rgba(0, 0, 0, 0.05);
+    z-index: 100;
+    /* Added z-index */
+}
+
+/* Remove underline from theme toggle and other links in the sidebar */
+.sidebar a {
+    text-decoration: none;
+}
+
+/* Top Section */
+.sidebar .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.sidebar .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar .logo img {
+    height: 30px;
+    width: auto;
+}
+
+.sidebar .logo h2 {
+    color: var(--text-dark);
+    font-size: 18px;
+}
+
+#toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+#toggle-btn i {
+    color: var(--text-dark);
+    font-size: 22px;
+    transition: transform 0.3s ease;
+}
+
+#toggle-btn:hover i {
+    transform: rotate(180deg);
+}
+
+/* Search Bar */
+.search-box {
+    display: flex;
+    align-items: center;
+    margin: 15px;
+    padding: 10px;
+    background: #b1b1b1c7;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.search-box i {
+    color: var(--text-dark);
+    /* Fixed color */
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.search-box:hover {
+    background: #ffffff;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+.search-box:hover i {
+    color: var(--accent);
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    background: none;
+    width: 100%;
+    color: var(--text-dark);
+    /* Fixed color */
+}
+
+/* Menu Items */
+.menu li {
+    list-style: none;
+    margin: 2px 8px;
+    margin-bottom: 10px;
+    /* Add spacing between menu items */
+}
+
+
+.menu li a {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu li a:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-left: 3px solid #2196F3;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.menu li a:active {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Update existing icon styles */
+.menu li a i {
+    color: var(--dark-bg);
+    /* #000012 - dark text for light mode */
+    font-size: 20px;
+    min-width: 30px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu li a:hover i {
+    transform: scale(1.1);
+    color: #2196F3;
+}
+
+.menu li a .links_name {
+    color: var(--dark-bg);
+    /* #000012 - dark text for light mode */
+    margin-left: 10px;
+    transition: color 0.3s ease;
+}
+
+.menu li a:hover .links_name {
+    color: #2196F3;
+}
+
+/* Add this new CSS rule */
+.menu li.active a {
+    background: rgba(0, 0, 0, 0.04);
+    border-left: 3px solid #2196F3;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.menu li.active a i,
+.menu li.active a .links_name {
+    color: #2196F3;
+}
+
+/* Profile Section */
+.profile {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 12px 15px;
+    background: var(--light-bg);
+    border-top: 1px solid var(--light-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+}
+
+.profile-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-details img {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.profile-details .info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-details .info span {
+    color: var(--dark-bg);
+    /* Dark text in light mode */
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.profile-details .info small {
+    color: #666666;
+    font-size: 12px;
+}
+
+/* Add/Update this CSS for the logout wrapper */
+.logout-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* Space between icons */
+    justify-content: flex-end;
+}
+
+.logout-wrapper a,
+.logout-wrapper i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-wrapper a:hover {
+    color: red;
+}
+
+/* Specifically for the logout wrapper links */
+.logout-wrapper a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.logout-wrapper .dark-light {
+    display: flex;
+}
+
+/* Make sure the icons have consistent styling */
+.logout-wrapper i {
+    color: var(--dark-bg);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logout-wrapper i:hover {
+    color: var(--danger);
+    transform: scale(1.1);
+}
+
+/* Dark mode styles for both icons */
+body.dark-mode .logout-wrapper i {
+    color: var(--light-bg);
+}
+
+/* Collapsed State */
+.sidebar.collapsed {
+    width: 60px;
+}
+
+.sidebar:hover {
+    box-shadow:
+        0 8px 16px rgba(0, 0, 0, 0.1),
+        0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar.collapsed .logo,
+.sidebar.collapsed .search-box input,
+.sidebar.collapsed .links_name,
+.sidebar.collapsed .profile-details {
+    display: none;
+}
+
+.sidebar.collapsed .top {
+    padding: 15px 0;
+    justify-content: center;
+}
+
+.sidebar.collapsed .search-box {
+    margin: 15px 10px;
+    padding: 8px;
+    justify-content: center;
+}
+
+.sidebar.collapsed .search-box i {
+    margin: 0;
+}
+
+.sidebar.collapsed .menu li {
+    margin: 2px 4px;
+    margin-bottom: 10px;
+}
+
+.sidebar.collapsed .menu li a {
+    padding: 12px;
+    justify-content: center;
+    border-radius: 8px;
+    border-left: none;
+    margin-left: 0;
+    background: transparent;
+    /* Remove background */
+}
+
+.sidebar.collapsed .menu li a:hover {
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    border-left: none;
+    /* Remove border left on hover */
+}
+
+.sidebar.collapsed .menu li a:active {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Update collapsed state hover animation */
+.sidebar.collapsed .menu li a:hover i {
+    transform: scale(1.2);
+    /* Slightly larger scale for better effect */
+    color: #2196F3;
+}
+
+.sidebar.collapsed .menu li a i {
+    margin: 0;
+    font-size: 20px;
+    transition: all 0.3s ease;
+    min-width: unset;
+}
+
+.sidebar.collapsed .menu li a:hover i {
+    transform: scale(1.1);
+    color: #2196F3;
+    /* Keep only color change on hover */
+}
+
+/* Keep active state minimal in collapsed mode */
+.sidebar.collapsed .menu li.active a {
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    border-left: none;
+}
+
+/* Update active state animation in collapsed mode */
+.sidebar.collapsed .menu li.active a i {
+    color: #2196F3;
+    animation: iconPulse 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed .profile {
+    padding: 12px 0;
+    justify-content: center;
+}
+
+.sidebar.collapsed .logout-wrapper {
+    margin: 0;
+}
+
+.sidebar.collapsed .logout-wrapper i {
+    font-size: 22px;
+}
+
+.sidebar.collapsed .logout-wrapper i:hover {
+    transform: scale(1.1);
+    color: #f44336;
+}
+
+/* Add keyframes for pulse animation */
+@keyframes iconPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1.2);
+    }
+}
+
+/* Add click animation */
+.sidebar.collapsed .menu li a:active i {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
+
+/* Dark Mode */
+
+body.dark-mode .sidebar {
+    background: var(--dark-bg);
+}
+
+body.dark-mode .sidebar .top {
+    border-bottom: 1px solid var(--light-bg);
+}
+
+body.dark-mode .sidebar .logo h2 {
+    color: var(--light-bg);
+    /* Change from black to light color */
+}
+
+body.dark-mode #toggle-btn i {
+    color: var(--light-bg);
+    /* Change from black to light color */
+    font-size: 22px;
+    transition: transform 0.3s ease;
+}
+
+body.dark-mode .menu li a span,
+body.dark-mode .menu li a i {
+    color: var(--light-bg);
+    /* #E1E3E9 - light text for dark mode */
+}
+
+body.dark-mode .menu li a:hover,
+body.dark-mode .menu li.active a {
+    background: rgba(74, 144, 226, 0.1);
+    border-left: 3px solid #4a90e2;
+}
+
+body.dark-mode .menu li a:hover i,
+body.dark-mode .menu li.active a i {
+    color: #4a90e2;
+}
+
+body.dark-mode .profile {
+    background: var(--dark-bg);
+    border-top: 1px solid var(--light-bg);
+}
+
+body.dark-mode .profile-details .info span {
+    color: var(--light-bg);
+    /* Light text in dark mode */
+}
+
+body.dark-mode .theme-toggle button {
+    color: white;
+}
+
+body.dark-mode .logout-wrapper i {
+    color: var(--light-bg);
+    /* Light text in dark mode */
+}
+
+#theme-toggle {
+    cursor: pointer;
+}
+
+body.dark-mode #theme-toggle {
+    color: white;
+}
+
+/* Right Sidebar Styling */
+.right-sidebar {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: calc(100vh - 40px);
+    width: 350px;
+    background: var(--light-bg);
+    transition: all 0.3s ease;
+    overflow-y: auto;
+    margin: 20px;
+    border-radius: 16px;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        0 8px 24px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    z-index: 99;
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.right-sidebar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Top Icons Row */
+.top-icons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* Update the icon-item size to 50px circles */
+.icon-item {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+.icon-item i {
+    font-size: 20px;
+    color: #555;
+}
+
+.profile-icon {
+    overflow: hidden;
+}
+
+.profile-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h3 {
+    font-size: 18px;
+    color: #333;
+    font-weight: 600;
+}
+
+.see-more,
+.view-all {
+    font-size: 14px;
+    color: #4070f4;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+/* Add arrow icon to View all link and style both links */
+.view-all::after {
+    content: "\e93e";
+    font-family: 'boxicons';
+    margin-left: 5px;
+    font-size: 16px;
+}
+
+/* Hover effects for See more and View all */
+.see-more:hover,
+.view-all:hover {
+    color: #5f88ff;
+    transform: translateX(3px);
+    transition: all 0.3s ease;
+}
+
+/* Newest Items */
+.newest-items {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 30px;
+}
+
+.item-card {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.item-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.item-img img {
+    width: auto;
+    height: auto;
+    object-fit: cover;
+}
+
+.item-info {
+    padding: 10px 15px;
+}
+
+.item-info h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Daily Deals Section - Updated to be rectangular like newest items */
+.daily-deals {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.deals-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.deal-item {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.deal-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.deal-item .item-img {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.deal-item .item-info {
+    padding: 10px 15px;
+    flex: 1;
+}
+
+.deal-item h4 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.price {
+    color: #4070f4;
+    font-weight: 600;
+    margin: 5px 0;
+    font-size: 15px;
+}
+
+.item-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #777;
+    margin-top: 8px;
+}
+
+.item-stats span {
+    display: flex;
+    align-items: center;
+}
+
+.item-stats i {
+    margin-right: 3px;
+    font-size: 14px;
+}
+
+/* Dark Mode Support */
+body.dark-mode .right-sidebar {
+    background: var(--dark-bg);
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .icon-item {
+    background-color: #3a3b3c;
+}
+
+body.dark-mode .icon-item i {
+    color: #ccc;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .newest-items,
+body.dark-mode .daily-deals {
+    background-color: #080f26;
+}
+
+body.dark-mode .item-card,
+body.dark-mode .deal-item {
+    background-color: #0f162e;
+}
+
+body.dark-mode .section-header h3,
+body.dark-mode .item-info h4 {
+    color: #e4e6eb;
+}
+
+body.dark-mode .price {
+    color: #58a6ff;
+}
+
+body.dark-mode .item-stats {
+    color: #b0b3b8;
+}
+
+/* Making the main content adjust to the sidebars */
+body {
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar {
+    z-index: 100;
+}
+
+.right-sidebar {
+    z-index: 99;
+}
+
+/* Change background color of item rectangles */
+.newest-items,
+.daily-deals {
+    background-color: #080f26;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 30px;
+}
+
+/* Adjust text colors for dark background */
+.newest-items .section-header h3,
+.daily-deals .section-header h3 {
+    color: #ffffff;
+}
+
+/* Item card styling adjustments */
+.item-card,
+.deal-item {
+    background-color: #0f162e;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    margin-bottom: 15px;
+}
+
+.item-info h4 {
+    color: #ffffff;
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.price {
+    color: #4070f4;
+}
+
+.item-stats {
+    color: #a0a0a0;
+}
+
+/* For small screens */
+@media (max-width: 991px) {
+    .right-sidebar {
+        width: 300px;
+    }
+
+    .deals-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .right-sidebar {
+        display: none;
+        /* Hide on mobile, or create a toggle */
+    }
+}

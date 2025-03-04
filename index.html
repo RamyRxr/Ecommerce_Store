@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Menu</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="script.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css">
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="top">
+            <span class="logo">
+                <img src="ramyrxr.png" alt="RamyRXR" class="logo-img">
+                <h2>RamyRxr</h2>
+            </span>
+            <button id="toggle-btn">
+                <i class='bx bx-menu'></i>
+            </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-box">
+            <i class='bx bx-search'></i>
+            <input type="text" placeholder="Search..." id="search-input">
+        </div>
+
+        <ul class="menu">
+            <li class="active">
+                <a href="#">
+                    <i class='bx bx-home'></i>
+                    <span class="links_name">Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class='bx bx-compass'></i>
+                    <span class="links_name">Explore</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class='bx bx-heart'></i>
+                    <span class="links_name">Saved</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class='bx bx-cart'></i>
+                    <span class="links_name">Cart</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class='bx bx-store'></i>
+                    <span class="links_name">Selling</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class='bx bx-history'></i>
+                    <span class="links_name">Purchase History</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class='bx bx-cog'></i>
+                    <span class="links_name">Settings</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class='bx bx-user'></i>
+                    <span class="links_name">Profile</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="profile">
+            <div class="profile-details">
+                <img src="ramyrxr.png" alt="RamyRXR">
+                <div class="info">
+                    <span>RamyRxr</span>
+                    <small>Developer</small>
+                </div>
+            </div>
+            <div class="logout-wrapper">
+                <a href="#" id="theme-toggle">
+                    <div class="dark-light">
+                        <i class='bx bx-moon'></i>
+                    </div>
+                </a>
+                <i class='bx bx-log-out'></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="right-sidebar">
+        <!-- Top Icons Row -->
+        <div class="top-icons">
+            <div class="icon-item">
+                <i class='bx bx-message'></i>
+            </div>
+            <div class="icon-item">
+                <i class='bx bx-bell'></i>
+            </div>
+            <div class="icon-item profile-icon">
+                <img src="ramyrxr.png" alt="Profile">
+            </div>
+        </div>
+
+        <!-- Newest Items Section -->
+        <div class="newest-items">
+            <div class="section-header">
+                <h3>Newest Items</h3>
+                <a href="#" class="see-more">See more <i class='bx bx-right-arrow-alt'></i></a>
+            </div>
+            <div class="item-card">
+                <div class="item-img">
+                    <img src="./products/newestItem-1.svg" alt="New Item">
+                </div>
+                <div class="item-info">
+                    <h4>New Product</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Deals Section -->
+        <div class="daily-deals">
+            <div class="section-header">
+                <h3>Daily Deals</h3>
+                <a href="#" class="view-all">View all</a>
+            </div>
+            <div class="deals-container">
+                <!-- 6 Deal Items -->
+                <div class="deal-item">
+                    <div class="item-img">
+                        <img src="./products/product-1.svg" alt="Deal Item 1">
+                    </div>
+                    <div class="item-info">
+                        <h4>beats new studio blue headset</h4>
+                        <p class="price">$99.99</p>
+                        <div class="item-stats">
+                            <span><i class='bx bx-show'></i> 1.2k</span>
+                            <span><i class='bx bx-package'></i> 45 left</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="deal-item">
+                    <div class="item-img">
+                        <img src="./products/produtc-2.svg" alt="Deal Item 2">
+                    </div>
+                    <div class="item-info">
+                        <h4>beats pro wireless Headset</h4>
+                        <p class="price">$79.99</p>
+                        <div class="item-stats">
+                            <span><i class='bx bx-show'></i> 856</span>
+                            <span><i class='bx bx-package'></i> 12 left</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="deal-item">
+                    <div class="item-img">
+                        <img src="./products/produtc-3.svg" alt="Deal Item 3">
+                    </div>
+                    <div class="item-info">
+                        <h4>Apple AirPods Pro</h4>
+                        <p class="price">$129.99</p>
+                        <div class="item-stats">
+                            <span><i class='bx bx-show'></i> 1.5k</span>
+                            <span><i class='bx bx-package'></i> 8 left</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="deal-item">
+                    <div class="item-img">
+                        <img src="./products/produtc-4.svg" alt="Deal Item 4">
+                    </div>
+                    <div class="item-info">
+                        <h4>Lenovo Wired Headphone</h4>
+                        <p class="price">$49.99</p>
+                        <div class="item-stats">
+                            <span><i class='bx bx-show'></i> 678</span>
+                            <span><i class='bx bx-package'></i> 25 left</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="deal-item">
+                    <div class="item-img">
+                        <img src="./products/produtc-5.svg" alt="Deal Item 5">
+                    </div>
+                    <div class="item-info">
+                        <h4>Logic3 Cavallino T250 Headset</h4>
+                        <p class="price">$199.99</p>
+                        <div class="item-stats">
+                            <span><i class='bx bx-show'></i> 2.3k</span>
+                            <span><i class='bx bx-package'></i> 3 left</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="deal-item">
+                    <div class="item-img">
+                        <img src="./products/produtc-6.svg" alt="Deal Item 6">
+                    </div>
+                    <div class="item-info">
+                        <h4>Musicians Choice Stereo</h4>
+                        <p class="price">$89.99</p>
+                        <div class="item-stats">
+                            <span><i class='bx bx-show'></i> 945</span>
+                            <span><i class='bx bx-package'></i> 17 left</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
