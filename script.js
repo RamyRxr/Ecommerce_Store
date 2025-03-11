@@ -336,3 +336,177 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initial state
     updatePagination(currentPage);
 });
+
+// Optimized Newest Items Carousel functionality
+document.addEventListener('DOMContentLoaded', function () {
+    const newestCarousel = document.querySelector('.newest-carousel');
+    if (!newestCarousel) return;
+
+    const slides = newestCarousel.querySelectorAll('.item-card');
+    const dots = newestCarousel.querySelectorAll('.newest-dot');
+    const prevButton = newestCarousel.querySelector('.newest-carousel-btn.prev');
+    const nextButton = newestCarousel.querySelector('.newest-carousel-btn.next');
+
+    // Check if we have valid slides
+    if (!slides.length) return;
+
+    const totalSlides = slides.length;
+    let currentSlide = 0;
+    let newestInterval;
+    let isTransitioning = false;
+
+    // Initialize carousel - make sure first slide is active
+    function initCarousel() {
+        // Hide all slides first
+        slides.forEach(slide => {
+            slide.classList.remove('active');
+            slide.style.display = 'none';
+        });
+
+        // Make first slide active
+        slides[0].classList.add('active');
+        slides[0].style.display = 'flex';
+
+        if (dots.length > 0) dots[0].classList.add('active');
+    }
+
+    // Start carousel rotation
+    function startNewestCarousel() {
+        // Clear any existing interval first
+        clearInterval(newestInterval);
+        newestInterval = setInterval(nextNewestSlide, 4000);
+    }
+
+    // Improved carousel transition logic
+    function showNewestSlide(index) {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        // Sanitize index for infinite loop
+        if (index < 0) index = totalSlides - 1;
+        if (index >= totalSlides) index = 0;
+
+        // Fade out current slide
+        slides[currentSlide].style.opacity = '0';
+
+        // Update dots
+        if (dots.length) {
+            dots[currentSlide].classList.remove('active');
+            dots[index].classList.add('active');
+        }
+
+        setTimeout(() => {
+            // Hide previous slide
+            slides[currentSlide].style.display = 'none';
+
+            // Prepare next slide
+            slides[index].style.opacity = '0';
+            slides[index].style.display = 'flex';
+
+            // Force layout recalculation
+            void slides[index].offsetWidth;
+
+            // Fade in new slide
+            slides[index].style.opacity = '1';
+
+            // Update current index
+            currentSlide = index;
+
+            // Reset transition flag after animation completes
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 300);
+        }, 250);
+    }
+
+    // Next slide function
+    function nextNewestSlide() {
+        showNewestSlide((currentSlide + 1) % totalSlides);
+    }
+
+    // Previous slide function
+    function prevNewestSlide() {
+        showNewestSlide((currentSlide - 1 + totalSlides) % totalSlides);
+    }
+
+    // Add click event to dots
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            if (isTransitioning) return;
+            clearInterval(newestInterval);
+            showNewestSlide(index);
+            startNewestCarousel();
+        });
+    });
+
+    // Add click event to prev/next buttons
+    if (prevButton) {
+        prevButton.addEventListener('click', () => {
+            if (isTransitioning) return;
+            clearInterval(newestInterval);
+            prevNewestSlide();
+            startNewestCarousel();
+        });
+    }
+
+    if (nextButton) {
+        nextButton.addEventListener('click', () => {
+            if (isTransitioning) return;
+            clearInterval(newestInterval);
+            nextNewestSlide();
+            startNewestCarousel();
+        });
+    }
+
+    // Pause carousel on hover
+    newestCarousel.addEventListener('mouseenter', () => {
+        clearInterval(newestInterval);
+    });
+
+    // Resume carousel when mouse leaves
+    newestCarousel.addEventListener('mouseleave', () => {
+        startNewestCarousel();
+    });
+
+    // Initialize and start
+    initCarousel();
+    startNewestCarousel();
+});
+
+// Category Navigation
+document.addEventListener('DOMContentLoaded', function () {
+    const categoryContainer = document.querySelector('.categories-container');
+    const prevButton = document.querySelector('.category-nav.prev');
+    const nextButton = document.querySelector('.category-nav.next');
+
+    if (!categoryContainer || !prevButton || !nextButton) return;
+
+    // Scroll distance when clicking navigation buttons
+    const scrollAmount = 300;
+
+    prevButton.addEventListener('click', () => {
+        categoryContainer.scrollBy({
+            left: -scrollAmount,
+            behavior: 'smooth'
+        });
+    });
+
+    nextButton.addEventListener('click', () => {
+        categoryContainer.scrollBy({
+            left: scrollAmount,
+            behavior: 'smooth'
+        });
+    });
+
+    // Show/hide scroll buttons based on scroll position
+    categoryContainer.addEventListener('scroll', () => {
+        const scrollLeft = categoryContainer.scrollLeft;
+        const maxScroll = categoryContainer.scrollWidth - categoryContainer.clientWidth;
+
+        prevButton.style.opacity = scrollLeft > 0 ? '1' : '0.5';
+        nextButton.style.opacity = scrollLeft < maxScroll ? '1' : '0.5';
+    });
+
+    // Initial button state
+    prevButton.style.opacity = '0.5';
+});
