@@ -66,19 +66,10 @@ body {
     object-fit: cover;
 }
 
-/* Section Headers */
-.newest-items .section-header,
-.daily-deals .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
 
 
 
-.see-more,
-.view-all {
+.see-more {
     font-size: 14px;
     color: #4070f4;
     text-decoration: none;
@@ -86,112 +77,18 @@ body {
     align-items: center;
 }
 
-/* Hover effects for See more and View all */
-.see-more:hover,
-.view-all:hover {
-    color: #5f88ff;
-    transform: translateX(3px);
-    transition: all 0.3s ease;
-}
+
 
 /* Newest Items */
 
 
 
-.deal-item {
-    background-color: #0f162e;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    margin-bottom: 15px;
-}
-
-.deal-item .item-info {
-    padding: 10px;
-    flex: 1;
-}
-
-.deal-item h4 {
-    margin: 0 0 5px 0;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.daily-deals {
-    background-color: #aaaaaa9a;
-    border-radius: 10px;
-    padding: 15px;
-}
-
-
-.deals-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.deal-item {
-    display: flex;
-    align-items: center;
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease;
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-}
-
-/* For dark mode - ensure link color doesn't override dark mode styling */
-body.dark-mode .deal-item {
-    background-color: #0f162e;
-    color: inherit;
-}
-
-/* Keep hover effects the same */
-.deal-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Add active state for link click feedback */
-.deal-item:active {
-    transform: translateY(1px);
-    transition: transform 0.1s;
-}
-
-.deal-item .item-img {
-    padding: 15px;
-    width: 80px;
-    height: 80px;
-    display: flex;
-    flex-shrink: 0;
-}
-
-.deal-item .item-info {
-    padding: 10px;
-    flex: 1;
-}
-
-.deal-item h4 {
-    margin: 0 0 5px 0;
-    font-size: 14px;
-    font-weight: 500;
-}
 
 
 
 
 
 
-
-
-/* Dark Mode Support */
-body.dark-mode .right-sidebar {
-    background: var(--dark-bg);
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
-}
 
 body.dark-mode .icon-item {
     background-color: #3a3b3c;
@@ -207,12 +104,10 @@ body.dark-mode .daily-deals {
     background-color: #080f26;
 }
 
-body.dark-mode .item-card,
-body.dark-mode .deal-item {
+body.dark-mode .item-card {
     background-color: #0f162e;
 }
 
-body.dark-mode .section-header h3,
 body.dark-mode .item-info h4 {
     color: #e4e6eb;
 }
@@ -226,35 +121,11 @@ body {
 }
 
 
-.right-sidebar {
-    z-index: 99;
-}
-
-/* For small screens */
-@media (max-width: 991px) {
-    .right-sidebar {
-        width: 300px;
-    }
-
-    .deals-container {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .right-sidebar {
-        display: none;
-        /* Hide on mobile, or create a toggle */
-    }
-}
-
-/* REMOVE: Duplicate item-info definition */
 
 
 
-/* REMOVE: This conflicts with the deal-item styling */
-.item-card,
-.deal-item {
+
+.item-card {
     background-color: #0f162e;
     border-radius: 8px;
     overflow: hidden;
@@ -449,18 +320,7 @@ body {
     position: relative;
 }
 
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
 
-.section-header h2 {
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--accent, #1e88e5);
-}
 
 .category-controls {
     display: flex;

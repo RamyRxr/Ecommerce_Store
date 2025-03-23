@@ -510,3 +510,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initial button state
     prevButton.style.opacity = '0.5';
 });
+
+// Add this to your existing script.js file
+document.addEventListener('DOMContentLoaded', function() {
+    // Right sidebar toggle functionality
+    const closeSidebarBtn = document.getElementById('close-sidebar');
+    const rightSidebar = document.querySelector('.right-sidebar');
+    
+    if (closeSidebarBtn && rightSidebar) {
+        closeSidebarBtn.addEventListener('click', function() {
+            rightSidebar.classList.toggle('hidden');
+        });
+    }
+});
