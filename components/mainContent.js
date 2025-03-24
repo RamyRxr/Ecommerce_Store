@@ -104,6 +104,7 @@ export default class MainContent {
                         <button class="category-btn">Health</button>
                         <button class="category-btn">Jewelry</button>
                     </div>
+                        <button class="category-nav-btn next"><i class='bx bx-chevron-right'></i></button>
                 </div>
 
                 <!-- Products Grid -->
@@ -548,3 +549,5 @@ export default class MainContent {
         }
     }
 }
+
+
