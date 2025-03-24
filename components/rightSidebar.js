@@ -30,7 +30,7 @@ export default class RightSidebar {
                     </div>
                     <div class="item-card">
                         <div class="item-img">
-                            <img src="./products/newestItem-1.svg" alt="New Item">
+                            <img src="/Assets/products/product-2.svg" alt="New Item">
                             <span class="new-badge">NEW</span>
                         </div>
                         <div class="item-info">
@@ -81,7 +81,7 @@ export default class RightSidebar {
                 price: 99.99,
                 views: '1.2k',
                 left: 45,
-                image: './products/product-1.svg'
+                image: '/Assets/products/product-1.svg'
             },
             {
                 id: 2,
@@ -89,7 +89,7 @@ export default class RightSidebar {
                 price: 79.99,
                 views: '856',
                 left: 12,
-                image: './products/product-2.svg'
+                image: '/Assets/products/product-2.svg'
             },
             {
                 id: 3,
@@ -97,7 +97,7 @@ export default class RightSidebar {
                 price: 129.99,
                 views: '1.5k',
                 left: 8,
-                image: './products/product-3.svg'
+                image: '/Assets/products/product-3.svg'
             },
             {
                 id: 4,
@@ -105,7 +105,7 @@ export default class RightSidebar {
                 price: 49.99,
                 views: '678',
                 left: 25,
-                image: './products/product-4.svg'
+                image: '/Assets/products/product-4.svg'
             },
             {
                 id: 5,
@@ -113,7 +113,7 @@ export default class RightSidebar {
                 price: 199.99,
                 views: '2.3k',
                 left: 3,
-                image: './products/product-5.svg'
+                image: '/Assets/products/product-5.svg'
             },
             {
                 id: 6,
@@ -121,7 +121,7 @@ export default class RightSidebar {
                 price: 89.99,
                 views: '945',
                 left: 17,
-                image: './products/product-6.svg'
+                image: '/Assets/products/product-6.svg'
             }
         ];
 

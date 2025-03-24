@@ -1,5 +1,5 @@
-import Sidebar from './components/sidebar.js';
-import RightSidebar from './components/rightSidebar.js';
+import Sidebar from '../components/sidebar.js';
+import RightSidebar from '../components/rightSidebar.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {
