@@ -45,7 +45,7 @@
 .top-controls {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 16px;
 }
 
 #toggle-btn {
@@ -69,20 +69,20 @@
 #toggle-btn .total-badge,
 .icon-item .badge {
     position: absolute;
-    top: -3px;
-    right: -3px;
+    top: -7px;
+    right: -7px;
     background-color: var(--danger);
     color: var(--text-light);
     border-radius: 50%;
-    width: var(--badge-size);
-    height: var(--badge-size);
+    width: 16px;
+    height: 16px;
     font-size: 10px;
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    border: 1.5px solid white;
+    border: 1.5px solid var(--light-bg);
     animation: pulse-badge 2s infinite;
     z-index: 102;
 }
@@ -124,12 +124,6 @@
 .sidebar .icon-item i {
     font-size: 20px;
     color: var(--dark-bg);
-}
-
-.icon-item .badge {
-    top: 0;
-    right: 0;
-    border: 1.5px solid var(--light-bg);
 }
 
 /* Search Bar */
@@ -707,7 +701,7 @@ body.dark-mode .message-item:hover,
 body.dark-mode .notification-item:hover,
 body.dark-mode .menu li a:hover,
 body.dark-mode .menu li.active a {
-    background-color: var(--dark-menu);
+    background-color: var(--hover-light);
 }
 
 body.dark-mode .notification-icon {
