@@ -27,7 +27,6 @@ export default class Sidebar {
                             <div class="dropdown-box messages-box">
                                 <div class="dropdown-header">
                                     <h4>Messages</h4>
-                                    <a href="#">View all</a>
                                 </div>
                                 <div class="dropdown-content">
                                     <div class="scrollable-content">
@@ -71,16 +70,21 @@ export default class Sidebar {
                         <div class="icon-item">
                             <i class='bx bx-bell'></i>
                             <span class="badge">5</span>
+
                             <!-- Notification dropdown -->
+
                             <div class="dropdown-box notifications-box">
+
                                 <div class="dropdown-header">
                                     <h4>Notifications</h4>
-                                    <a href="#">View all</a>
                                 </div>
+
                                 <div class="dropdown-content">
+
                                     <div class="notification-item" data-target="orders-received">
                                         <div class="notification-icon">
                                             <i class='bx bx-shopping-bag'></i>
+                                            <span class="notification-badge">3</span>
                                         </div>
                                         <div class="notification-info">
                                             <p>New orders received</p>
@@ -89,45 +93,60 @@ export default class Sidebar {
                                     </div>
                                     
                                     <div class="notification-item" data-target="interactions">
+
                                         <div class="notification-icon">
                                             <i class='bx bx-like'></i>
+                                            <span class="notification-badge">3</span>
                                         </div>
+
                                         <div class="notification-info">
                                             <p>Likes & Comments</p>
                                             <small>See your interactions</small>
                                         </div>
+
                                     </div>
                                     
                                     <div class="notification-item" data-target="my-orders">
+
                                         <div class="notification-icon">
                                             <i class='bx bx-package'></i>
+                                            <span class="notification-badge">3</span>
                                         </div>
+                                        
                                         <div class="notification-info">
                                             <p>My Orders</p>
                                             <small>Track your purchases</small>
                                         </div>
+
                                     </div>
                                     
                                     <div class="notification-item" data-target="system">
+
                                         <div class="notification-icon">
                                             <i class='bx bx-bell'></i>
+                                            <span class="notification-badge">3</span>
                                         </div>
+
                                         <div class="notification-info">
                                             <p>System Notifications</p>
                                             <small>Important updates</small>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                         <button id="toggle-btn">
                             <span class="total-badge">8</span>
                             <i class='bx bx-menu'></i>
                         </button>
+
                     </div>
                 </div>
 
                 <!-- Search Bar -->
+
                 <div class="search-box">
                     <i class='bx bx-search'></i>
                     <input type="text" placeholder="Search..." id="search-input">

@@ -11,21 +11,31 @@
     --danger: #ff0000;
     --hover-light: #1f71921c;
     
+    /* Notification colors */
+    --badge-bg: #f44336;
+    --badge-text: #FFFFFF;
+    --notification-icon-bg: rgba(30, 136, 229, 0.1);
+    --notification-hover: rgba(0, 0, 0, 0.05);
+    
     /* Shadows */
     --accent-shadow: 0 5px 20px rgba(107, 66, 219, 0.3);
     --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     --hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     --sidebar-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --badge-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     
     /* Sizes */
     --section-radius: 16px;
     --card-radius: 8px;
     --sidebar-width: 220px;
     --sidebar-collapsed-width: 65px;
+    --badge-size: 16px;
+    --notification-icon-size: 40px;
     
     /* Transitions */
     --transition-fast: all 0.2s ease;
     --transition-normal: all 0.3s ease;
+    --transition-cubic: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /*** BASE STYLES ***/
