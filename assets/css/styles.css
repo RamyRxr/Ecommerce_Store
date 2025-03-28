@@ -11,26 +11,21 @@
     --danger: #ff0000;
     --hover-light: #1f71921c;
     
-    /* Component styles */
+    /* Shadows */
     --accent-shadow: 0 5px 20px rgba(107, 66, 219, 0.3);
-    --dark-menu: rgba(74, 144, 226, 0.1);
     --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     --hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    --sidebar-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.05);
-    --sidebar-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.6), 0 12px 32px rgba(0, 0, 0, 0.08);
+    --sidebar-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     
-    /* Sizes and dimensions */
+    /* Sizes */
     --section-radius: 16px;
     --card-radius: 8px;
-    --badge-size: 15px;
-    --icon-size: 32px;
     --sidebar-width: 220px;
     --sidebar-collapsed-width: 65px;
     
     /* Transitions */
     --transition-fast: all 0.2s ease;
     --transition-normal: all 0.3s ease;
-    --transition-cubic: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /*** BASE STYLES ***/

@@ -1,0 +1,19 @@
+# The contents of the file: /e-commerce-website/e-commerce-website/.htaccess
+
+RewriteEngine On
+
+# Redirect to the index.php file for all requests
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L]
+
+# Enable URL rewriting for clean URLs
+RewriteRule ^login$ login.php [L]
+RewriteRule ^signup$ signup.php [L]
+RewriteRule ^explore$ explore.php [L]
+RewriteRule ^profile$ profile.php [L]
+RewriteRule ^settings$ settings.php [L]
+RewriteRule ^saved$ savedItems.php [L]
+RewriteRule ^sellings$ sellings.php [L]
+RewriteRule ^history$ history.php [L]
+RewriteRule ^cart$ cart.php [L]

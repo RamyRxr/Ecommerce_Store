@@ -1,32 +1,25 @@
 /* Right Sidebar Styling */
-.right-sidebar {
+.sidebar-wrapper {
     position: fixed;
     right: 0;
     top: 0;
-    height: calc(100vh - 40px);
-    width: 350px;
-    background: var(--light-bg);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    z-index: 999;
     transition: all 0.3s ease;
-    overflow-y: auto;
-    margin: 20px;
-    border-radius: 16px;
-    box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.1),
-        0 8px 24px rgba(0, 0, 0, 0.05);
-    padding: 20px;
-    z-index: 99;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
 }
 
-.right-sidebar::-webkit-scrollbar {
-    display: none;
+.sidebar-wrapper.hidden {
+    transform: translateX(calc(100% - 34px));
+    overflow: visible;
 }
+
 
 /* Right Sidebar Close Button */
 .sidebar-toggle {
-    position: fixed;
-    left: 1150px; 
+    position: absolute;
+    left: 6px;
     top: 50%;
     transform: translateY(-50%);
     width: 30px;
@@ -40,30 +33,58 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    z-index: 101; 
+    z-index: 1000;
     transition: all 0.3s ease;
 }
+
+.sidebar-wrapper.hidden .sidebar-toggle {
+    transform: translateY(-50%) translateX(5px);
+    left: 0;
+}
+
+.sidebar-toggle i {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+
 
 .sidebar-toggle:hover {
     background-color: #1565c0;
     transform: translateY(-50%) scale(1.1);
 }
 
-.sidebar-toggle i {
-    font-size: 18px;
+.right-sidebar {
+    height: calc(100vh - 40px);
+    width: 350px;
+    background: var(--light-bg);
+    transition: all 0.3s ease;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 20px;
+    border-radius: 16px;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        0 8px 24px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    z-index: 1;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.right-sidebar::-webkit-scrollbar {
+    display: none;
 }
 
 .right-sidebar.hidden {
-    transform: translateX(100%);
+    transform: translateY(-50%) translateX(-150px);
     overflow: visible;
 }
 
-.right-sidebar.hidden .sidebar-toggle {
-    left: calc(100% - 366px);
+.sidebar-wrapper.collapsed .sidebar-toggle {
+    left: -35px;
 }
 
-
-.right-sidebar.hidden .sidebar-toggle i {
+.sidebar-wrapper.collapsed .sidebar-toggle i {
     transform: rotate(180deg);
 }
 
@@ -213,7 +234,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     max-height: 28px;
-} 
+}
 
 
 .newest-items .item-card .item-info .item-stats {
@@ -280,6 +301,7 @@ body.dark-mode .newest-items .item-card .item-info .item-desc {
 
 
 .daily-deals {
+    position: relative;
     background-color: #aaaaaa9a;
     border-radius: 10px;
     padding: 15px;
@@ -360,7 +382,7 @@ body.dark-mode .newest-items .item-card .item-info .item-desc {
     margin: 5px 0;
     display: flex;
     align-items: center;
-} 
+}
 
 .daily-deals .deals-container .deal-item .item-info .price::before {
     content: '$';
@@ -405,7 +427,7 @@ body.dark-mode .daily-deals .deals-container .deal-item {
     color: inherit;
 }
 
-body.dark-mode .daily-deals .deals-container .deal-item  .item-info h4 {
+body.dark-mode .daily-deals .deals-container .deal-item .item-info h4 {
     color: var(--light-bg);
 }
 

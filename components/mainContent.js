@@ -1,7 +1,4 @@
-/**
- * Main Content Component
- * Generates and manages the main content area functionality
- */
+
 export default class MainContent {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
@@ -27,7 +24,7 @@ export default class MainContent {
                 <div class="ad-carousel">
                     <div class="carousel-container">
                         <div class="carousel-slide active">
-                            <img src="/Assets/products/headphone-1.jpg" alt="Special Offer">
+                            <img src="/assets/images/products-images/headphone-1.jpg" alt="Special Offer">
                             <div class="carousel-caption">
                                 <h3>Summer Collection</h3>
                                 <p>Up to 50% off on selected items</p>
@@ -35,7 +32,7 @@ export default class MainContent {
                             </div>
                         </div>
                         <div class="carousel-slide">
-                            <img src="/Assets/products/headphone-2.jpg" alt="New Arrivals">
+                            <img src="/assets/images/products-images/headphone-2.jpg" alt="New Arrivals">
                             <div class="carousel-caption">
                                 <h3>New Arrivals</h3>
                                 <p>Check out our latest products</p>
@@ -43,7 +40,7 @@ export default class MainContent {
                             </div>
                         </div>
                         <div class="carousel-slide">
-                            <img src="/Assets/products/pc-1.jpg" alt="Limited Edition">
+                            <img src="/assets/images/products-images/pc-1.jpg" alt="Limited Edition">
                             <div class="carousel-caption">
                                 <h3>Limited Edition</h3>
                                 <p>Exclusive products available for a limited time</p>
@@ -51,7 +48,7 @@ export default class MainContent {
                             </div>
                         </div>
                         <div class="carousel-slide">
-                            <img src="/Assets/products/pc-2.jpg" alt="Best Sellers">
+                            <img src="/assets/images/products-images/pc-2.jpg" alt="Best Sellers">
                             <div class="carousel-caption">
                                 <h3>Best Sellers</h3>
                                 <p>Our most popular products this month</p>
@@ -59,7 +56,7 @@ export default class MainContent {
                             </div>
                         </div>
                         <div class="carousel-slide">
-                            <img src="/Assets/products/setup-1.jpg" alt="Clearance">
+                            <img src="/assets/images/products-images/setup-1.jpg" alt="Clearance">
                             <div class="carousel-caption">
                                 <h3>Clearance Sale</h3>
                                 <p>Last chance to buy at unbeatable prices</p>
@@ -67,7 +64,7 @@ export default class MainContent {
                             </div>
                         </div>
                         <div class="carousel-slide">
-                            <img src="/Assets/products/setup-2.jpg" alt="Premium Collection">
+                            <img src="/assets/images/products-images/setup-2.jpg" alt="Premium Collection">
                             <div class="carousel-caption">
                                 <h3>Premium Collection</h3>
                                 <p>Luxury items for discerning customers</p>
@@ -150,7 +147,7 @@ export default class MainContent {
                 price: 129.99,
                 rating: 4.5,
                 reviews: 120,
-                image: '/Assets/products/product-1.svg',
+                image: '/assets/images/products-images/product-1.svg',
                 badge: 'New'
             },
             {
@@ -159,7 +156,7 @@ export default class MainContent {
                 price: 199.99,
                 rating: 5,
                 reviews: 84,
-                image: '/Assets/products/product-2.svg'
+                image: '/assets/images/products-images/product-2.svg'
             },
             {
                 id: 3,
@@ -168,7 +165,7 @@ export default class MainContent {
                 oldPrice: 89.99,
                 rating: 4,
                 reviews: 56,
-                image: '/Assets/products/product-3.svg',
+                image: '/assets/images/products-images/product-3.svg',
                 badge: 'sale',
                 discount: '-20%'
             },
@@ -178,7 +175,7 @@ export default class MainContent {
                 price: 49.99,
                 rating: 3.5,
                 reviews: 42,
-                image: '/Assets/products/product-4.svg'
+                image: '/assets/images/products-images/product-4.svg'
             },
             {
                 id: 5,
@@ -186,7 +183,7 @@ export default class MainContent {
                 price: 89.99,
                 rating: 4,
                 reviews: 78,
-                image: '/Assets/products/product-1.svg'
+                image: '/assets/images/products-images/product-1.svg'
             },
             {
                 id: 6,
@@ -194,7 +191,7 @@ export default class MainContent {
                 price: 79.99,
                 rating: 4.5,
                 reviews: 112,
-                image: '/Assets/products/product-2.svg',
+                image: '/assets/images/products-images/product-2.svg',
                 badge: 'Best'
             },
             {
@@ -203,7 +200,7 @@ export default class MainContent {
                 price: 34.99,
                 rating: 4,
                 reviews: 65,
-                image: '/Assets/products/product-3.svg'
+                image: '/assets/images/products-images/product-3.svg'
             },
             {
                 id: 8,
@@ -212,7 +209,7 @@ export default class MainContent {
                 oldPrice: 99.99,
                 rating: 5,
                 reviews: 93,
-                image: '/Assets/products/product-4.svg',
+                image: '/assets/images/products-images/product-4.svg',
                 badge: 'sale',
                 discount: '-30%'
             },
@@ -222,7 +219,7 @@ export default class MainContent {
                 price: 129.99,
                 rating: 3.5,
                 reviews: 42,
-                image: '/Assets/products/product-1.svg',
+                image: '/assets/images/products-images/product-1.svg',
                 badge: 'New'
             },
             {
@@ -231,7 +228,7 @@ export default class MainContent {
                 price: 29.99,
                 rating: 4,
                 reviews: 87,
-                image: '/Assets/products/product-2.svg'
+                image: '/assets/images/products-images/product-2.svg'
             },
             {
                 id: 11,
@@ -239,7 +236,7 @@ export default class MainContent {
                 price: 59.99,
                 rating: 4.5,
                 reviews: 54,
-                image: '/Assets/products/product-3.svg'
+                image: '/assets/images/products-images/product-3.svg'
             },
             {
                 id: 12,
@@ -247,7 +244,7 @@ export default class MainContent {
                 price: 119.99,
                 rating: 5,
                 reviews: 63,
-                image: '/Assets/products/product-4.svg'
+                image: '/assets/images/products-images/product-4.svg'
             },
             {
                 id: 13,
@@ -256,7 +253,7 @@ export default class MainContent {
                 oldPrice: 69.99,
                 rating: 3.5,
                 reviews: 38,
-                image: '/Assets/products/product-1.svg',
+                image: '/assets/images/products-images/product-1.svg',
                 badge: 'sale',
                 discount: '-15%'
             },
@@ -266,7 +263,7 @@ export default class MainContent {
                 price: 24.99,
                 rating: 5,
                 reviews: 72,
-                image: '/Assets/products/product-2.svg'
+                image: '/assets/images/products-images/product-2.svg'
             },
             {
                 id: 15,
@@ -274,7 +271,7 @@ export default class MainContent {
                 price: 44.99,
                 rating: 4,
                 reviews: 91,
-                image: '/Assets/products/product-3.svg',
+                image: '/assets/images/products-images/product-3.svg',
                 badge: 'Hot'
             },
             {
@@ -283,7 +280,7 @@ export default class MainContent {
                 price: 39.99,
                 rating: 4,
                 reviews: 48,
-                image: '/Assets/products/product-4.svg'
+                image: '/assets/images/products-images/product-4.svg'
             },
             // Adding 4 more rows (16 more products)
             {
@@ -292,7 +289,7 @@ export default class MainContent {
                 price: 59.99,
                 rating: 4.5,
                 reviews: 103,
-                image: '/Assets/products/product-1.svg'
+                image: '/assets/images/products-images/product-1.svg'
             },
             {
                 id: 18,
@@ -301,7 +298,7 @@ export default class MainContent {
                 oldPrice: 399.99,
                 rating: 5,
                 reviews: 58,
-                image: '/Assets/products/product-2.svg',
+                image: '/assets/images/products-images/product-2.svg',
                 badge: 'sale',
                 discount: '-25%'
             },
@@ -311,7 +308,7 @@ export default class MainContent {
                 price: 34.99,
                 rating: 4,
                 reviews: 76,
-                image: '/Assets/products/product-3.svg'
+                image: '/assets/images/products-images/product-3.svg'
             },
             {
                 id: 20,
@@ -319,7 +316,7 @@ export default class MainContent {
                 price: 19.99,
                 rating: 4.5,
                 reviews: 89,
-                image: '/Assets/products/product-4.svg',
+                image: '/assets/images/products-images/product-4.svg',
                 badge: 'New'
             },
             {
@@ -328,7 +325,7 @@ export default class MainContent {
                 price: 44.99,
                 rating: 4,
                 reviews: 67,
-                image: '/Assets/products/product-1.svg'
+                image: '/assets/images/products-images/product-1.svg'
             },
             {
                 id: 22,
@@ -336,7 +333,7 @@ export default class MainContent {
                 price: 29.99,
                 rating: 3.5,
                 reviews: 52,
-                image: '/Assets/products/product-2.svg'
+                image: '/assets/images/products-images/product-2.svg'
             },
             {
                 id: 23,
@@ -345,7 +342,7 @@ export default class MainContent {
                 oldPrice: 14.99,
                 rating: 5,
                 reviews: 124,
-                image: '/Assets/products/product-3.svg',
+                image: '/assets/images/products-images/product-3.svg',
                 badge: 'sale',
                 discount: '-10%'
             },
@@ -355,7 +352,7 @@ export default class MainContent {
                 price: 19.99,
                 rating: 4,
                 reviews: 98,
-                image: '/Assets/products/product-4.svg'
+                image: '/assets/images/products-images/product-4.svg'
             },
             {
                 id: 25,
@@ -363,7 +360,7 @@ export default class MainContent {
                 price: 69.99,
                 rating: 5,
                 reviews: 147,
-                image: '/Assets/products/product-1.svg',
+                image: '/assets/images/products-images/product-1.svg',
                 badge: 'Best'
             },
             {
@@ -372,7 +369,7 @@ export default class MainContent {
                 price: 24.99,
                 rating: 4,
                 reviews: 73,
-                image: '/Assets/products/product-2.svg'
+                image: '/assets/images/products-images/product-2.svg'
             },
             {
                 id: 27,
@@ -380,7 +377,7 @@ export default class MainContent {
                 price: 29.99,
                 rating: 4.5,
                 reviews: 86,
-                image: '/Assets/products/product-3.svg'
+                image: '/assets/images/products-images/product-3.svg'
             },
             {
                 id: 28,
@@ -389,7 +386,7 @@ export default class MainContent {
                 oldPrice: 49.99,
                 rating: 3.5,
                 reviews: 45,
-                image: '/Assets/products/product-4.svg',
+                image: '/assets/images/products-images/product-4.svg',
                 badge: 'sale',
                 discount: '-40%'
             }
