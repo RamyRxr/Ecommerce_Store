@@ -1,4 +1,4 @@
-export default class RightSidebar {
+export default class RightSideBar {
     constructor(containerId = "app") {
         this.container = document.getElementById(containerId);
         this.isHidden = false;

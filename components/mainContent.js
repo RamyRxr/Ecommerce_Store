@@ -1,4 +1,3 @@
-
 export default class MainContent {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);

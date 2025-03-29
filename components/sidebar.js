@@ -1,4 +1,4 @@
-export default class Sidebar {
+export default class SideBar {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.isCollapsed = false;
