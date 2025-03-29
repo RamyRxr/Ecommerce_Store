@@ -531,7 +531,8 @@
     width: 100%;
     padding: 12px 15px;
     background: var(--light-bg);
-    border-radius: var(--section-radius);
+    border-radius: 0 0 var(--section-radius) var(--section-radius);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -719,6 +720,12 @@ body.dark-mode .sidebar .icon-item i {
     color: var(--light-bg);
 }
 
+body.dark-mode .logout-wrapper i:hover,
+body.dark-mode .logout-wrapper a:hover i {
+    color: var(--danger);
+    transform: scale(1.1);
+}
+
 body.dark-mode .dropdown-box {
     background-color: var(--dark-bg);
     box-shadow: var(--accent-shadow);
@@ -787,6 +794,7 @@ body.dark-mode .menu li.active a i {
 
 body.dark-mode .profile {
     background: var(--dark-bg);
+    border-top: 1px solid var(--light-bg);
 }
 
 body.dark-mode .sidebar .icon-item {

@@ -217,7 +217,10 @@ export default class SideBar {
                                 <i class='bx bx-moon'></i>
                             </div>
                         </a>
-                        <i class='bx bx-log-out'></i>
+                        <a href="login.html" id="theme-toggle">
+                                <i class='bx bx-log-out'></i>
+                        </a>
+                        
                     </div>
                 </div>
             </div>
