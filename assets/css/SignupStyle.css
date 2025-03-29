@@ -427,7 +427,7 @@ body.dark-mode .signup-card::-webkit-scrollbar-thumb {
     text-align: center;
     margin-top: 20px;
     font-size: 14px;
-    color: #666;
+    color: var(--text-dark);
 }
 
 .login-link a {
@@ -543,6 +543,10 @@ body.dark-mode #timer {
 }
 
 body.dark-mode .signup-divider .text {
+    color: var(--text-light);
+}
+
+body.dark-mode .login-link {
     color: var(--text-light);
 }
 

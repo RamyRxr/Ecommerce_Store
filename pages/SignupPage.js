@@ -1,4 +1,5 @@
 export default class SignupPage {
+    
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -33,7 +34,9 @@ export default class SignupPage {
                         <p class="signup-subtitle">Sign up to get started</p>
                         
                         <form id="signup-form">
+
                             <!-- Name fields -->
+
                             <div class="form-row">
                                 <div class="form-group half">
                                     <label for="firstName">First Name</label>
@@ -53,6 +56,7 @@ export default class SignupPage {
                             </div>
                             
                             <!-- Email field -->
+
                             <div class="form-group">
                                 <label for="email">Email Address</label>
                                 <div class="input-with-icon">
@@ -62,6 +66,7 @@ export default class SignupPage {
                             </div>
                             
                             <!-- Password fields -->
+
                             <div class="form-group">
                                 <label for="password">Password</label>
                                 <div class="input-with-icon">
@@ -91,6 +96,7 @@ export default class SignupPage {
                             </div>
                             
                             <!-- Phone Number & Verification -->
+
                             <div class="form-group">
                                 <label for="phoneNumber">Phone Number</label>
                                 <div class="input-with-icon phone-input">
@@ -103,6 +109,7 @@ export default class SignupPage {
                             </div>
                             
                             <!-- Verification Code (hidden initially) -->
+
                             <div class="form-group verification-group" style="display: none;">
                                 <label for="verificationCode">Verification Code</label>
                                 <div class="input-with-icon">
@@ -118,6 +125,7 @@ export default class SignupPage {
                             </div>
                             
                             <!-- Terms and Conditions -->
+
                             <div class="form-group terms-group">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="terms" required>
