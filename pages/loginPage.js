@@ -49,6 +49,7 @@ export default class LoginPage {
                                     <button type="button" id="toggle-password" class="toggle-password">
                                         <i class='bx bx-hide'></i>
                                     </button>
+                                    
                                 </div>
                             </div>
                             
@@ -88,7 +89,7 @@ export default class LoginPage {
                         </div>
                         
                         <div class="register-link">
-                            Don't have an account? <a href="#" id="signup-link">Sign up</a>
+                            Don't have an account ? <a href="#" id="signup-link">Sign up</a>
                         </div>
                     </div>
                 </div>

@@ -1,9 +1,14 @@
 /* Login page specific styles */
 .login-container {
-    width: 100%;
+    position: fixed; 
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
     height: 100vh;
     display: flex;
-    justify-content: center;
+    justify-content: center; 
     align-items: center;
     padding: 20px;
     background-color: var(--body-bg);
@@ -13,18 +18,13 @@
 .login-card {
     background-color: var(--light-bg);
     border-radius: var(--section-radius);
-    box-shadow: var(--card-shadow);
+    box-shadow: var(--accent-shadow);
     width: 100%;
     max-width: 440px;
     overflow: hidden;
     transition: var(--transition-normal);
     animation: fadeIn 0.5s ease forwards;
     position: relative;
-}
-
-.login-card:hover {
-    box-shadow: var(--hover-shadow);
-    transform: translateY(-5px);
 }
 
 /* Login Header */
@@ -73,16 +73,20 @@
 }
 
 .login-title {
-    font-size: 24px;
-    font-weight: 600;
     color: var(--text-dark);
     margin-bottom: 10px;
     text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent, #1e88e5), #5e35b1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .login-subtitle {
     font-size: 14px;
-    color: #666;
+    font-weight: 600;
+    color: var(--text-dark);
     margin-bottom: 30px;
     text-align: center;
 }
@@ -93,25 +97,32 @@
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 500;
+    display: block;  /* Make label a block element */
+    position: relative;
+    left: 20px;
+    margin-bottom: 10px;  /* This will now work correctly */
+    font-size: 16px;
+    font-weight: 600;
     color: var(--text-dark);
 }
 
 .input-with-icon {
     position: relative;
-    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    padding: 0;
+    background: var(--light-bg);
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    transition: var(--transition-normal);
+    overflow: visible;
 }
 
 .input-with-icon i {
     position: absolute;
     left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-    font-size: 18px;
+    color: var(--text-dark);
+    font-size: 20px;
     transition: var(--transition-fast);
 }
 
@@ -119,22 +130,30 @@
     color: var(--accent);
 }
 
+
+.input-with-icon:hover,
+.input-with-icon:focus-within {
+    background: #fbf6f6c7;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.input-with-icon:hover i,
+.input-with-icon:focus-within i {
+    color: var(--accent);
+}
+
 .form-control {
     width: 100%;
     padding: 12px 15px 12px 40px;
     font-size: 14px;
-    border: 1px solid #ddd;
-    border-radius: var(--card-radius);
-    background-color: #f8f9fa;
-    color: var(--text-dark);
+    border: none;
+    outline: none;
+    background: none;
+    color: var(--dark-bg);
     transition: var(--transition-fast);
+    padding-right: 40px;
 }
 
-.form-control:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    outline: none;
-}
 
 .toggle-password {
     position: absolute;
@@ -147,6 +166,12 @@
     color: #888;
     cursor: pointer;
     transition: var(--transition-fast);
+    z-index: 2;
+    display: flex; /* Add this */
+    align-items: center; /* Add this */
+    justify-content: center; /* Add this */
+    width: 28px; /* Add explicit width */
+    height: 28px;
 }
 
 .toggle-password:hover {
@@ -239,13 +264,14 @@
 .login-divider .line {
     flex: 1;
     height: 1px;
-    background-color: #ddd;
+    background-color: var(--dark-bg);
 }
 
 .login-divider .text {
     margin: 0 15px;
     font-size: 14px;
-    color: #666;
+    font-weight: 500;
+    color: var(--text-dark);
 }
 
 .social-login {
@@ -297,7 +323,7 @@
     text-align: center;
     margin-top: 20px;
     font-size: 14px;
-    color: #666;
+    color: var(--text-dark);
 }
 
 .register-link a {
@@ -341,7 +367,7 @@ body.dark-mode .login-container {
 
 body.dark-mode .login-card {
     background-color: var(--dark-bg);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--accent-shadow)
 }
 
 body.dark-mode .login-header {
@@ -358,17 +384,6 @@ body.dark-mode .theme-toggle button {
     color: var(--text-light);
 }
 
-body.dark-mode .form-control {
-    background-color: #333;
-    border-color: #444;
-    color: var(--text-light);
-}
-
-body.dark-mode .form-control:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
-}
-
 body.dark-mode .login-subtitle,
 body.dark-mode .remember-me,
 body.dark-mode .login-divider .text,
@@ -376,9 +391,23 @@ body.dark-mode .register-link {
     color: #aaa;
 }
 
-body.dark-mode .toggle-password,
-body.dark-mode .input-with-icon i {
-    color: #aaa;
+body.dark-mode .input-with-icon {
+    background: #a0a0a0;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .input-with-icon:hover,
+body.dark-mode .input-with-icon:focus-within {
+    background: var(--light-bg);
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.719);
+}
+
+body.dark-mode .form-control {
+    color: var(--dark-bg);
+}
+
+body.dark-mode .login-divider .line {
+    background-color: var(--light-bg);
 }
 
 body.dark-mode .social-btn {
