@@ -89,7 +89,7 @@ export default class LoginPage {
                         </div>
                         
                         <div class="register-link">
-                            Don't have an account ? <a href="#" id="signup-link">Sign up</a>
+                            Don't have an account ? <a href="signup.html" id="signup-link">Sign up</a>
                         </div>
                     </div>
                 </div>
