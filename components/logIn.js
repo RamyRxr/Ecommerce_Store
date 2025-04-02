@@ -30,7 +30,7 @@ export default class LogIn {
                     
                     <div class="login-body">
                         <h1 class="login-title">Welcome Back</h1>
-                        <p class="login-subtitle">Please sign in to continue</p>
+                        <p class="login-subtitle">Please Log in to continue</p>
                         
                         <form id="login-form">
                             <div class="form-group">
@@ -63,7 +63,7 @@ export default class LogIn {
                             
                             <button type="submit" class="btn-login">
                                 <i class='bx bx-log-in'></i>
-                                <span>Sign In</span>
+                                <span>Log In</span>
                             </button>
                         </form>
                         
@@ -89,7 +89,7 @@ export default class LogIn {
                         </div>
                         
                         <div class="register-link">
-                            Don't have an account ? <a href="signup.html" id="signup-link">Sign up</a>
+                            Don't have an account ? <a href="../HTML-Pages/signup.html" id="signup-link">Sign up</a>
                         </div>
                     </div>
                 </div>
@@ -189,28 +189,45 @@ export default class LogIn {
         loginBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Signing in...</span>';
         loginBtn.disabled = true;
         
-        // Simulate API call
-        setTimeout(() => {
-            // For demo purposes - in a real app, we'd check with a server
-            if (username === 'admin' && password === 'admin') {
-                // If remember me is checked, save username to localStorage
+        // Create form data
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+        
+        // Make API request using fetch
+        fetch('http://localhost/Project-Web/api/auth/login.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // If remember me is checked, save to localStorage
                 if (remember) {
                     localStorage.setItem('rememberedUser', username);
                     localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userData', JSON.stringify(data.data));
                 } else {
                     localStorage.removeItem('rememberedUser');
                     sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('userData', JSON.stringify(data.data));
                 }
                 
-                // Redirect to dashboard or trigger success event
-                window.location.href = './index.html';
+                // Redirect to dashboard
+                window.location.href = '../HTML-Pages/Home.html';
             } else {
                 // Show error
-                this.showError('Invalid username or password');
-                loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Sign In</span>';
+                this.showError(data.message || 'Invalid username or password');
+                loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Log In</span>';
                 loginBtn.disabled = false;
             }
-        }, 1500);
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+            this.showError('Connection error. Please try again.');
+            loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Sign In</span>';
+            loginBtn.disabled = false;
+        });
     }
 
     showError(message) {

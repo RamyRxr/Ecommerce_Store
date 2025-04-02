@@ -443,14 +443,38 @@ export default class SignUp {
         signupBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Creating Account...</span>';
         signupBtn.disabled = true;
         
-        // Simulate API call
-        setTimeout(() => {
-            // For demo purposes - success case
-            localStorage.setItem('isLoggedIn', 'true');
-            
-            // Redirect to dashboard
-            window.location.href = './index.html';
-        }, 2000);
+        // Create form data
+        const formData = new FormData();
+        formData.append('username', document.getElementById('username').value);
+        formData.append('email', document.getElementById('email').value);
+        formData.append('password', document.getElementById('password').value);
+        formData.append('confirm_password', document.getElementById('confirmPassword').value);
+        formData.append('first_name', document.getElementById('firstName').value);
+        formData.append('last_name', document.getElementById('lastName').value);
+        formData.append('phone', document.getElementById('phoneNumber').value);
+        
+        // Make API request
+        fetch('api/auth/register.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message or redirect
+                window.location.href = './login.html?registered=true';
+            } else {
+                this.showError(data.message || 'Registration failed');
+                signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
+                signupBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Registration error:', error);
+            this.showError('Connection error. Please try again.');
+            signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
+            signupBtn.disabled = false;
+        });
     }
 
     showError(message) {

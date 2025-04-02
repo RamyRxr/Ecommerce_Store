@@ -17,7 +17,7 @@ export default class SideBar {
             <div class="sidebar${this.isCollapsed ? ' collapsed' : ''}">
                 <div class="top">
                     <span class="logo">
-                        <img src="ramyrxr.png" alt="RamyRXR" class="logo-img">
+                        <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR" class="logo-img">
                     </span>
                     <div class="top-controls">
                         <div class="icon-item">
@@ -32,7 +32,7 @@ export default class SideBar {
                                     <div class="scrollable-content">
                                         <div class="message-item">
                                             <div class="message-avatar">
-                                                <img src="RamyRxr.png" alt="User">
+                                                <img src="../assets/images/general-image/RamyRxr.png" alt="User">
                                             </div>
                                             <div class="message-info">
                                                 <h5>John Doe</h5>
@@ -42,7 +42,7 @@ export default class SideBar {
                                         </div>
                                         <div class="message-item">
                                             <div class="message-avatar">
-                                                <img src="RamyRxr.png" alt="User">
+                                                <img src="../assets/images/general-image/RamyRxr.png" alt="User">
                                             </div>
                                             <div class="message-info">
                                                 <h5>Jane Smith</h5>
@@ -52,7 +52,7 @@ export default class SideBar {
                                         </div>
                                         <div class="message-item">
                                             <div class="message-avatar">
-                                                <img src="RamyRxr.png" alt="User">
+                                                <img src="../assets/images/general-image/RamyRxr.png" alt="User">
                                             </div>
                                             <div class="message-info">
                                                 <h5>Mike Johnson</h5>
@@ -205,7 +205,7 @@ export default class SideBar {
 
                 <div class="profile">
                     <div class="profile-details">
-                        <img src="ramyrxr.png" alt="RamyRXR">
+                        <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR">
                         <div class="info">
                             <span>RamyRxr</span>
                             <small>Developer</small>
@@ -217,7 +217,7 @@ export default class SideBar {
                                 <i class='bx bx-moon'></i>
                             </div>
                         </a>
-                        <a href="login.html" id="theme-toggle">
+                        <a href="../HTML-Pages/login.html" id="theme-toggle">
                                 <i class='bx bx-log-out'></i>
                         </a>
                         

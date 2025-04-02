@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login API Testing Tool</h1>
+        
+        <div class="card">
+            <h2>1. Test Database Connection</h2>
+            <button id="testDb">Test Database</button>
+            <pre id="dbResult">Results will appear here...</pre>
+        </div>
+        
+        <div class="card">
+            <h2>2. Test Login API</h2>
+            <form id="loginForm">
+                <div>
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" value="testuser">
+                </div>
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" value="password123">
+                </div>
+                <button type="submit">Test Login</button>
+            </form>
+            <pre id="loginResult">Results will appear here...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Test database connection
+        document.getElementById('testDb').addEventListener('click', function() {
+            const resultEl = document.getElementById('dbResult');
+            resultEl.innerHTML = 'Testing connection...';
+            
+            fetch('http://localhost/Project-Web/api/test.php')
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        const data = JSON.parse(text);
+                        let result = JSON.stringify(data, null, 2);
+                        
+                        if (data.success) {
+                            resultEl.innerHTML = '<span class="success">✓ Connection successful!</span>\n\n' + result;
+                        } else {
+                            resultEl.innerHTML = '<span class="error">✗ Connection failed!</span>\n\n' + result;
+                        }
+                    } catch (e) {
+                        resultEl.innerHTML = '<span class="error">✗ Invalid JSON response!</span>\n\n' + text;
+                    }
+                })
+                .catch(error => {
+                    resultEl.innerHTML = '<span class="error">✗ Error:</span> ' + error.message;
+                });
+        });
+        
+        // Test login API
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultEl = document.getElementById('loginResult');
+            
+            resultEl.innerHTML = 'Testing login...';
+            
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            fetch('http://localhost/Project-Web/api/auth/login.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(text => {
+                try {
+                    const data = JSON.parse(text);
+                    let result = JSON.stringify(data, null, 2);
+                    
+                    if (data.success) {
+                        resultEl.innerHTML = '<span class="success">✓ Login successful!</span>\n\n' + result;
+                    } else {
+                        resultEl.innerHTML = '<span class="error">✗ Login failed!</span>\n\n' + result;
+                    }
+                } catch (e) {
+                    resultEl.innerHTML = '<span class="error">✗ Invalid JSON response!</span>\n\n' + text;
+                }
+            })
+            .catch(error => {
+                resultEl.innerHTML = '<span class="error">✗ Error:</span> ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>
