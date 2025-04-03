@@ -1,12 +1,23 @@
-import FilterSidebarComponent from '../components/FilterSidebar.js';
 import SideBar2 from '../components/SideBar2.js';
+import FilterSidebar from '../components/FilterSidebar.js';
+import ExploreContents from '../components/ExploreContents.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // First initialize the specialized sidebar that's always collapsed
     const sidebar = new SideBar2('app');
     
     // Then initialize the filter sidebar component
-    const filterSidebar = new FilterSidebarComponent('app');
+    const filterSidebar = new FilterSidebar('app');
     
-    console.log('Explore page initialized with permanently collapsed sidebar');
+    // Initialize the main content with product grid
+    const exploreContents = new ExploreContents('app');
+    
+    console.log('Explore page initialized with product grid and pagination');
+    
+    // Set up event listener for filter application
+    document.addEventListener('filtersApplied', (event) => {
+        const filters = event.detail.filters;
+        console.log('Filters applied:', filters);
+        // In a real application, you would filter the products here
+    });
 });
