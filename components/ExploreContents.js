@@ -133,17 +133,21 @@ export default class ExploreContents {
 
     searchProducts(query) {
         if (!query || query.trim() === '') {
+            // If search is empty, show all products
             this.filteredProducts = [...this.products];
         } else {
             const searchTerm = query.toLowerCase().trim();
             this.filteredProducts = this.products.filter(product =>
-                product.name.toLowerCase().includes(searchTerm) ||
-                product.description.toLowerCase().includes(searchTerm)
+                product.name.toLowerCase().includes(searchTerm)
             );
+
+            console.log(`Found ${this.filteredProducts.length} products matching "${searchTerm}"`);
         }
 
-        // Re-apply current sort
-        this.sortProducts(this.sortOption);
+        // Reset to first page and update the display
+        this.currentPage = 1;
+        this.updateProductCards();
+        this.updatePagination();
     }
 
     render() {
@@ -153,6 +157,10 @@ export default class ExploreContents {
                     <div class="search-container">
                         <i class='bx bx-search'></i>
                         <input type="text" id="main-search" placeholder="Search products...">
+                        <button id="search-button" class="search-button">
+                            <i class='bx bx-search-alt'></i>
+                            Search
+                        </button>
                     </div>
                     
                     <div class="filter-controls">
@@ -220,14 +228,33 @@ export default class ExploreContents {
 
         productsGrid.innerHTML = '';
 
-        if (paginatedProducts.length === 0) {
+        if (this.filteredProducts.length === 0) {
+            // No products found message with fancy styling
             productsGrid.innerHTML = `
                 <div class="no-products">
-                    <i class='bx bx-search-alt'></i>
-                    <h3>No products found</h3>
-                    <p>Try adjusting your search or filter criteria</p>
+                    <div class="no-products-icon">
+                        <i class='bx bx-search-alt'></i>
+                    </div>
+                    <h3>Product Not Found</h3>
+                    <p>We couldn't find any products matching your search.</p>
+                    <button class="reset-search-btn">
+                        <i class='bx bx-reset'></i>
+                        Clear Search
+                    </button>
                 </div>
             `;
+
+            // Add event listener to the reset search button
+            const resetSearchBtn = productsGrid.querySelector('.reset-search-btn');
+            if (resetSearchBtn) {
+                resetSearchBtn.addEventListener('click', () => {
+                    const searchInput = document.getElementById('main-search');
+                    if (searchInput) {
+                        searchInput.value = '';
+                        this.searchProducts('');
+                    }
+                });
+            }
             return;
         }
 
@@ -358,10 +385,37 @@ export default class ExploreContents {
     setupEventListeners() {
         // Search functionality
         const searchInput = document.getElementById('main-search');
+        const searchButton = document.getElementById('search-button');
+
         if (searchInput) {
+            // Add debouncing to improve performance
+            let searchTimeout;
+
+            // Search when typing (with debounce)
             searchInput.addEventListener('input', () => {
-                this.searchProducts(searchInput.value);
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    this.searchProducts(searchInput.value);
+                }, 500); // Wait 500ms after user stops typing
             });
+
+            // Search when user presses Enter
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    clearTimeout(searchTimeout);
+                    this.searchProducts(searchInput.value);
+                    console.log('Search executed on Enter for:', searchInput.value);
+                }
+            });
+
+            // Add search button click event
+            if (searchButton) {
+                searchButton.addEventListener('click', () => {
+                    clearTimeout(searchTimeout);
+                    this.searchProducts(searchInput.value);
+                    console.log('Search executed via button for:', searchInput.value);
+                });
+            }
         }
 
         // Filter dropdown toggle

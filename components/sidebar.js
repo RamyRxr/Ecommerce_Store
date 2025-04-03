@@ -160,7 +160,7 @@ export default class SideBar {
                         </a>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/HTML-Pages/ExplorePage.html">
                             <i class='bx bx-compass'></i>
                             <span class="links_name">Explore</span>
                         </a>
