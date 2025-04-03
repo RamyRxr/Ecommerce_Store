@@ -53,7 +53,7 @@
     border-bottom: none;
 }
 
-.filter-section > label {
+.filter-section>label {
     display: block;
     margin-bottom: 10px;
     font-weight: 600;
@@ -169,7 +169,7 @@
 
 .price-range-inputs div {
     position: relative;
-    width: 90px;    
+    width: 90px;
 }
 
 .price-range-inputs span {
@@ -278,13 +278,12 @@
 
 /* Dark mode button styles */
 body.dark-mode .apply-button {
-    background-color: #080f26;
-    border-color: #162045;
+    background-color: #0a194a;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 body.dark-mode .apply-button:hover {
-    background-color: #0a1330;
+    background-color: #0b173c;
     box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -323,7 +322,7 @@ body.dark-mode .filter-section {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-body.dark-mode .filter-section > label,
+body.dark-mode .filter-section>label,
 body.dark-mode .filter-section label {
     color: var(--light-bg);
 }
