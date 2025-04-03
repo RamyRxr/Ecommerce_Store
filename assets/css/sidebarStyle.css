@@ -26,7 +26,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 15px;
-    border-bottom: 1px solid var(--dark-bg);
+    border-bottom: 2px solid var(--dark-bg);
 }
 
 /* Logo */
@@ -702,7 +702,7 @@ body.dark-mode .sidebar {
 }
 
 body.dark-mode .sidebar .top {
-    border-bottom: 1px solid var(--light-bg);
+    border-bottom: 2px solid var(--light-bg);
 }
 
 body.dark-mode .sidebar .logo h2,

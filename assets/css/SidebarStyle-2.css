@@ -6,7 +6,7 @@
     justify-content: center;
     align-items: center;
     padding: 15px 0;
-    border-bottom: 1px solid var(--dark-bg);
+    border-bottom: 2px solid var(--dark-bg);
 }
 
 .sidebar.collapsed .explore-top .logo {
@@ -28,5 +28,5 @@
 
 
 body.dark-mode .sidebar.collapsed .explore-top {
-    border-bottom: 1px solid var(--light-bg);
+    border-bottom: 2px solid var(--light-bg);
 }

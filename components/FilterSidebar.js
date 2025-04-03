@@ -19,10 +19,15 @@ export default class FilterSidebar {
     render() {
         const filterHTML = `
             <div class="filter-container">
-                <h3>Filters</h3>
-                
+                <div class="filter-top">
+                    <h3>Filters</h3>
+                </div>
+
                 <div class="filter-section">
-                    <label>Categories</label>
+                    <div class="Categoris-header">
+                        <h2>Categories</h2>
+                    </div>
+                    
                     ${this.categories.map(category => `
                         <div>
                             <input type="checkbox" id="category-${category.toLowerCase()}" name="category" value="${category.toLowerCase()}"> 
@@ -32,7 +37,11 @@ export default class FilterSidebar {
                 </div>
                 
                 <div class="filter-section">
-                    <label>Price Range</label>
+
+                    <div class="Categoris-header">
+                        <h2>Price Range</h2>
+                    </div>
+
                     <div class="price-slider-container">
                         <div class="price-range-track">
                             <div class="price-range-progress"></div>
@@ -61,7 +70,11 @@ export default class FilterSidebar {
                 </div>
                 
                 <div class="filter-section">
-                    <label>Brand</label>
+
+                    <div class="Categoris-header">
+                        <h2>Brand</h2>
+                    </div>
+
                     ${this.brands.map(brand => `
                         <div>
                             <input type="checkbox" id="brand-${brand.toLowerCase()}" name="brand" value="${brand.toLowerCase()}"> 
@@ -71,7 +84,11 @@ export default class FilterSidebar {
                 </div>
                 
                 <div class="filter-section">
-                    <label>Rating</label>
+
+                    <div class="Categoris-header">
+                        <h2>Rating</h2>
+                    </div>
+                    
                     <div class="rating-options">
                         <div>
                             <input type="radio" id="rating-any" name="rating" value="0" checked> 

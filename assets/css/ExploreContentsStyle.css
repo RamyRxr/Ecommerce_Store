@@ -42,8 +42,10 @@
 /*** SEARCH & FILTER SECTION ***/
 .search-filter-container {
     display: flex;
-    justify-content: space-between;
+    justify-content:first baseline;
     align-items: center;
+    gap: 20px;
+    height: 62px;
     padding: 20px;
     border-bottom: 2px solid var(--dark-bg);
 }
@@ -58,11 +60,12 @@
     border-radius: 5px;
     box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: var(--transition-normal);
-    min-width: 440px;
+    min-width: 600px;
+    height: 40px;
 }
 
 .search-container i {
-    color: #666;
+    color: var(--text-dark);
     margin-right: 10px;
     font-size: 20px;
 }
@@ -79,7 +82,7 @@
 
 .search-button {
     background: var(--accent, #1e88e5);
-    color: white;
+    color: var(--light-bg);
     border: none;
     border-radius: 4px;
     padding: 8px 15px;
@@ -90,6 +93,7 @@
     align-items: center;
     gap: 5px;
     transition: all 0.2s;
+    height: 28px;
 }
 
 .search-button:hover {
@@ -104,19 +108,41 @@
 }
 
 .search-button i {
-    color: white;
+    color: var(--light-bg);
     margin: 0;
     font-size: 16px;
 }
 
+.search-container:hover,
+.search-container:focus-within {
+    background: #fbf6f6c7;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.search-container:hover i,
+.search-container:focus-within i{
+    color: var(--accent);
+}
+
+.search-container:hover .search-button i {
+    color: var(--light-bg);
+}
+
+
 /* Dark mode styling for search button */
 body.dark-mode .search-container {
-    background: #333;
-    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: #a0a0a0;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .search-container:hover,
+body.dark-mode .search-container:focus-within {
+    background: var(--light-bg);
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.719);
 }
 
 body.dark-mode .search-container input {
-    color: var(--light-bg);
+    color: var(--dark-bg);
 }
 
 body.dark-mode .search-button {
@@ -284,11 +310,11 @@ body.dark-mode .search-button:hover {
 
 /*** PRODUCT CARD ***/
 .product-card {
-    background: var(--light-bg);
-    border-radius: 10px;
+    background-color: var(--light-bg);
+    border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s;
+    transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -303,7 +329,6 @@ body.dark-mode .search-button:hover {
     position: relative;
     width: 100%;
     padding-top: 100%;
-    /* Aspect ratio 1:1 */
     overflow: hidden;
 }
 
@@ -313,8 +338,9 @@ body.dark-mode .search-button:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.5s;
+    padding: 10px;
 }
 
 .product-card:hover .product-image img {
@@ -384,15 +410,15 @@ body.dark-mode .search-button:hover {
 }
 
 .product-name {
-    margin: 0 0 8px 0;
-    font-size: 16px;
+    margin: 0 0 5px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--dark-bg);
 }
 
 .product-description {
-    margin: 0 0 12px 0;
-    font-size: 14px;
+    margin-bottom: 10px;
+    font-size: 13px;
     font-weight: 500;
     color: #6b6767;
     flex-grow: 1;
@@ -407,7 +433,7 @@ body.dark-mode .search-button:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .price-container {
@@ -450,18 +476,20 @@ body.dark-mode .search-button:hover {
 }
 
 .add-to-cart-btn {
-    padding: 10px;
+    width: 100%;
+    padding: 8px 0;
     background-color: var(--accent, #1e88e5);
     color: var(--light-bg);
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: all 0.3s;
+    gap: 5px;
+    transition: background-color 0.2s;
 }
 
 .add-to-cart-btn i {
@@ -472,8 +500,12 @@ body.dark-mode .search-button:hover {
     transform: scale(0.98);
 }
 
+.add-to-cart-btn:hover {
+    background-color: #3178c6;
+}
+
 .add-to-cart-btn.added {
-    background-color: #1565c0;
+    background-color: #3178c6;
 }
 
 /*** NO PRODUCTS ***/
@@ -596,11 +628,10 @@ body.dark-mode .reset-search-btn:hover {
 
 /*** PAGINATION ***/
 .pagination-container {
-    padding: 20px;
+    padding: 30px;
     display: flex;
     justify-content: center;
     border-top: 2px solid var(--dark-bg);
-    margin: 35px 0;
 }
 
 .pagination {
@@ -742,45 +773,13 @@ body.dark-mode .filter-option.selected {
 
 body.dark-mode .product-card {
     background-color: #080f26;
-    border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-body.dark-mode .product-image {
-    position: relative;
-    width: 100%;
-    padding-top: 100%;
-    overflow: hidden;
-}
-
-body.dark-mode .product-image img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 10px;
 }
 
 body.dark-mode .product-name {
-    margin: 0 0 5px;
-    font-size: 15px;
-    font-weight: 700;
     color: var(--light-bg);
 }
 
-body.dark-mode .product-description {
-    font-size: 14px;
-    color: #aaa;
-    margin-bottom: 10px;
-}
-
-body.dark-mode .product-meta {
-    margin-bottom: 10px;
-}
 
 body.dark-mode .product-price {
     font-size: 16px;
@@ -814,32 +813,10 @@ body.dark-mode .rating-count {
 }
 
 body.dark-mode .add-to-cart-btn {
-    width: 100%;
-    padding: 8px 0;
-    background-color: var(--accent-dark, #58a6ff);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    transition: background-color 0.2s;
-}
-
-body.dark-mode .add-to-cart-btn:hover {
-    background-color: #3178c6;
-}
-
-body.dark-mode .add-to-cart-btn.added {
-    background-color: #3178c6;
+    color: var(--light-bg);
 }
 
 body.dark-mode .pagination-container {
-    margin: 35px 0;
     border-top: 2px solid var(--light-bg);
 }
 
@@ -926,8 +903,8 @@ body.dark-mode .pagination-btn:disabled {
     box-shadow: none;
     opacity: 0.7;
     transform: none;
+}
 
-    body.dark-mode .product-card:hover {
-        transform: translateY(-3px);
-        box-shadow: inset 4px 4px 8px 4px rgba(0, 0, 0, 0.2);
-    }
+body.dark-mode .product-card:hover {
+    box-shadow: inset 4px 4px 8px 4px rgba(0, 0, 0, 0.2);
+}

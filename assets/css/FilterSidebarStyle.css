@@ -1,8 +1,7 @@
 /* Filter sidebar container */
 .filter-sidebar {
     position: fixed;
-    top: 20px;
-    left: calc(var(--sidebar-collapsed-width) + 30px);
+    left: calc(var(--sidebar-collapsed-width) + 10px);
     z-index: 90;
 }
 
@@ -10,7 +9,7 @@
     width: 240px;
     background: var(--light-bg);
     height: calc(100vh - 40px);
-    padding: 20px;
+    margin: 20px;
     border-radius: var(--section-radius);
     box-shadow: var(--sidebar-shadow);
     transition: var(--transition-normal);
@@ -35,18 +34,24 @@
     border-radius: 5px;
 }
 
+.filter-container .filter-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 2px solid var(--dark-bg);
+}
+
 .filter-container h3 {
-    margin: 0 0 20px 0;
     font-size: 18px;
     color: var(--dark-bg);
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--dark-bg);
+    padding-bottom: 9px;
 }
 
 .filter-section {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 20px;
+    padding: 15px;
+    border-bottom: 2px solid var(--dark-bg);
 }
 
 .filter-section:last-of-type {
@@ -72,9 +77,17 @@
     cursor: pointer;
 }
 
+.filter-section h2 {
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 700;
+    padding-bottom: 10px;
+    color: var(--dark-bg);
+}
+
 .filter-section label {
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--dark-bg);
 }
 
@@ -151,7 +164,7 @@
 .price-range-values {
     display: flex;
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 16px;
     margin-bottom: 15px;
 }
 
@@ -164,12 +177,13 @@
 .price-range-inputs {
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
+    gap: 8px;
+    margin-top: 16px;
 }
 
 .price-range-inputs div {
     position: relative;
-    width: 90px;
+    width: 100px;
 }
 
 .price-range-inputs span {
@@ -222,19 +236,19 @@
 
 /* Updated Button Styles */
 .reset-button {
-    width: 100%;
+    width: 80%;
     background-color: #d4d5db;
     border-radius: 8px;
     overflow: hidden;
     padding: 10px;
+    margin: 5px 24px 24px 24px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s ease;
     text-decoration: none;
     color: inherit;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
-    margin-top: 10px;
     border: none;
 }
 
@@ -250,19 +264,19 @@
 
 /* Apply button styled with accent color */
 .apply-button {
-    width: 100%;
+    width: 80%;
     background-color: var(--accent, #1e88e5);
     border-radius: 8px;
     overflow: hidden;
     padding: 10px;
+    margin: 8px 24px 5px 24px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s ease;
     text-decoration: none;
     color: white;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
-    margin-top: 10px;
     border: none;
 }
 
@@ -313,17 +327,22 @@ body.dark-mode .filter-container {
     border-color: var(--light-bg);
 }
 
+body.dark-mode .filter-container .filter-top {
+    border-bottom: 2px solid var(--light-bg);
+}
+
 body.dark-mode .filter-container h3 {
     color: var(--light-bg);
     border-bottom-color: var(--light-bg);
 }
 
 body.dark-mode .filter-section {
-    border-color: rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid var(--light-bg);
 }
 
 body.dark-mode .filter-section>label,
-body.dark-mode .filter-section label {
+body.dark-mode .filter-section label ,
+body.dark-mode .filter-section h2 {
     color: var(--light-bg);
 }
 
