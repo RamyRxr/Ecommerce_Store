@@ -1,0 +1,157 @@
+export default class SideBar2 {
+    constructor(containerId = 'app') {
+        this.container = document.getElementById(containerId);
+        this.isCollapsed = true; // Always collapsed
+        this.isDarkMode = localStorage.getItem('darkMode') === 'true';
+        this.init();
+    }
+
+    init() {
+        this.render();
+        this.setupEventListeners();
+        this.applyTheme();
+    }
+
+    render() {
+        const sidebarHTML = `
+            <div class="sidebar collapsed">
+                <div class="explore-top">
+                    <span class="logo">
+                        <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR" class="logo-img">
+                    </span>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-box" >
+                    <i class='bx bx-search'></i>
+                    <input type="text" placeholder="Search..." id="search-input">
+                </div>
+
+                <ul class="menu">
+                    <li>
+                        <a href="../HTML-Pages/Home.html">
+                            <i class='bx bx-home'></i>
+                            <span class="links_name">Home</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="../HTML-Pages/ExplorePage.html">
+                            <i class='bx bx-compass'></i>
+                            <span class="links_name">Explore</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../HTML-Pages/SavedPage.html">
+                            <i class='bx bx-heart'></i>
+                            <span class="links_name">Saved</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../HTML-Pages/Cart.html">
+                            <i class='bx bx-cart'></i>
+                            <span class="links_name">Cart</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../HTML-Pages/Selling.html">
+                            <i class='bx bx-store'></i>
+                            <span class="links_name">Selling</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../HTML-Pages/PurchaseHistory.html">
+                            <i class='bx bx-history'></i>
+                            <span class="links_name">Purchase History</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../HTML-Pages/Settings.html">
+                            <i class='bx bx-cog'></i>
+                            <span class="links_name">Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../HTML-Pages/Profile.html">
+                            <i class='bx bx-user'></i>
+                            <span class="links_name">Profile</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="profile">
+                    <div class="profile-details">
+                        <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR">
+                        <div class="info">
+                            <span>RamyRxr</span>
+                            <small>Developer</small>
+                        </div>
+                    </div>
+                    <div class="logout-wrapper">
+                        <a href="#" id="theme-toggle">
+                            <div class="dark-light">
+                                <i class='bx ${this.isDarkMode ? 'bx-sun' : 'bx-moon'}'></i>
+                            </div>
+                        </a>
+                        <a href="../HTML-Pages/login.html">
+                            <i class='bx bx-log-out'></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Create sidebar element and add to container
+        const sidebarContainer = document.createElement('div');
+        sidebarContainer.id = 'sidebar-container';
+        sidebarContainer.innerHTML = sidebarHTML;
+        
+        // Check if sidebar already exists
+        const existingSidebar = document.querySelector('.sidebar');
+        if (existingSidebar) {
+            existingSidebar.replaceWith(sidebarContainer.firstElementChild);
+        } else {
+            this.container.appendChild(sidebarContainer);
+        }
+    }
+
+    setupEventListeners() {
+        // No toggle button for this sidebar - it must always remain collapsed
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleTheme();
+            });
+        }
+
+        // Menu items active state
+        const menuItems = document.querySelectorAll('.menu li a');
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove active class from all menu items
+                document.querySelectorAll('.menu li').forEach(li => {
+                    li.classList.remove('active');
+                });
+                
+                // Add active class to the clicked menu item's parent li
+                item.parentElement.classList.add('active');
+            });
+        });
+    }
+
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        localStorage.setItem('darkMode', this.isDarkMode);
+        this.applyTheme();
+    }
+
+    applyTheme() {
+        document.body.classList.toggle('dark-mode', this.isDarkMode);
+        const themeIcon = document.querySelector('#theme-toggle i');
+        if (themeIcon) {
+            themeIcon.className = this.isDarkMode ? 'bx bx-sun' : 'bx bx-moon';
+        }
+    }
+}

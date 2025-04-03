@@ -18,7 +18,7 @@ export default class LogIn {
                 <div class="login-card">
                     <div class="login-header">
                         <div class="logo">
-                            <img src="ramyrxr.png" alt="RamyRXR" class="logo-img">
+                            <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR" class="logo-img">
                             <h2>RamyRXR</h2>
                         </div>
                         <div class="theme-toggle">

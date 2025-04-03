@@ -147,7 +147,7 @@ export default class SideBar {
 
                 <!-- Search Bar -->
 
-                <div class="search-box">
+                <div class="search-box" >
                     <i class='bx bx-search'></i>
                     <input type="text" placeholder="Search..." id="search-input">
                 </div>
