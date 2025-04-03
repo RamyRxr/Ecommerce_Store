@@ -19,19 +19,78 @@ export default class ExploreContents {
         try {
             // Calculate exact number of products to generate 10 pages
             const totalProductsNeeded = this.itemsPerPage * 10;
-            
-            this.products = Array.from({ length: totalProductsNeeded }, (_, i) => ({
-                id: i + 1,
-                name: `Product ${i + 1}`,
-                description: `This is a description for product ${i + 1}. It has great features and quality.`,
-                price: Math.floor(Math.random() * 900) + 100,
-                rating: (Math.random() * 3 + 2).toFixed(1),
-                ratingCount: Math.floor(Math.random() * 500) + 10,
-                image: `../assets/images/products/product-${(i % 12) + 1}.jpg`,
-                isSaved: false,
-                dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
-            }));
-            
+
+            // Product image paths - using your existing images
+            const productImages = [
+                '../assets/images/products-images/product-1.svg',
+                '../assets/images/products-images/product-2.svg',
+                '../assets/images/products-images/product-3.svg',
+                '../assets/images/products-images/product-4.svg',
+                '../assets/images/products-images/product-5.svg',
+                '../assets/images/products-images/product-6.svg',
+            ];
+
+            // Product names and descriptions
+            const productNames = [
+                'Premium Wireless Headphones',
+                'Ultra HD Smartphone',
+                'Gaming Laptop Pro',
+                'Smart Tablet 4K',
+                'Professional DSLR Camera',
+                'Noise-Cancelling Earbuds',
+                'Portable SSD 1TB',
+                'Mechanical Keyboard RGB',
+                'Smart Watch Series 7',
+                'Bluetooth Speaker',
+                'USB-C Hub Multiport',
+                'Wireless Charging Pad'
+            ];
+
+            const productDescriptions = [
+                'Experience crystal clear audio with premium comfort and long battery life.',
+                'The latest smartphone with 8K camera and 120Hz display.',
+                'Powerful gaming laptop with RTX graphics and high refresh rate.',
+                'Ultra-thin tablet with stunning 4K display and all-day battery.',
+                'Capture professional-quality photos with this high-end DSLR camera.',
+                'Immersive sound with active noise cancellation technology.',
+                'Lightning-fast data transfer with compact, durable design.',
+                'Premium mechanical keyboard with customizable RGB lighting.',
+                'Track fitness, messages, and more with this advanced smartwatch.',
+                'Room-filling sound with waterproof design and 20-hour battery.',
+                'Connect multiple devices with this versatile USB-C hub.',
+                'Fast wireless charging for all compatible devices.'
+            ];
+
+            // Generate products with more realistic data
+            this.products = Array.from({ length: totalProductsNeeded }, (_, i) => {
+                // Determine index for cycling through available images/names
+                const itemIndex = i % productImages.length;
+
+                // Randomly determine if product has a discount
+                const hasDiscount = Math.random() > 0.6;
+                const isNew = Math.random() > 0.8;
+
+                // Generate realistic price
+                const basePrice = Math.floor(Math.random() * 900) + 100;
+                const originalPrice = hasDiscount ? basePrice : null;
+                const discountedPrice = hasDiscount ? Math.floor(basePrice * 0.8) : basePrice;
+
+                return {
+                    id: i + 1,
+                    name: productNames[itemIndex],
+                    description: productDescriptions[itemIndex],
+                    price: discountedPrice,
+                    originalPrice: originalPrice,
+                    rating: (Math.random() * 3 + 2).toFixed(1), // Random rating between 2-5
+                    ratingCount: Math.floor(Math.random() * 500) + 10,
+                    image: productImages[itemIndex],
+                    isSaved: false,
+                    isNew: isNew,
+                    isSale: hasDiscount,
+                    dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // Random date within last 30 days
+                };
+            });
+
             // Initial sort by newest
             this.sortProducts('newest');
         } catch (error) {
@@ -203,7 +262,12 @@ export default class ExploreContents {
                     <h3 class="product-name">${product.name}</h3>
                     <p class="product-description">${product.description}</p>
                     <div class="product-meta">
-                        <span class="product-price">$${product.price.toFixed(2)}</span>
+                        <div class="price-container">
+                            ${product.originalPrice ?
+                    `<span class="old-price">$${product.originalPrice.toFixed(2)}</span>` : ''
+                }
+                            <span class="product-price">$${product.price.toFixed(2)}</span>
+                        </div>
                         <div class="product-rating">
                             <div class="stars">${starsHTML}</div>
                             <span class="rating-count">(${product.ratingCount})</span>
@@ -235,7 +299,7 @@ export default class ExploreContents {
             </button>
         `;
 
-        // Page numbers
+        // Page numbers with dynamic styling
         if (totalPages <= 7) {
             // Show all pages if 7 or fewer
             for (let i = 1; i <= totalPages; i++) {

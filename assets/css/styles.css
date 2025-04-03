@@ -18,7 +18,7 @@
     --notification-hover: rgba(0, 0, 0, 0.05);
     
     /* Shadows */
-    --accent-shadow: 0 5px 20px rgba(71, 58, 247, 0.781);
+    --accent-shadow: 0 5px 20px rgba(71, 58, 247, 0.5);
     --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     --hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     --sidebar-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
