@@ -17,18 +17,19 @@ export default class ExploreContents {
 
     async fetchProducts() {
         try {
-            // In a real app, you would fetch from an API
-            // For demo purposes, we'll create mock data
-            this.products = Array.from({ length: 120 }, (_, i) => ({
+            // Calculate exact number of products to generate 10 pages
+            const totalProductsNeeded = this.itemsPerPage * 10;
+            
+            this.products = Array.from({ length: totalProductsNeeded }, (_, i) => ({
                 id: i + 1,
                 name: `Product ${i + 1}`,
                 description: `This is a description for product ${i + 1}. It has great features and quality.`,
                 price: Math.floor(Math.random() * 900) + 100,
-                rating: (Math.random() * 3 + 2).toFixed(1), // Random rating between 2-5
+                rating: (Math.random() * 3 + 2).toFixed(1),
                 ratingCount: Math.floor(Math.random() * 500) + 10,
                 image: `../assets/images/products/product-${(i % 12) + 1}.jpg`,
                 isSaved: false,
-                dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // Random date within last 30 days
+                dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
             }));
             
             // Initial sort by newest
@@ -40,32 +41,32 @@ export default class ExploreContents {
 
     sortProducts(option) {
         this.sortOption = option;
-        
+
         switch (option) {
             case 'newest':
-                this.filteredProducts = [...this.products].sort((a, b) => 
+                this.filteredProducts = [...this.products].sort((a, b) =>
                     b.dateAdded - a.dateAdded
                 );
                 break;
             case 'price-low-high':
-                this.filteredProducts = [...this.products].sort((a, b) => 
+                this.filteredProducts = [...this.products].sort((a, b) =>
                     a.price - b.price
                 );
                 break;
             case 'price-high-low':
-                this.filteredProducts = [...this.products].sort((a, b) => 
+                this.filteredProducts = [...this.products].sort((a, b) =>
                     b.price - a.price
                 );
                 break;
             case 'highest-rated':
-                this.filteredProducts = [...this.products].sort((a, b) => 
+                this.filteredProducts = [...this.products].sort((a, b) =>
                     b.rating - a.rating || b.ratingCount - a.ratingCount
                 );
                 break;
             default:
                 this.filteredProducts = [...this.products];
         }
-        
+
         this.currentPage = 1; // Reset to first page on sort
         this.updateProductCards();
         this.updatePagination();
@@ -76,12 +77,12 @@ export default class ExploreContents {
             this.filteredProducts = [...this.products];
         } else {
             const searchTerm = query.toLowerCase().trim();
-            this.filteredProducts = this.products.filter(product => 
-                product.name.toLowerCase().includes(searchTerm) || 
+            this.filteredProducts = this.products.filter(product =>
+                product.name.toLowerCase().includes(searchTerm) ||
                 product.description.toLowerCase().includes(searchTerm)
             );
         }
-        
+
         // Re-apply current sort
         this.sortProducts(this.sortOption);
     }
@@ -138,7 +139,7 @@ export default class ExploreContents {
         const mainContentContainer = document.createElement('div');
         mainContentContainer.className = 'explore-content';
         mainContentContainer.innerHTML = mainContentHTML;
-        
+
         const existingMainContent = document.querySelector('.explore-content');
         if (existingMainContent) {
             existingMainContent.replaceWith(mainContentContainer);
@@ -157,9 +158,9 @@ export default class ExploreContents {
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
         const paginatedProducts = this.filteredProducts.slice(startIndex, endIndex);
-        
+
         productsGrid.innerHTML = '';
-        
+
         if (paginatedProducts.length === 0) {
             productsGrid.innerHTML = `
                 <div class="no-products">
@@ -170,16 +171,16 @@ export default class ExploreContents {
             `;
             return;
         }
-        
+
         paginatedProducts.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
             productCard.dataset.id = product.id;
-            
+
             // Generate stars based on rating
             const fullStars = Math.floor(product.rating);
             const hasHalfStar = product.rating % 1 >= 0.5;
-            
+
             let starsHTML = '';
             for (let i = 1; i <= 5; i++) {
                 if (i <= fullStars) {
@@ -190,7 +191,7 @@ export default class ExploreContents {
                     starsHTML += `<i class='bx bx-star'></i>`;
                 }
             }
-            
+
             productCard.innerHTML = `
                 <div class="product-image">
                     <img src="${product.image}" alt="${product.name}">
@@ -214,7 +215,7 @@ export default class ExploreContents {
                     </button>
                 </div>
             `;
-            
+
             productsGrid.appendChild(productCard);
         });
     }
@@ -222,18 +223,18 @@ export default class ExploreContents {
     updatePagination() {
         const paginationContainer = document.querySelector('.pagination');
         if (!paginationContainer) return;
-        
+
         const totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-        
+
         let paginationHTML = '';
-        
+
         // Prev button
         paginationHTML += `
             <button class="pagination-btn prev-btn" ${this.currentPage === 1 ? 'disabled' : ''}>
                 <i class='bx bx-chevron-left'></i>
             </button>
         `;
-        
+
         // Page numbers
         if (totalPages <= 7) {
             // Show all pages if 7 or fewer
@@ -250,15 +251,15 @@ export default class ExploreContents {
             paginationHTML += `
                 <button class="pagination-btn page-number ${this.currentPage === 1 ? 'active' : ''}" data-page="1">1</button>
             `;
-            
+
             if (this.currentPage > 3) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
-            
+
             // Pages around current page
             const start = Math.max(2, this.currentPage - 1);
             const end = Math.min(totalPages - 1, this.currentPage + 1);
-            
+
             for (let i = start; i <= end; i++) {
                 paginationHTML += `
                     <button class="pagination-btn page-number ${i === this.currentPage ? 'active' : ''}" 
@@ -267,11 +268,11 @@ export default class ExploreContents {
                     </button>
                 `;
             }
-            
+
             if (this.currentPage < totalPages - 2) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
-            
+
             paginationHTML += `
                 <button class="pagination-btn page-number ${this.currentPage === totalPages ? 'active' : ''}" 
                         data-page="${totalPages}">
@@ -279,14 +280,14 @@ export default class ExploreContents {
                 </button>
             `;
         }
-        
+
         // Next button
         paginationHTML += `
             <button class="pagination-btn next-btn" ${this.currentPage === totalPages ? 'disabled' : ''}>
                 <i class='bx bx-chevron-right'></i>
             </button>
         `;
-        
+
         paginationContainer.innerHTML = paginationHTML;
     }
 
@@ -298,7 +299,7 @@ export default class ExploreContents {
                 this.searchProducts(searchInput.value);
             });
         }
-        
+
         // Filter dropdown toggle
         const filterBtn = document.getElementById('filter-dropdown-btn');
         const filterDropdown = document.querySelector('.filter-dropdown');
@@ -306,7 +307,7 @@ export default class ExploreContents {
             filterBtn.addEventListener('click', () => {
                 filterDropdown.classList.toggle('active');
             });
-            
+
             // Close dropdown when clicking outside
             document.addEventListener('click', (e) => {
                 if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
@@ -314,14 +315,14 @@ export default class ExploreContents {
                 }
             });
         }
-        
+
         // Filter options
         const filterOptions = document.querySelectorAll('.filter-option');
         const applyFilterBtn = document.getElementById('apply-filter-btn');
-        
+
         if (filterOptions && applyFilterBtn) {
             let selectedOption = 'newest';
-            
+
             filterOptions.forEach(option => {
                 option.addEventListener('click', () => {
                     filterOptions.forEach(opt => opt.classList.remove('selected'));
@@ -329,13 +330,13 @@ export default class ExploreContents {
                     selectedOption = option.dataset.sort;
                 });
             });
-            
+
             applyFilterBtn.addEventListener('click', () => {
                 this.sortProducts(selectedOption);
                 filterDropdown.classList.remove('active');
             });
         }
-        
+
         // Pagination
         document.addEventListener('click', e => {
             // Page number buttons
@@ -345,7 +346,7 @@ export default class ExploreContents {
                 this.updatePagination();
                 window.scrollTo(0, 0);
             }
-            
+
             // Prev button
             if (e.target.matches('.prev-btn') || e.target.closest('.prev-btn')) {
                 if (this.currentPage > 1) {
@@ -355,7 +356,7 @@ export default class ExploreContents {
                     window.scrollTo(0, 0);
                 }
             }
-            
+
             // Next button
             if (e.target.matches('.next-btn') || e.target.closest('.next-btn')) {
                 const totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
@@ -367,18 +368,18 @@ export default class ExploreContents {
                 }
             }
         });
-        
+
         // Save product (heart icon)
         document.addEventListener('click', e => {
             if (e.target.matches('.save-btn') || e.target.closest('.save-btn')) {
                 const saveBtn = e.target.matches('.save-btn') ? e.target : e.target.closest('.save-btn');
                 const productCard = saveBtn.closest('.product-card');
                 const productId = parseInt(productCard.dataset.id);
-                
+
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
                     product.isSaved = !product.isSaved;
-                    
+
                     // Update the button
                     saveBtn.classList.toggle('saved', product.isSaved);
                     const icon = saveBtn.querySelector('i');
@@ -386,14 +387,14 @@ export default class ExploreContents {
                 }
             }
         });
-        
+
         // Add to cart
         document.addEventListener('click', e => {
             if (e.target.matches('.add-to-cart-btn') || e.target.closest('.add-to-cart-btn')) {
                 const btn = e.target.matches('.add-to-cart-btn') ? e.target : e.target.closest('.add-to-cart-btn');
                 const productCard = btn.closest('.product-card');
                 const productId = parseInt(productCard.dataset.id);
-                
+
                 // Find the product
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
@@ -401,13 +402,13 @@ export default class ExploreContents {
                     const originalText = btn.innerHTML;
                     btn.innerHTML = '<i class=\'bx bx-check\'></i> Added';
                     btn.classList.add('added');
-                    
+
                     // Reset after some time
                     setTimeout(() => {
                         btn.innerHTML = originalText;
                         btn.classList.remove('added');
                     }, 2000);
-                    
+
                     // In a real app, you would call a function to add the product to the cart
                     console.log(`Added product ${product.id} to cart`);
                 }
