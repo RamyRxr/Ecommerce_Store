@@ -12,12 +12,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the main content with product grid
     const exploreContents = new ExploreContents('app');
     
-    console.log('Explore page initialized with product grid and pagination');
-    
-    // Set up event listener for filter application
-    document.addEventListener('filtersApplied', (event) => {
-        const filters = event.detail.filters;
-        console.log('Filters applied:', filters);
-        // In a real application, you would filter the products here
-    });
+    console.log('Explore page initialized with product grid and filters');
 });

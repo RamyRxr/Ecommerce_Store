@@ -6,6 +6,7 @@ export default class ExploreContents {
         this.sortOption = 'newest';
         this.products = [];
         this.filteredProducts = [];
+        this.activeFilters = null;
         this.init();
     }
 
@@ -17,79 +18,197 @@ export default class ExploreContents {
 
     async fetchProducts() {
         try {
+            // Define structured product data with real categories and brands
+            const productData = [
+                {
+                    id: 1,
+                    name: "Sony WH-1000XM5",
+                    description: "Premium noise-cancelling headphones with industry-leading sound quality and battery life.",
+                    price: 349.99,
+                    originalPrice: 399.99,
+                    category: "headphones",
+                    brand: "sony",
+                    rating: 4.8,
+                    ratingCount: 1254,
+                    image: "../assets/images/products-images/product-1.svg",
+                    isSale: true,
+                    isNew: false
+                },
+                {
+                    id: 2,
+                    name: "iPhone 15 Pro",
+                    description: "Apple's latest flagship smartphone with A17 Pro chip, titanium design and 48MP camera.",
+                    price: 999.99,
+                    originalPrice: null,
+                    category: "smartphones",
+                    brand: "apple",
+                    rating: 4.7,
+                    ratingCount: 857,
+                    image: "../assets/images/products-images/product-2.svg",
+                    isSale: false,
+                    isNew: true
+                },
+                {
+                    id: 3,
+                    name: "Dell XPS 15",
+                    description: "Powerful laptop with 15.6\" OLED display, Intel Core i9 and NVIDIA RTX graphics.",
+                    price: 1899.99,
+                    originalPrice: 2199.99,
+                    category: "laptops",
+                    brand: "dell",
+                    rating: 4.6,
+                    ratingCount: 423,
+                    image: "../assets/images/products-images/product-3.svg",
+                    isSale: true,
+                    isNew: false
+                },
+                {
+                    id: 4,
+                    name: "iPad Pro 12.9",
+                    description: "Apple's professional tablet with M2 chip, Liquid Retina XDR display and all-day battery.",
+                    price: 1099.99,
+                    originalPrice: null,
+                    category: "tablets",
+                    brand: "apple",
+                    rating: 4.9,
+                    ratingCount: 612,
+                    image: "../assets/images/products-images/product-4.svg",
+                    isSale: false,
+                    isNew: true
+                },
+                {
+                    id: 5,
+                    name: "Sony Alpha A7 IV",
+                    description: "Full-frame mirrorless camera with 33MP sensor, 4K60p video and advanced autofocus.",
+                    price: 2499.99,
+                    originalPrice: 2699.99,
+                    category: "cameras",
+                    brand: "sony",
+                    rating: 4.7,
+                    ratingCount: 329,
+                    image: "../assets/images/products-images/product-5.svg",
+                    isSale: true,
+                    isNew: false
+                },
+                {
+                    id: 6,
+                    name: "JBL Flip 6",
+                    description: "Portable Bluetooth speaker with rich sound, waterproof design and 12-hour playtime.",
+                    price: 129.99,
+                    originalPrice: 149.99,
+                    category: "accessories",
+                    brand: "jbl",
+                    rating: 4.5,
+                    ratingCount: 875,
+                    image: "../assets/images/products-images/product-6.svg",
+                    isSale: true,
+                    isNew: false
+                },
+                {
+                    id: 7,
+                    name: "Samsung Galaxy S23 Ultra",
+                    description: "Premium Android smartphone with S Pen support, 200MP camera and 6.8\" Dynamic AMOLED.",
+                    price: 1199.99,
+                    originalPrice: null,
+                    category: "smartphones",
+                    brand: "samsung",
+                    rating: 4.6,
+                    ratingCount: 731,
+                    image: "../assets/images/products-images/product-2.svg",
+                    isSale: false,
+                    isNew: true
+                },
+                {
+                    id: 8,
+                    name: "MacBook Pro 16\"",
+                    description: "Powerful laptop with M3 Pro chip, stunning Liquid Retina XDR display and up to 22-hour battery.",
+                    price: 2499.99,
+                    originalPrice: null,
+                    category: "laptops",
+                    brand: "apple",
+                    rating: 4.8,
+                    ratingCount: 517,
+                    image: "../assets/images/products-images/product-3.svg",
+                    isSale: false,
+                    isNew: true
+                },
+                {
+                    id: 9,
+                    name: "Sony WF-1000XM5",
+                    description: "True wireless earbuds with exceptional noise cancellation and high-resolution audio.",
+                    price: 249.99,
+                    originalPrice: 279.99,
+                    category: "headphones",
+                    brand: "sony",
+                    rating: 4.7,
+                    ratingCount: 629,
+                    image: "../assets/images/products-images/product-1.svg",
+                    isSale: true,
+                    isNew: false
+                },
+                {
+                    id: 10,
+                    name: "Lenovo ThinkPad X1 Carbon",
+                    description: "Premium business laptop with Intel Core i7, 14\" display and legendary durability.",
+                    price: 1799.99,
+                    originalPrice: 1999.99,
+                    category: "laptops",
+                    brand: "lenovo",
+                    rating: 4.6,
+                    ratingCount: 384,
+                    image: "../assets/images/products-images/product-3.svg",
+                    isSale: true,
+                    isNew: false
+                },
+                {
+                    id: 11,
+                    name: "Samsung Galaxy Tab S9 Ultra",
+                    description: "Large 14.6\" AMOLED display tablet with S Pen included and powerful Snapdragon processor.",
+                    price: 1199.99,
+                    originalPrice: null,
+                    category: "tablets",
+                    brand: "samsung",
+                    rating: 4.5,
+                    ratingCount: 297,
+                    image: "../assets/images/products-images/product-4.svg",
+                    isSale: false,
+                    isNew: true
+                },
+                {
+                    id: 12,
+                    name: "Canon EOS R6 Mark II",
+                    description: "Advanced mirrorless camera with 24MP sensor, 6K video and enhanced subject tracking.",
+                    price: 2499.99,
+                    originalPrice: 2699.99,
+                    category: "cameras",
+                    brand: "canon",
+                    rating: 4.7,
+                    ratingCount: 213,
+                    image: "../assets/images/products-images/product-5.svg",
+                    isSale: true,
+                    isNew: false
+                }
+            ];
+
             // Calculate exact number of products to generate 10 pages
             const totalProductsNeeded = this.itemsPerPage * 10;
 
-            // Product image paths - using your existing images
-            const productImages = [
-                '../assets/images/products-images/product-1.svg',
-                '../assets/images/products-images/product-2.svg',
-                '../assets/images/products-images/product-3.svg',
-                '../assets/images/products-images/product-4.svg',
-                '../assets/images/products-images/product-5.svg',
-                '../assets/images/products-images/product-6.svg',
-            ];
+            // Generate additional products based on our defined items
+            this.products = [];
+            for (let i = 0; i < totalProductsNeeded; i++) {
+                // Use modulo to cycle through our defined products
+                const sourceProduct = productData[i % productData.length];
 
-            // Product names and descriptions
-            const productNames = [
-                'Premium Wireless Headphones',
-                'Ultra HD Smartphone',
-                'Gaming Laptop Pro',
-                'Smart Tablet 4K',
-                'Professional DSLR Camera',
-                'Noise-Cancelling Earbuds',
-                'Portable SSD 1TB',
-                'Mechanical Keyboard RGB',
-                'Smart Watch Series 7',
-                'Bluetooth Speaker',
-                'USB-C Hub Multiport',
-                'Wireless Charging Pad'
-            ];
-
-            const productDescriptions = [
-                'Experience crystal clear audio with premium comfort and long battery life.',
-                'The latest smartphone with 8K camera and 120Hz display.',
-                'Powerful gaming laptop with RTX graphics and high refresh rate.',
-                'Ultra-thin tablet with stunning 4K display and all-day battery.',
-                'Capture professional-quality photos with this high-end DSLR camera.',
-                'Immersive sound with active noise cancellation technology.',
-                'Lightning-fast data transfer with compact, durable design.',
-                'Premium mechanical keyboard with customizable RGB lighting.',
-                'Track fitness, messages, and more with this advanced smartwatch.',
-                'Room-filling sound with waterproof design and 20-hour battery.',
-                'Connect multiple devices with this versatile USB-C hub.',
-                'Fast wireless charging for all compatible devices.'
-            ];
-
-            // Generate products with more realistic data
-            this.products = Array.from({ length: totalProductsNeeded }, (_, i) => {
-                // Determine index for cycling through available images/names
-                const itemIndex = i % productImages.length;
-
-                // Randomly determine if product has a discount
-                const hasDiscount = Math.random() > 0.6;
-                const isNew = Math.random() > 0.8;
-
-                // Generate realistic price
-                const basePrice = Math.floor(Math.random() * 900) + 100;
-                const originalPrice = hasDiscount ? basePrice : null;
-                const discountedPrice = hasDiscount ? Math.floor(basePrice * 0.8) : basePrice;
-
-                return {
+                // Create a copy with a unique ID
+                const product = {
+                    ...sourceProduct,
                     id: i + 1,
-                    name: productNames[itemIndex],
-                    description: productDescriptions[itemIndex],
-                    price: discountedPrice,
-                    originalPrice: originalPrice,
-                    rating: (Math.random() * 3 + 2).toFixed(1), // Random rating between 2-5
-                    ratingCount: Math.floor(Math.random() * 500) + 10,
-                    image: productImages[itemIndex],
-                    isSaved: false,
-                    isNew: isNew,
-                    isSale: hasDiscount,
-                    dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // Random date within last 30 days
+                    dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+                    isSaved: false
                 };
-            });
+
+                this.products.push(product);
+            }
 
             // Initial sort by newest
             this.sortProducts('newest');
@@ -100,32 +219,23 @@ export default class ExploreContents {
 
     sortProducts(option) {
         this.sortOption = option;
-
+    
+        // Sort the current filtered products instead of replacing them with all products
         switch (option) {
             case 'newest':
-                this.filteredProducts = [...this.products].sort((a, b) =>
-                    b.dateAdded - a.dateAdded
-                );
+                this.filteredProducts.sort((a, b) => b.dateAdded - a.dateAdded);
                 break;
             case 'price-low-high':
-                this.filteredProducts = [...this.products].sort((a, b) =>
-                    a.price - b.price
-                );
+                this.filteredProducts.sort((a, b) => a.price - b.price);
                 break;
             case 'price-high-low':
-                this.filteredProducts = [...this.products].sort((a, b) =>
-                    b.price - a.price
-                );
+                this.filteredProducts.sort((a, b) => b.price - a.price);
                 break;
             case 'highest-rated':
-                this.filteredProducts = [...this.products].sort((a, b) =>
-                    b.rating - a.rating || b.ratingCount - a.ratingCount
-                );
+                this.filteredProducts.sort((a, b) => b.rating - a.rating || b.ratingCount - a.ratingCount);
                 break;
-            default:
-                this.filteredProducts = [...this.products];
         }
-
+    
         this.currentPage = 1; // Reset to first page on sort
         this.updateProductCards();
         this.updatePagination();
@@ -133,12 +243,22 @@ export default class ExploreContents {
 
     searchProducts(query) {
         if (!query || query.trim() === '') {
-            // If search is empty, show all products
+            // If search is empty, apply only active filters if they exist
+            if (this.activeFilters) {
+                this.applyFilters(this.activeFilters);
+                return;
+            }
+            // Otherwise show all products
             this.filteredProducts = [...this.products];
         } else {
             const searchTerm = query.toLowerCase().trim();
-            this.filteredProducts = this.products.filter(product =>
-                product.name.toLowerCase().includes(searchTerm)
+            // Search within all products or within filtered products if filters are active
+            const productsToSearch = this.activeFilters ? this.filteredProducts : this.products;
+            this.filteredProducts = productsToSearch.filter(product =>
+                product.name.toLowerCase().includes(searchTerm) ||
+                product.description.toLowerCase().includes(searchTerm) ||
+                product.brand.toLowerCase().includes(searchTerm) ||
+                product.category.toLowerCase().includes(searchTerm)
             );
 
             console.log(`Found ${this.filteredProducts.length} products matching "${searchTerm}"`);
@@ -150,6 +270,62 @@ export default class ExploreContents {
         this.updatePagination();
     }
 
+    // New method to apply filters
+    applyFilters(filters) {
+        // Store active filters for use with search
+        this.activeFilters = filters;
+
+        // Start with all products
+        let filtered = [...this.products];
+
+        // Filter by categories if any are selected
+        if (filters.categories && filters.categories.length > 0) {
+            filtered = filtered.filter(product =>
+                filters.categories.includes(product.category)
+            );
+        }
+
+        // Filter by brands if any are selected
+        if (filters.brands && filters.brands.length > 0) {
+            filtered = filtered.filter(product =>
+                filters.brands.includes(product.brand)
+            );
+        }
+
+        // Filter by price range
+        if (filters.price) {
+            filtered = filtered.filter(product => {
+                const price = product.price;
+                return price >= filters.price.min &&
+                    (filters.price.max === 'unlimited' || price <= filters.price.max);
+            });
+        }
+
+        // Filter by rating
+        if (filters.rating && parseInt(filters.rating) > 0) {
+            const minRating = parseInt(filters.rating);
+            filtered = filtered.filter(product => product.rating >= minRating);
+        }
+
+        console.log(`Filtered to ${filtered.length} products`);
+
+        // Update filtered products
+        this.filteredProducts = filtered;
+
+        // Apply current sort option
+        this.sortProducts(this.sortOption);
+    }
+
+    // Method to reset filters
+    resetFilters() {
+        this.activeFilters = null;
+        this.filteredProducts = [...this.products];
+
+        // Apply current sort option
+        this.sortProducts(this.sortOption);
+    }
+
+    // Rest of the class remains the same...
     render() {
         const mainContentHTML = `
             <div class="main-content-container">
@@ -170,19 +346,19 @@ export default class ExploreContents {
                         </button>
                         
                         <div class="filter-dropdown">
-                            <div class="filter-option" data-sort="newest">
+                            <div class="filter-option ${this.sortOption === 'newest' ? 'selected' : ''}" data-sort="newest">
                                 <i class='bx bx-time'></i>
                                 <span>Newest</span>
                             </div>
-                            <div class="filter-option" data-sort="price-low-high">
+                            <div class="filter-option ${this.sortOption === 'price-low-high' ? 'selected' : ''}" data-sort="price-low-high">
                                 <i class='bx bx-sort-up'></i>
                                 <span>Price: Low to High</span>
                             </div>
-                            <div class="filter-option" data-sort="price-high-low">
+                            <div class="filter-option ${this.sortOption === 'price-high-low' ? 'selected' : ''}" data-sort="price-high-low">
                                 <i class='bx bx-sort-down'></i>
                                 <span>Price: High to Low</span>
                             </div>
-                            <div class="filter-option" data-sort="highest-rated">
+                            <div class="filter-option ${this.sortOption === 'highest-rated' ? 'selected' : ''}" data-sort="highest-rated">
                                 <i class='bx bx-star'></i>
                                 <span>Highest Rated</span>
                             </div>
@@ -236,10 +412,10 @@ export default class ExploreContents {
                         <i class='bx bx-search-alt'></i>
                     </div>
                     <h3>Product Not Found</h3>
-                    <p>We couldn't find any products matching your search.</p>
+                    <p>We couldn't find any products matching your criteria.</p>
                     <button class="reset-search-btn">
                         <i class='bx bx-reset'></i>
-                        Clear Search
+                        Clear All Filters
                     </button>
                 </div>
             `;
@@ -251,8 +427,10 @@ export default class ExploreContents {
                     const searchInput = document.getElementById('main-search');
                     if (searchInput) {
                         searchInput.value = '';
-                        this.searchProducts('');
                     }
+                    this.resetFilters();
+                    // Also trigger the filter reset event for the sidebar
+                    document.dispatchEvent(new CustomEvent('resetAllFilters'));
                 });
             }
             return;
@@ -404,7 +582,6 @@ export default class ExploreContents {
                 if (e.key === 'Enter') {
                     clearTimeout(searchTimeout);
                     this.searchProducts(searchInput.value);
-                    console.log('Search executed on Enter for:', searchInput.value);
                 }
             });
 
@@ -413,7 +590,6 @@ export default class ExploreContents {
                 searchButton.addEventListener('click', () => {
                     clearTimeout(searchTimeout);
                     this.searchProducts(searchInput.value);
-                    console.log('Search executed via button for:', searchInput.value);
                 });
             }
         }
@@ -439,9 +615,14 @@ export default class ExploreContents {
         const applyFilterBtn = document.getElementById('apply-filter-btn');
 
         if (filterOptions && applyFilterBtn) {
-            let selectedOption = 'newest';
+            let selectedOption = this.sortOption;
 
+            // Set initial selected option
             filterOptions.forEach(option => {
+                if (option.dataset.sort === this.sortOption) {
+                    option.classList.add('selected');
+                }
+
                 option.addEventListener('click', () => {
                     filterOptions.forEach(opt => opt.classList.remove('selected'));
                     option.classList.add('selected');
@@ -454,6 +635,17 @@ export default class ExploreContents {
                 filterDropdown.classList.remove('active');
             });
         }
+
+        // Listen to filter application from sidebar
+        document.addEventListener('filtersApplied', (event) => {
+            const filters = event.detail.filters;
+            this.applyFilters(filters);
+        });
+
+        // Listen to filter reset from sidebar
+        document.addEventListener('filtersReset', () => {
+            this.resetFilters();
+        });
 
         // Pagination
         document.addEventListener('click', e => {

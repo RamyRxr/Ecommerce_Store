@@ -42,7 +42,7 @@
 /*** SEARCH & FILTER SECTION ***/
 .search-filter-container {
     display: flex;
-    justify-content:first baseline;
+    justify-content: space-between;
     align-items: center;
     gap: 20px;
     height: 62px;
@@ -347,28 +347,6 @@ body.dark-mode .search-button:hover {
     transform: scale(1.05);
 }
 
-/* Add product badge styling */
-.product-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    color: white;
-    z-index: 2;
-}
-
-.product-badge.new {
-    background-color: var(--accent, #1e88e5);
-}
-
-.product-badge.sale {
-    background-color: #e53935;
-    left: auto;
-    right: 10px;
-}
 
 .save-btn {
     position: absolute;

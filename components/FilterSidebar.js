@@ -2,7 +2,7 @@ export default class FilterSidebar {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.categories = ['Headphones', 'Smartphones', 'Laptops', 'Tablets', 'Cameras', 'Accessories'];
-        this.brands = ['Apple', 'Samsung', 'Sony', 'LG', 'Huawei', 'Xiaomi', 'Dell', 'HP', 'Lenovo', 'JBL'];
+        this.brands = ['Apple', 'Samsung', 'Sony', 'LG', 'Dell', 'HP', 'Lenovo', 'JBL', 'Canon'];
         this.minPrice = 0;
         this.maxPrice = 10000; // Increased to 10,000 for high-end electronics
         this.currentMinPrice = 0;
@@ -121,8 +121,14 @@ export default class FilterSidebar {
         const filterContainer = document.createElement('div');
         filterContainer.className = 'filter-sidebar';
         filterContainer.innerHTML = filterHTML;
-        
-        this.container.appendChild(filterContainer);
+
+        // Check if filter sidebar already exists
+        const existingFilter = document.querySelector('.filter-sidebar');
+        if (existingFilter) {
+            existingFilter.replaceWith(filterContainer);
+        } else {
+            this.container.appendChild(filterContainer);
+        }
     }
 
     setupEventListeners() {
@@ -134,49 +140,49 @@ export default class FilterSidebar {
         const priceDisplay = document.getElementById('price-range-display');
         const rangeProgress = document.querySelector('.price-range-progress');
         const unlimitedCheckbox = document.getElementById('unlimited-price');
-        
+
         // Initialize the range progress bar
         this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
-        
+
         if (minPriceRange && maxPriceRange && minPrice && maxPrice && priceDisplay && rangeProgress) {
             // Sync range sliders with input fields and update display
             minPriceRange.addEventListener('input', () => {
                 const minVal = parseInt(minPriceRange.value);
                 let maxVal = this.isUnlimited ? this.maxPrice : parseInt(maxPriceRange.value);
-                
+
                 if (minVal > maxVal && !this.isUnlimited) {
                     minPriceRange.value = maxVal;
                     minPrice.value = maxVal;
                 } else {
                     minPrice.value = minVal;
                 }
-                
+
                 priceDisplay.textContent = `$${minPrice.value} - ${this.isUnlimited ? 'Unlimited' : '$' + maxPrice.value}`;
                 this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
             });
-            
+
             if (!this.isUnlimited) {
                 maxPriceRange.addEventListener('input', () => {
                     const minVal = parseInt(minPriceRange.value);
                     const maxVal = parseInt(maxPriceRange.value);
-                    
+
                     if (maxVal < minVal) {
                         maxPriceRange.value = minVal;
                         maxPrice.value = minVal;
                     } else {
                         maxPrice.value = maxVal;
                     }
-                    
+
                     priceDisplay.textContent = `$${minPrice.value} - $${maxPrice.value}`;
                     this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
                 });
             }
-            
+
             // Sync input fields with range sliders
             minPrice.addEventListener('change', () => {
                 const minVal = parseInt(minPrice.value);
                 let maxVal = this.isUnlimited ? this.maxPrice : parseInt(maxPrice.value);
-                
+
                 if (minVal < this.minPrice) {
                     minPrice.value = this.minPrice;
                     minPriceRange.value = this.minPrice;
@@ -186,16 +192,16 @@ export default class FilterSidebar {
                 } else {
                     minPriceRange.value = minVal;
                 }
-                
+
                 priceDisplay.textContent = `$${minPrice.value} - ${this.isUnlimited ? 'Unlimited' : '$' + maxPrice.value}`;
                 this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
             });
-            
+
             if (!this.isUnlimited) {
                 maxPrice.addEventListener('change', () => {
                     const minVal = parseInt(minPrice.value);
                     const maxVal = parseInt(maxPrice.value);
-                    
+
                     if (maxVal > this.maxPrice) {
                         maxPrice.value = this.maxPrice;
                         maxPriceRange.value = this.maxPrice;
@@ -205,25 +211,25 @@ export default class FilterSidebar {
                     } else {
                         maxPriceRange.value = maxVal;
                     }
-                    
+
                     priceDisplay.textContent = `$${minPrice.value} - $${maxPrice.value}`;
                     this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
                 });
             }
         }
-        
+
         // Handle unlimited price option
         if (unlimitedCheckbox && maxPrice && maxPriceRange) {
             unlimitedCheckbox.addEventListener('change', () => {
                 this.isUnlimited = unlimitedCheckbox.checked;
-                
+
                 if (this.isUnlimited) {
                     // Enable unlimited mode
                     maxPrice.disabled = true;
                     maxPriceRange.disabled = true;
-                    maxPrice.value = "Unlimited";
+                    maxPrice.value = this.maxPrice; // Keep the numerical value for the filter
                     maxPriceRange.value = this.maxPrice;
-                    
+
                     if (priceDisplay) {
                         priceDisplay.textContent = `$${minPrice.value} - Unlimited`;
                     }
@@ -231,56 +237,28 @@ export default class FilterSidebar {
                     // Disable unlimited mode
                     maxPrice.disabled = false;
                     maxPriceRange.disabled = false;
-                    maxPrice.value = this.maxPrice;
-                    maxPriceRange.value = this.maxPrice;
-                    
+
                     if (priceDisplay) {
                         priceDisplay.textContent = `$${minPrice.value} - $${maxPrice.value}`;
                     }
                 }
-                
+
                 // Update the progress bar
                 this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
             });
         }
-        
+
         // Reset filters
         const resetButton = document.getElementById('reset-filters');
         if (resetButton) {
             resetButton.addEventListener('click', () => {
-                // Reset checkboxes
-                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    if (checkbox.id !== 'unlimited-price') {  // Don't reset unlimited checkbox yet
-                        checkbox.checked = false;
-                    }
-                });
-                
-                // Reset radio buttons - set "Any rating" as checked
-                document.getElementById('rating-any').checked = true;
-                
-                // Reset unlimited checkbox
-                if (unlimitedCheckbox) {
-                    unlimitedCheckbox.checked = false;
-                    this.isUnlimited = false;
-                }
-                
-                // Reset price range
-                if (minPriceRange && maxPriceRange && minPrice && maxPrice && priceDisplay && rangeProgress) {
-                    minPriceRange.value = this.minPrice;
-                    maxPriceRange.value = this.maxPrice;
-                    minPrice.value = this.minPrice;
-                    maxPrice.value = this.maxPrice;
-                    maxPrice.disabled = false;
-                    maxPriceRange.disabled = false;
-                    priceDisplay.textContent = `$${this.minPrice} - $${this.maxPrice}`;
-                    this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
-                }
-                
+                this.resetAllFilters();
+
                 // Trigger custom event for product grid to update
                 document.dispatchEvent(new CustomEvent('filtersReset'));
             });
         }
-        
+
         // Apply filters
         const applyButton = document.getElementById('apply-filters');
         if (applyButton) {
@@ -289,18 +267,18 @@ export default class FilterSidebar {
                 const selectedCategories = Array.from(
                     document.querySelectorAll('input[name="category"]:checked')
                 ).map(el => el.value);
-                
+
                 const selectedBrands = Array.from(
                     document.querySelectorAll('input[name="brand"]:checked')
                 ).map(el => el.value);
-                
+
                 const selectedRating = document.querySelector('input[name="rating"]:checked')?.value;
-                
+
                 const priceRange = {
-                    min: parseInt(minPrice.value),
-                    max: this.isUnlimited ? 'unlimited' : parseInt(maxPrice.value)
+                    min: parseInt(minPrice.value) || this.minPrice,
+                    max: this.isUnlimited ? 'unlimited' : (parseInt(maxPrice.value) || this.maxPrice)
                 };
-                
+
                 // Create filter object
                 const filters = {
                     categories: selectedCategories,
@@ -308,29 +286,70 @@ export default class FilterSidebar {
                     rating: selectedRating,
                     price: priceRange
                 };
-                
+
                 console.log('Applied filters:', filters);
-                
+
                 // Dispatch custom event with filter data
-                const filterEvent = new CustomEvent('filtersApplied', { 
-                    detail: { filters } 
+                const filterEvent = new CustomEvent('filtersApplied', {
+                    detail: { filters }
                 });
                 document.dispatchEvent(filterEvent);
             });
         }
+
+        // Listen for reset all filters event from product grid
+        document.addEventListener('resetAllFilters', () => {
+            this.resetAllFilters();
+        });
+    }
+
+    resetAllFilters() {
+        // Reset checkboxes
+        document.querySelectorAll('input[name="category"]:checked, input[name="brand"]:checked').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        // Reset radio buttons - set "Any rating" as checked
+        document.getElementById('rating-any').checked = true;
+
+        // Reset unlimited checkbox and ranges
+        const unlimitedCheckbox = document.getElementById('unlimited-price');
+        const minPriceRange = document.getElementById('min-price-range');
+        const maxPriceRange = document.getElementById('max-price-range');
+        const minPrice = document.getElementById('min-price');
+        const maxPrice = document.getElementById('max-price');
+        const priceDisplay = document.getElementById('price-range-display');
+        const rangeProgress = document.querySelector('.price-range-progress');
+
+        if (unlimitedCheckbox) {
+            unlimitedCheckbox.checked = false;
+            this.isUnlimited = false;
+        }
+
+        // Reset price range
+        if (minPriceRange && maxPriceRange && minPrice && maxPrice && priceDisplay && rangeProgress) {
+            minPriceRange.value = this.minPrice;
+            maxPriceRange.value = this.maxPrice;
+            minPrice.value = this.minPrice;
+            maxPrice.value = this.maxPrice;
+            maxPrice.disabled = false;
+            maxPriceRange.disabled = false;
+            priceDisplay.textContent = `$${this.minPrice} - $${this.maxPrice}`;
+            this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
+        }
     }
 
     updateRangeProgress(minSlider, maxSlider, progressBar) {
-        if (!progressBar) return;
-        
+        if (!progressBar || !minSlider || !maxSlider) return;
+
         const min = parseInt(minSlider.min);
         const max = parseInt(minSlider.max);
         const minVal = parseInt(minSlider.value);
         let maxVal = this.isUnlimited ? max : parseInt(maxSlider.value);
-        
+
         const minPercent = ((minVal - min) / (max - min)) * 100;
         const maxPercent = ((maxVal - min) / (max - min)) * 100;
-        
+
         progressBar.style.left = `${minPercent}%`;
         progressBar.style.width = `${maxPercent - minPercent}%`;
     }
