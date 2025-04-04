@@ -210,7 +210,10 @@ export default class ExploreContents {
                 this.products.push(product);
             }
 
-            // Initial sort by newest
+            // IMPORTANT: Initialize filteredProducts with all products
+            this.filteredProducts = [...this.products];
+
+            // Then sort by newest
             this.sortProducts('newest');
         } catch (error) {
             console.error('Error fetching products:', error);
@@ -219,7 +222,7 @@ export default class ExploreContents {
 
     sortProducts(option) {
         this.sortOption = option;
-    
+
         // Sort the current filtered products instead of replacing them with all products
         switch (option) {
             case 'newest':
@@ -235,7 +238,7 @@ export default class ExploreContents {
                 this.filteredProducts.sort((a, b) => b.rating - a.rating || b.ratingCount - a.ratingCount);
                 break;
         }
-    
+
         this.currentPage = 1; // Reset to first page on sort
         this.updateProductCards();
         this.updatePagination();
