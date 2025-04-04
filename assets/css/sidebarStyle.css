@@ -532,7 +532,7 @@
     padding: 12px 15px;
     background: var(--light-bg);
     border-radius: 0 0 var(--section-radius) var(--section-radius);
-    border-top: 1px solid var(--dark-bg);
+    border-top: 2px solid var(--dark-bg);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -794,7 +794,7 @@ body.dark-mode .menu li.active a i {
 
 body.dark-mode .profile {
     background: var(--dark-bg);
-    border-top: 1px solid var(--light-bg);
+    border-top: 2px solid var(--light-bg);
 }
 
 body.dark-mode .sidebar .icon-item {
