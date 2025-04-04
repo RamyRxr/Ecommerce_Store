@@ -459,6 +459,11 @@ export default class ExploreContents {
                 }
             }
 
+            // Truncate description if longer than 52 characters
+            const truncatedDescription = product.description.length > 52
+                ? product.description.substring(0, 52) + '...'
+                : product.description;
+
             productCard.innerHTML = `
                 <div class="product-image">
                     <img src="${product.image}" alt="${product.name}">
@@ -468,7 +473,7 @@ export default class ExploreContents {
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">${product.name}</h3>
-                    <p class="product-description">${product.description}</p>
+                    <p class="product-description">${truncatedDescription}</p>
                     <div class="product-meta">
                         <div class="price-container">
                             ${product.originalPrice ?

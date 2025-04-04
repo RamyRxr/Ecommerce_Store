@@ -475,12 +475,16 @@ body.dark-mode .search-button:hover {
     font-size: 15px;
     font-weight: 700;
     color: var(--dark-bg);
-    height: 40px;
-    /* Fixed height for name */
+    height: 45px;
+    /* Increased height for product name */
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    /* Show 2 lines */
     -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    /* Add ellipsis for long names */
+    line-height: 1.5;
 }
 
 .product-description {
@@ -495,8 +499,10 @@ body.dark-mode .search-button:hover {
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    height: 60px;
-    /* Fixed height for description */
+    /* This adds the "..." automatically */
+    height: 55px;
+    /* Slightly reduced to balance with increased name height */
+    line-height: 1.4;
 }
 
 .product-meta {
@@ -576,28 +582,6 @@ body.dark-mode .search-button:hover {
 
 .add-to-cart-btn.added {
     background-color: #3178c6;
-}
-
-/* Product badge styling for New and Sale items */
-.product-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 4px;
-    z-index: 2;
-}
-
-.product-badge.new {
-    background-color: #4caf50;
-    color: white;
-}
-
-.product-badge.sale {
-    background-color: #e53935;
-    color: white;
 }
 
 /*** NO PRODUCTS ***/
