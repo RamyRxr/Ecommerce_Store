@@ -12,6 +12,7 @@ export default class ExploreContents {
 
     async init() {
         await this.fetchProducts();
+        this.initializeSavedStates(); // Add this line
         this.render();
         this.setupEventListeners();
     }
@@ -217,6 +218,34 @@ export default class ExploreContents {
             this.sortProducts('newest');
         } catch (error) {
             console.error('Error fetching products:', error);
+        }
+    }
+
+    initializeSavedStates() {
+        // Get saved items from localStorage
+        const savedItemsJson = localStorage.getItem('savedItems');
+        
+        if (savedItemsJson) {
+            try {
+                const savedItems = JSON.parse(savedItemsJson);
+                const savedIds = savedItems.map(item => item.id);
+                
+                // Update isSaved flag for products
+                this.products.forEach(product => {
+                    product.isSaved = savedIds.includes(product.id);
+                });
+                
+                // Also update filtered products if they exist
+                if (this.filteredProducts.length > 0) {
+                    this.filteredProducts.forEach(product => {
+                        product.isSaved = savedIds.includes(product.id);
+                    });
+                }
+                
+                console.log(`Initialized ${savedIds.length} saved items states`);
+            } catch (error) {
+                console.error('Error initializing saved states:', error);
+            }
         }
     }
 
@@ -702,6 +731,9 @@ export default class ExploreContents {
                     saveBtn.classList.toggle('saved', product.isSaved);
                     const icon = saveBtn.querySelector('i');
                     icon.className = product.isSaved ? 'bx bxs-heart' : 'bx bx-heart';
+                    
+                    // Save to localStorage
+                    this.updateSavedItems(product);
                 }
             }
         });
@@ -732,5 +764,31 @@ export default class ExploreContents {
                 }
             }
         });
+    }
+
+    // Add a new method to handle saving items to localStorage
+    updateSavedItems(product) {
+        // Get current saved items from localStorage
+        let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+        
+        if (product.isSaved) {
+            // Add to saved items if it's not already there
+            if (!savedItems.some(item => item.id === product.id)) {
+                // Add dateAdded property to track when it was saved
+                const savedItem = {
+                    ...product, 
+                    dateAdded: new Date().toISOString()
+                };
+                savedItems.push(savedItem);
+                console.log(`Added product ${product.id} to saved items`);
+            }
+        } else {
+            // Remove from saved items
+            savedItems = savedItems.filter(item => item.id !== product.id);
+            console.log(`Removed product ${product.id} from saved items`);
+        }
+        
+        // Save back to localStorage
+        localStorage.setItem('savedItems', JSON.stringify(savedItems));
     }
 }

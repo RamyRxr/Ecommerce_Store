@@ -17,14 +17,22 @@ export default class SavedItems {
 
     async loadSavedItems() {
         try {
-            // In a real app, this would fetch from a backend API
-            // For demonstration, we'll check localStorage first, and if empty, use demo data
+            // Get saved items from localStorage
             const savedItemsJson = localStorage.getItem('savedItems');
             
             if (savedItemsJson) {
-                this.savedItems = JSON.parse(savedItemsJson);
+                let savedItems = JSON.parse(savedItemsJson);
+                
+                // Ensure all items have the isSaved flag set to true
+                savedItems = savedItems.map(item => ({
+                    ...item,
+                    isSaved: true
+                }));
+                
+                this.savedItems = savedItems;
             } else {
-                // Demo data - we'll use the same product structure as in ExploreContents
+                // Demo data if no saved items exist
+                console.log('No saved items found, using demo data');
                 const demoSavedItems = [
                     {
                         id: 1,
@@ -40,40 +48,9 @@ export default class SavedItems {
                         isSale: true,
                         isNew: false,
                         isSaved: true,
-                        dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+                        dateAdded: new Date().toISOString()
                     },
-                    {
-                        id: 2,
-                        name: "iPhone 15 Pro",
-                        description: "Apple's latest flagship smartphone with A17 Pro chip, titanium design and 48MP camera.",
-                        price: 999.99,
-                        originalPrice: null,
-                        category: "smartphones",
-                        brand: "apple",
-                        rating: 4.7,
-                        ratingCount: 857,
-                        image: "../assets/images/products-images/product-2.svg",
-                        isSale: false,
-                        isNew: true,
-                        isSaved: true,
-                        dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-                    },
-                    {
-                        id: 5,
-                        name: "Sony Alpha A7 IV",
-                        description: "Full-frame mirrorless camera with 33MP sensor, 4K60p video and advanced autofocus.",
-                        price: 2499.99,
-                        originalPrice: 2699.99,
-                        category: "cameras",
-                        brand: "sony",
-                        rating: 4.7,
-                        ratingCount: 329,
-                        image: "../assets/images/products-images/product-5.svg",
-                        isSale: true,
-                        isNew: false,
-                        isSaved: true,
-                        dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-                    }
+                    // Other demo items...
                 ];
                 
                 this.savedItems = demoSavedItems;
@@ -367,13 +344,15 @@ export default class SavedItems {
         // Remove the item from the savedItems array
         this.savedItems.splice(itemIndex, 1);
 
-        // Update localStorage
-        localStorage.setItem('savedItems', JSON.stringify(this.savedItems));
+        // Update localStorage - make sure to mark as not saved
+        let allSavedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+        allSavedItems = allSavedItems.filter(item => item.id !== itemId);
+        localStorage.setItem('savedItems', JSON.stringify(allSavedItems));
 
         // Show notification with undo option
         this.showNotification(itemId);
 
-        // Set a timer to permanently delete after 10 seconds
+        // Set timer for permanent deletion
         if (this.deleteTimers[itemId]) {
             clearTimeout(this.deleteTimers[itemId]);
         }
@@ -382,7 +361,7 @@ export default class SavedItems {
             this.permanentlyDeleteItem(itemId);
         }, 10000); // 10 seconds
 
-        // Re-render the item cards and pagination
+        // Update the UI
         this.updateItemCards();
         this.updatePagination();
         
@@ -421,13 +400,20 @@ export default class SavedItems {
         // Remove from deletedItems
         delete this.deletedItems[itemId];
 
-        // Update localStorage
-        localStorage.setItem('savedItems', JSON.stringify(this.savedItems));
+        // Update localStorage - make sure to mark as saved
+        let allSavedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+        if (!allSavedItems.some(savedItem => savedItem.id === item.id)) {
+            allSavedItems.push({
+                ...item,
+                isSaved: true
+            });
+        }
+        localStorage.setItem('savedItems', JSON.stringify(allSavedItems));
 
         // Remove the notification
         this.removeNotification(itemId);
 
-        // Re-render the cards and pagination
+        // Update the UI
         this.updateItemCards();
         this.updatePagination();
         
