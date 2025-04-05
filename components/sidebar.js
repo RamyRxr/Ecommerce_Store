@@ -1,8 +1,9 @@
 export default class SideBar {
-    constructor(containerId = 'app') {
+    constructor(containerId = 'app', activeMenuItem = 'home') {
         this.container = document.getElementById(containerId);
         this.isCollapsed = false;
         this.isDarkMode = localStorage.getItem('darkMode') === 'true';
+        this.activeMenuItem = activeMenuItem;
         this.init();
     }
 
@@ -153,50 +154,50 @@ export default class SideBar {
                 </div>
 
                 <ul class="menu">
-                    <li class="active">
-                        <a href="#">
+                    <li class="${this.activeMenuItem === 'home' ? 'active' : ''}">
+                        <a href="../HTML-Pages/Home.html">
                             <i class='bx bx-home'></i>
                             <span class="links_name">Home</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="/HTML-Pages/ExplorePage.html">
+                    <li class="${this.activeMenuItem === 'explore' ? 'active' : ''}">
+                        <a href="../HTML-Pages/ExplorePage.html">
                             <i class='bx bx-compass'></i>
                             <span class="links_name">Explore</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#">
+                    <li class="${this.activeMenuItem === 'saved' ? 'active' : ''}">
+                        <a href="../HTML-Pages/SavedPage.html">
                             <i class='bx bx-heart'></i>
                             <span class="links_name">Saved</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#">
+                    <li class="${this.activeMenuItem === 'cart' ? 'active' : ''}">
+                        <a href="../HTML-Pages/Cart.html">
                             <i class='bx bx-cart'></i>
                             <span class="links_name">Cart</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#">
+                    <li class="${this.activeMenuItem === 'selling' ? 'active' : ''}">
+                        <a href="../HTML-Pages/Selling.html">
                             <i class='bx bx-store'></i>
                             <span class="links_name">Selling</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#">
+                    <li class="${this.activeMenuItem === 'purchase-history' ? 'active' : ''}">
+                        <a href="../HTML-Pages/PurchaseHistory.html">
                             <i class='bx bx-history'></i>
                             <span class="links_name">Purchase History</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#">
+                    <li class="${this.activeMenuItem === 'settings' ? 'active' : ''}">
+                        <a href="../HTML-Pages/Settings.html">
                             <i class='bx bx-cog'></i>
                             <span class="links_name">Settings</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="#">
+                    <li class="${this.activeMenuItem === 'profile' ? 'active' : ''}">
+                        <a href="../HTML-Pages/Profile.html">
                             <i class='bx bx-user'></i>
                             <span class="links_name">Profile</span>
                         </a>
@@ -214,13 +215,12 @@ export default class SideBar {
                     <div class="logout-wrapper">
                         <a href="#" id="theme-toggle">
                             <div class="dark-light">
-                                <i class='bx bx-moon'></i>
+                                <i class='bx ${this.isDarkMode ? 'bx-sun' : 'bx-moon'}'></i>
                             </div>
                         </a>
-                        <a href="../HTML-Pages/login.html" id="theme-toggle">
-                                <i class='bx bx-log-out'></i>
+                        <a href="../HTML-Pages/login.html">
+                            <i class='bx bx-log-out'></i>
                         </a>
-                        
                     </div>
                 </div>
             </div>

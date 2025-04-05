@@ -1,8 +1,9 @@
 export default class SideBar2 {
-    constructor(containerId = 'app') {
+    constructor(containerId = 'app', activeMenuItem = 'explore') {
         this.container = document.getElementById(containerId);
         this.isCollapsed = true; // Always collapsed
         this.isDarkMode = localStorage.getItem('darkMode') === 'true';
+        this.activeMenuItem = activeMenuItem; // Add this parameter
         this.init();
     }
 
@@ -28,49 +29,49 @@ export default class SideBar2 {
                 </div>
 
                 <ul class="menu">
-                    <li>
+                    <li class="${this.activeMenuItem === 'home' ? 'active' : ''}">
                         <a href="../HTML-Pages/Home.html">
                             <i class='bx bx-home'></i>
                             <span class="links_name">Home</span>
                         </a>
                     </li>
-                    <li class="active">
+                    <li class="${this.activeMenuItem === 'explore' ? 'active' : ''}">
                         <a href="../HTML-Pages/ExplorePage.html">
                             <i class='bx bx-compass'></i>
                             <span class="links_name">Explore</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="${this.activeMenuItem === 'saved' ? 'active' : ''}">
                         <a href="../HTML-Pages/SavedPage.html">
                             <i class='bx bx-heart'></i>
                             <span class="links_name">Saved</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="${this.activeMenuItem === 'cart' ? 'active' : ''}">
                         <a href="../HTML-Pages/Cart.html">
                             <i class='bx bx-cart'></i>
                             <span class="links_name">Cart</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="${this.activeMenuItem === 'selling' ? 'active' : ''}">
                         <a href="../HTML-Pages/Selling.html">
                             <i class='bx bx-store'></i>
                             <span class="links_name">Selling</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="${this.activeMenuItem === 'purchase-history' ? 'active' : ''}">
                         <a href="../HTML-Pages/PurchaseHistory.html">
                             <i class='bx bx-history'></i>
                             <span class="links_name">Purchase History</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="${this.activeMenuItem === 'settings' ? 'active' : ''}">
                         <a href="../HTML-Pages/Settings.html">
                             <i class='bx bx-cog'></i>
                             <span class="links_name">Settings</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="${this.activeMenuItem === 'profile' ? 'active' : ''}">
                         <a href="../HTML-Pages/Profile.html">
                             <i class='bx bx-user'></i>
                             <span class="links_name">Profile</span>
