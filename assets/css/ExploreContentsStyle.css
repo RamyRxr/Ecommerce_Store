@@ -286,56 +286,48 @@ body.dark-mode .search-button:hover {
 @media (min-width: 2200px) {
     .products-grid {
         grid-template-columns: repeat(8, 1fr);
-        /* 8 cards per row for very large screens */
     }
 }
 
 @media (min-width: 1900px) and (max-width: 2199px) {
     .products-grid {
         grid-template-columns: repeat(7, 1fr);
-        /* 7 cards per row for large desktop */
     }
 }
 
 @media (min-width: 1600px) and (max-width: 1899px) {
     .products-grid {
         grid-template-columns: repeat(6, 1fr);
-        /* 6 cards per row for desktop */
     }
 }
 
 @media (min-width: 1300px) and (max-width: 1599px) {
     .products-grid {
         grid-template-columns: repeat(5, 1fr);
-        /* 5 cards per row for smaller desktop */
     }
 }
 
 @media (min-width: 1000px) and (max-width: 1299px) {
     .products-grid {
         grid-template-columns: repeat(4, 1fr);
-        /* 4 cards per row for large tablets/small desktops */
     }
 }
 
 @media (min-width: 768px) and (max-width: 999px) {
     .products-grid {
         grid-template-columns: repeat(3, 1fr);
-        /* 3 cards per row for tablets */
     }
 }
 
 @media (min-width: 480px) and (max-width: 767px) {
     .products-grid {
         grid-template-columns: repeat(2, 1fr);
-        /* 2 cards per row for large phones/small tablets */
     }
 }
 
 @media (max-width: 479px) {
     .products-grid {
         grid-template-columns: 1fr;
-        /* 1 card per row for phones */
     }
 }
 

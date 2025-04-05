@@ -2,7 +2,7 @@ export default class ExploreContents {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.currentPage = 1;
-        this.itemsPerPage = 35; // 5 columns × 7 rows = 35 items per page
+        this.itemsPerPage = 35; 
         this.sortOption = 'newest';
         this.products = [];
         this.filteredProducts = [];
@@ -12,14 +12,13 @@ export default class ExploreContents {
 
     async init() {
         await this.fetchProducts();
-        this.initializeSavedStates(); // Add this line
+        this.initializeSavedStates(); 
         this.render();
         this.setupEventListeners();
     }
 
     async fetchProducts() {
         try {
-            // Define structured product data with real categories and brands
             const productData = [
                 {
                     id: 1,
