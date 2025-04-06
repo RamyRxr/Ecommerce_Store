@@ -696,7 +696,7 @@ body.dark-mode .reset-search-btn:hover {
 
 /*** PAGINATION ***/
 .pagination-container {
-    padding: 30px;
+    padding: 9px 30px;
     display: flex;
     justify-content: center;
     border-top: 2px solid var(--dark-bg);
