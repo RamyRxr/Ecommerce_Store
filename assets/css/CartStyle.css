@@ -469,8 +469,8 @@
 
 .summary-details {
     margin-top: auto;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
+    padding: 15px;
+    border-top: 2px solid var(--dark-bg);
 }
 
 .summary-row {
@@ -489,7 +489,7 @@
     color: var(--dark-bg);
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid #eee;
+    border-top: 2px solid var(--dark-bg);
 }
 
 .summary-row.discount {
@@ -497,9 +497,9 @@
 }
 
 .checkout-btn {
-    width: 100%;
-    padding: 14px 0;
-    margin-top: 20px;
+    width: auto;
+    padding: 14px;
+    margin: 20px;
     background-color: var(--accent, #1e88e5);
     color: white;
     border: none;
@@ -774,11 +774,11 @@ body.dark-mode .summary-item {
 }
 
 body.dark-mode .summary-details {
-    border-top-color: #333;
+    border-top: 2px solid var(--light-bg);
 }
 
 body.dark-mode .summary-row.total {
-    border-top-color: #333;
+    border-top: 2px solid var(--light-bg);
 }
 
 body.dark-mode .promo-input-container input {
