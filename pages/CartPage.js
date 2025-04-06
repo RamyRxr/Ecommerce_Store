@@ -4,13 +4,20 @@ import OrderSummary from '../components/OrderSummary.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize the sidebar with cart as active item
-    const sidebar = new SideBar2('app', 'cart');
+    new SideBar2('app', 'cart');
     
     // Initialize the cart items component
-    const cartItems = new CartItems('app');
+    new CartItems('app');
     
     // Initialize the order summary component
-    const orderSummary = new OrderSummary('app');
+    new OrderSummary('app');
     
-    console.log('Cart page initialized');
+    // Add fade-in animation to the main content
+    setTimeout(() => {
+        const cartContent = document.querySelector('.cart-content');
+        const orderSummaryContent = document.querySelector('.order-summary-content');
+        
+        if (cartContent) cartContent.classList.add('fade-in');
+        if (orderSummaryContent) orderSummaryContent.classList.add('fade-in');
+    }, 100);
 });
