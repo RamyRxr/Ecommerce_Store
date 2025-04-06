@@ -11,6 +11,7 @@ export default class SideBar2 {
         this.render();
         this.setupEventListeners();
         this.applyTheme();
+        this.updateCartCount();
     }
 
     render() {
@@ -51,6 +52,7 @@ export default class SideBar2 {
                         <a href="../HTML-Pages/CartPage.html">
                             <i class='bx bx-cart'></i>
                             <span class="links_name">Cart</span>
+                            <span class="cart-badge">0</span>
                         </a>
                     </li>
                     <li class="${this.activeMenuItem === 'selling' ? 'active' : ''}">
@@ -105,7 +107,7 @@ export default class SideBar2 {
         const sidebarContainer = document.createElement('div');
         sidebarContainer.id = 'sidebar-container';
         sidebarContainer.innerHTML = sidebarHTML;
-        
+
         // Check if sidebar already exists
         const existingSidebar = document.querySelector('.sidebar');
         if (existingSidebar) {
@@ -117,7 +119,7 @@ export default class SideBar2 {
 
     setupEventListeners() {
         // No toggle button for this sidebar - it must always remain collapsed
-        
+
         // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
@@ -135,10 +137,15 @@ export default class SideBar2 {
                 document.querySelectorAll('.menu li').forEach(li => {
                     li.classList.remove('active');
                 });
-                
+
                 // Add active class to the clicked menu item's parent li
                 item.parentElement.classList.add('active');
             });
+        });
+
+        // Listen for cart updates
+        document.addEventListener('updateCartBadge', () => {
+            this.updateCartCount();
         });
     }
 
@@ -153,6 +160,30 @@ export default class SideBar2 {
         const themeIcon = document.querySelector('#theme-toggle i');
         if (themeIcon) {
             themeIcon.className = this.isDarkMode ? 'bx bx-sun' : 'bx bx-moon';
+        }
+    }
+
+    // Add this method to the SideBar2 class
+    updateCartCount() {
+        try {
+            // Get cart items from localStorage
+            const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+            // Calculate total items
+            const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+            // Update the badge
+            const cartBadge = document.querySelector('.cart-badge');
+            if (cartBadge) {
+                if (itemCount > 0) {
+                    cartBadge.textContent = itemCount;
+                    cartBadge.style.display = 'flex';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error updating cart count:', error);
         }
     }
 }

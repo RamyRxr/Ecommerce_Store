@@ -2,7 +2,7 @@ export default class ExploreContents {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.currentPage = 1;
-        this.itemsPerPage = 35; 
+        this.itemsPerPage = 35;
         this.sortOption = 'newest';
         this.products = [];
         this.filteredProducts = [];
@@ -12,7 +12,7 @@ export default class ExploreContents {
 
     async init() {
         await this.fetchProducts();
-        this.initializeSavedStates(); 
+        this.initializeSavedStates();
         this.render();
         this.setupEventListeners();
     }
@@ -223,24 +223,24 @@ export default class ExploreContents {
     initializeSavedStates() {
         // Get saved items from localStorage
         const savedItemsJson = localStorage.getItem('savedItems');
-        
+
         if (savedItemsJson) {
             try {
                 const savedItems = JSON.parse(savedItemsJson);
                 const savedIds = savedItems.map(item => item.id);
-                
+
                 // Update isSaved flag for products
                 this.products.forEach(product => {
                     product.isSaved = savedIds.includes(product.id);
                 });
-                
+
                 // Also update filtered products if they exist
                 if (this.filteredProducts.length > 0) {
                     this.filteredProducts.forEach(product => {
                         product.isSaved = savedIds.includes(product.id);
                     });
                 }
-                
+
                 console.log(`Initialized ${savedIds.length} saved items states`);
             } catch (error) {
                 console.error('Error initializing saved states:', error);
@@ -730,7 +730,7 @@ export default class ExploreContents {
                     saveBtn.classList.toggle('saved', product.isSaved);
                     const icon = saveBtn.querySelector('i');
                     icon.className = product.isSaved ? 'bx bxs-heart' : 'bx bx-heart';
-                    
+
                     // Save to localStorage
                     this.updateSavedItems(product);
                 }
@@ -747,19 +747,7 @@ export default class ExploreContents {
                 // Find the product
                 const product = this.products.find(p => p.id === productId);
                 if (product) {
-                    // Temporarily change the button to indicate success
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = '<i class=\'bx bx-check\'></i> Added';
-                    btn.classList.add('added');
-
-                    // Reset after some time
-                    setTimeout(() => {
-                        btn.innerHTML = originalText;
-                        btn.classList.remove('added');
-                    }, 2000);
-
-                    // In a real app, you would call a function to add the product to the cart
-                    console.log(`Added product ${product.id} to cart`);
+                    this.addToCart(product);
                 }
             }
         });
@@ -769,13 +757,13 @@ export default class ExploreContents {
     updateSavedItems(product) {
         // Get current saved items from localStorage
         let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
-        
+
         if (product.isSaved) {
             // Add to saved items if it's not already there
             if (!savedItems.some(item => item.id === product.id)) {
                 // Add dateAdded property to track when it was saved
                 const savedItem = {
-                    ...product, 
+                    ...product,
                     dateAdded: new Date().toISOString()
                 };
                 savedItems.push(savedItem);
@@ -786,8 +774,68 @@ export default class ExploreContents {
             savedItems = savedItems.filter(item => item.id !== product.id);
             console.log(`Removed product ${product.id} from saved items`);
         }
-        
+
         // Save back to localStorage
         localStorage.setItem('savedItems', JSON.stringify(savedItems));
     }
+
+    // Add this method to the ExploreContents class
+    addToCart(product) {
+        // Get current cart items from localStorage
+        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+        // Check if item is already in cart
+        const existingItemIndex = cartItems.findIndex(item => item.id === product.id);
+
+        if (existingItemIndex > -1) {
+            // Item already exists, increment quantity
+            cartItems[existingItemIndex].quantity += 1;
+            console.log(`Increased quantity of ${product.name} in cart`);
+        } else {
+            // Add new item to cart with quantity 1
+            const cartItem = {
+                ...product,
+                quantity: 1,
+                color: product.color || "Default", // Add a default color if none exists
+                dateAdded: new Date().toISOString()
+            };
+            cartItems.push(cartItem);
+            console.log(`Added ${product.name} to cart`);
+        }
+
+        // Save back to localStorage
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+
+        // Show visual confirmation
+        this.showAddedToCartConfirmation(product.id);
+
+        // Dispatch event to update cart count
+        document.dispatchEvent(new CustomEvent('updateCartBadge'));
+    }
+
+    // Visual confirmation when product is added to cart
+    showAddedToCartConfirmation(productId) {
+        const productCard = document.querySelector(`.product-card[data-id="${productId}"]`);
+        if (!productCard) return;
+
+        const addButton = productCard.querySelector('.add-to-cart-btn');
+        if (!addButton) return;
+
+        // Change button state
+        const originalText = addButton.innerHTML;
+        addButton.innerHTML = `<i class='bx bx-check'></i> Added to Cart`;
+        addButton.classList.add('added');
+
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            addButton.innerHTML = originalText;
+            addButton.classList.remove('added');
+        }, 2000);
+    }
 }
+
+// Add a custom event to notify sidebar when cart is updated
+document.addEventListener('cartUpdated', () => {
+    // Dispatch an event that the sidebar can listen to
+    document.dispatchEvent(new CustomEvent('updateCartBadge'));
+});

@@ -87,6 +87,32 @@
     z-index: 102;
 }
 
+/* Cart badge */
+.cart-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--accent, #1e88e5);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+body.dark-mode .cart-badge {
+    background: var(--accent-dark, #58a6ff);
+}
+
+.sidebar.collapsed .cart-badge {
+    right: 8px;
+}
+
 /*** DROPDOWN COMPONENTS ***/
 .dropdown-box {
     position: absolute;
