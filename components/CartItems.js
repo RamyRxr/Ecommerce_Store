@@ -156,43 +156,36 @@ export default class CartItems {
         // Clear existing items
         cartItemsList.innerHTML = '';
 
-        // Add each item to the list with staggered animation
-        this.cartItems.forEach((item, index) => {
+        // Add each item to the list
+        this.cartItems.forEach(item => {
             const itemRow = document.createElement('div');
             itemRow.className = 'cart-item';
             itemRow.dataset.id = item.id;
-            itemRow.style.animationDelay = `${index * 0.1}s`;
 
             itemRow.innerHTML = `
                 <div class="item-image">
                     <img src="${item.image}" alt="${item.name}">
-                    <div class="item-badge">${item.color}</div>
                 </div>
                 <div class="item-details">
-                    <div class="item-info">
-                        <h3 class="item-name">${item.name}</h3>
-                        <p class="item-color">Color: ${item.color}</p>
-                    </div>
-                    <div class="item-controls">
-                        <div class="quantity-controls">
-                            <button class="qty-btn minus-btn" ${item.quantity <= 1 ? 'disabled' : ''}>
-                                <i class='bx bx-minus'></i>
-                            </button>
-                            <span class="quantity">${item.quantity}</span>
-                            <button class="qty-btn plus-btn">
-                                <i class='bx bx-plus'></i>
-                            </button>
-                        </div>
-                        <div class="item-price-actions">
-                            <span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>
-                            <button class="remove-btn" data-id="${item.id}">
-                                <i class='bx bx-trash'></i>
-                                Remove
-                            </button>
-                        </div>
+                    <h3 class="item-name">${item.name}</h3>
+                    <p class="item-color">Color: ${item.color}</p>
+                    <div class="quantity-controls">
+                        <button class="qty-btn minus-btn" ${item.quantity <= 1 ? 'disabled' : ''}>
+                            <i class='bx bx-minus'></i>
+                        </button>
+                        <span class="quantity">${item.quantity}</span>
+                        <button class="qty-btn plus-btn">
+                            <i class='bx bx-plus'></i>
+                        </button>
                     </div>
                 </div>
-                <div class="delete-timer-container" id="delete-timer-${item.id}"></div>
+                <div class="item-price-actions">
+                    <span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>
+                    <button class="remove-btn">
+                        <i class='bx bx-trash'></i>
+                        Remove
+                    </button>
+                </div>
             `;
 
             cartItemsList.appendChild(itemRow);
@@ -218,15 +211,17 @@ export default class CartItems {
             
             // Remove button
             if (e.target.closest('.remove-btn')) {
-                const itemId = parseInt(e.target.closest('.remove-btn').dataset.id);
-                this.initItemRemoval(itemId);
+                const itemRow = e.target.closest('.cart-item');
+                const itemId = parseInt(itemRow.dataset.id);
+                this.removeItem(itemId);
             }
         });
 
         // Undo button event
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('undo-delete-btn')) {
-                const itemId = parseInt(e.target.dataset.id);
+            const undoBtn = e.target.closest('.undo-btn');
+            if (undoBtn) {
+                const itemId = parseInt(undoBtn.dataset.id);
                 this.undoRemove(itemId);
             }
         });
@@ -242,15 +237,6 @@ export default class CartItems {
 
         this.cartItems[itemIndex].quantity = newQuantity;
         
-        // Add visual feedback with a flash effect
-        const priceElement = document.querySelector(`.cart-item[data-id="${itemId}"] .item-price`);
-        if (priceElement) {
-            priceElement.classList.add('price-updated');
-            setTimeout(() => {
-                priceElement.classList.remove('price-updated');
-            }, 500);
-        }
-        
         // Update localStorage
         localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
         
@@ -264,85 +250,6 @@ export default class CartItems {
                 totals: this.calculateTotals()
             }
         }));
-    }
-
-    initItemRemoval(itemId) {
-        // Find the cart item element
-        const cartItem = document.querySelector(`.cart-item[data-id="${itemId}"]`);
-        if (!cartItem) return;
-
-        // Find the delete timer container
-        const timerContainer = document.getElementById(`delete-timer-${itemId}`);
-        if (!timerContainer) return;
-
-        // Add deleting class to cart item
-        cartItem.classList.add('deleting');
-
-        // Create and show the delete timer UI with improved styling
-        let secondsLeft = 5;
-        timerContainer.innerHTML = `
-            <div class="delete-timer">
-                <div class="timer-progress">
-                    <div class="timer-bar"></div>
-                </div>
-                <div class="timer-content">
-                    <span class="timer-text">Removing in <span class="seconds-left">${secondsLeft}</span>s</span>
-                    <button class="undo-delete-btn" data-id="${itemId}">UNDO</button>
-                </div>
-            </div>
-        `;
-
-        // Make the timer visible with smooth animation
-        timerContainer.style.height = `${timerContainer.scrollHeight}px`;
-
-        // Start the timer bar animation
-        const timerBar = timerContainer.querySelector('.timer-bar');
-        if (timerBar) {
-            timerBar.style.width = '100%';
-            setTimeout(() => {
-                timerBar.style.width = '0%';
-                timerBar.style.transition = 'width 5s linear';
-            }, 50);
-        }
-
-        // Start the countdown timer
-        const secondsLeftElement = timerContainer.querySelector('.seconds-left');
-        
-        // Clear existing timer if any
-        if (this.deleteTimers[itemId]) {
-            clearInterval(this.deleteTimers[itemId].intervalId);
-            clearTimeout(this.deleteTimers[itemId].timeoutId);
-        }
-        
-        // Set up the countdown interval
-        const intervalId = setInterval(() => {
-            secondsLeft--;
-            if (secondsLeftElement) {
-                secondsLeftElement.textContent = secondsLeft;
-                
-                // Add pulse animation when time is running low
-                if (secondsLeft <= 2) {
-                    secondsLeftElement.classList.add('pulse-animation');
-                }
-            }
-            
-            if (secondsLeft <= 0) {
-                clearInterval(intervalId);
-            }
-        }, 1000);
-        
-        // Set up the final deletion timeout
-        const timeoutId = setTimeout(() => {
-            this.removeItem(itemId);
-            clearInterval(intervalId);
-        }, 5000);
-        
-        // Store the timer IDs for potential cancellation
-        this.deleteTimers[itemId] = {
-            intervalId,
-            timeoutId,
-            itemId
-        };
     }
 
     removeItem(itemId) {
@@ -365,62 +272,26 @@ export default class CartItems {
         // Show notification with undo option
         this.showNotification(itemId);
 
-        // Clean up the timer references
+        // Set a timer to permanently delete after 5 seconds
         if (this.deleteTimers[itemId]) {
-            clearInterval(this.deleteTimers[itemId].intervalId);
-            clearTimeout(this.deleteTimers[itemId].timeoutId);
-            delete this.deleteTimers[itemId];
+            clearTimeout(this.deleteTimers[itemId]);
         }
 
-        // Set a timer to permanently delete after 5 seconds
-        this.deleteTimers[itemId] = {
-            timeoutId: setTimeout(() => {
-                this.permanentlyDeleteItem(itemId);
-            }, 5000)
-        };
+        this.deleteTimers[itemId] = setTimeout(() => {
+            this.permanentlyDeleteItem(itemId);
+        }, 5000); // 5 seconds
 
         // Update the UI
         this.render();
     }
 
     undoRemove(itemId) {
-        // Check if we're undoing from the delete timer
-        const deleteTimerContainer = document.getElementById(`delete-timer-${itemId}`);
-        if (deleteTimerContainer) {
-            // We're undoing before the item has been removed from the cart
-            if (this.deleteTimers[itemId]) {
-                clearInterval(this.deleteTimers[itemId].intervalId);
-                clearTimeout(this.deleteTimers[itemId].timeoutId);
-                delete this.deleteTimers[itemId];
-            }
-
-            // Reset the cart item appearance with smooth animation
-            const cartItem = document.querySelector(`.cart-item[data-id="${itemId}"]`);
-            if (cartItem) {
-                // Add recovered class for animation
-                cartItem.classList.add('recovering');
-                
-                setTimeout(() => {
-                    cartItem.classList.remove('deleting');
-                    
-                    // Reset the timer container
-                    deleteTimerContainer.style.height = '0';
-                    setTimeout(() => {
-                        deleteTimerContainer.innerHTML = '';
-                        cartItem.classList.remove('recovering');
-                    }, 300);
-                }, 300);
-            }
-            return;
-        }
-
-        // Otherwise, we're undoing from the notification after removal
         // Check if the item exists in deletedItems
         if (!this.deletedItems[itemId]) return;
 
         // Clear the delete timer
         if (this.deleteTimers[itemId]) {
-            clearTimeout(this.deleteTimers[itemId].timeoutId);
+            clearTimeout(this.deleteTimers[itemId]);
             delete this.deleteTimers[itemId];
         }
 
@@ -445,17 +316,6 @@ export default class CartItems {
 
         // Update the UI
         this.render();
-        
-        // Highlight the recovered item
-        setTimeout(() => {
-            const recoveredItem = document.querySelector(`.cart-item[data-id="${itemId}"]`);
-            if (recoveredItem) {
-                recoveredItem.classList.add('item-recovered');
-                setTimeout(() => {
-                    recoveredItem.classList.remove('item-recovered');
-                }, 1500);
-            }
-        }, 100);
     }
 
     permanentlyDeleteItem(itemId) {
@@ -505,14 +365,6 @@ export default class CartItems {
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
                 this.removeNotification(itemId);
-            });
-        }
-
-        // Add undo button functionality
-        const undoBtn = notification.querySelector('.undo-btn');
-        if (undoBtn) {
-            undoBtn.addEventListener('click', () => {
-                this.undoRemove(itemId);
             });
         }
     }
