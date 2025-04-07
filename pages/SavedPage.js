@@ -9,5 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the saved items component
     const savedItems = new SavedItems('app');
     
+    // Update saved badge count on page load
+    document.dispatchEvent(new CustomEvent('updateSavedBadge'));
+    
     console.log('Saved items page initialized');
 });

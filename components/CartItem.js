@@ -307,14 +307,14 @@ export default class CartItem2 {
         // THEN show notification AFTER rendering with its own timer
         this.showNotification(itemId);
 
-        // Set a timer to permanently delete after 10 seconds
+        // Set a timer to permanently delete after 5 seconds
         if (this.deleteTimers[itemId]) {
             clearTimeout(this.deleteTimers[itemId]);
         }
 
         this.deleteTimers[itemId] = setTimeout(() => {
             this.permanentlyDeleteItem(itemId);
-        }, 10000); // 10 seconds
+        }, 5000); // 5 seconds
 
         // Dispatch event to update cart badge
         document.dispatchEvent(new CustomEvent('updateCartBadge'));
@@ -390,7 +390,7 @@ export default class CartItem2 {
         notification.dataset.id = itemId;
 
         // Calculate time remaining
-        const secondsRemaining = 10;
+        const secondsRemaining = 5; // Changed from 10 to 5
 
         notification.innerHTML = `
             <div class="notification-content">
@@ -415,7 +415,7 @@ export default class CartItem2 {
 
         if (progressBar) {
             // Use CSS transition for smooth progress bar animation
-            progressBar.style.transition = 'width 10s linear';
+            progressBar.style.transition = 'width 5s linear'; // Changed from 10s to 5s
 
             // Force a reflow before changing the width to ensure the transition works
             void progressBar.offsetWidth;

@@ -12,5 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the main content with product grid
     const exploreContents = new ExploreContents('app');
     
+    // Update saved badge count on page load
+    document.dispatchEvent(new CustomEvent('updateSavedBadge'));
+    
     console.log('Explore page initialized with product grid and filters');
 });

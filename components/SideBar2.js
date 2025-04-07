@@ -12,6 +12,7 @@ export default class SideBar2 {
         this.setupEventListeners();
         this.applyTheme();
         this.updateCartCount();
+        this.updateSavedCount(); // Add this call
     }
 
     render() {
@@ -46,6 +47,7 @@ export default class SideBar2 {
                         <a href="../HTML-Pages/SavedPage.html">
                             <i class='bx bx-heart'></i>
                             <span class="links_name">Saved</span>
+                            <span class="saved-badge">0</span>
                         </a>
                     </li>
                     <li class="${this.activeMenuItem === 'cart' ? 'active' : ''}">
@@ -147,6 +149,11 @@ export default class SideBar2 {
         document.addEventListener('updateCartBadge', () => {
             this.updateCartCount();
         });
+        
+        // Add listener for saved updates
+        document.addEventListener('updateSavedBadge', () => {
+            this.updateSavedCount();
+        });
     }
 
     toggleTheme() {
@@ -184,6 +191,27 @@ export default class SideBar2 {
             }
         } catch (error) {
             console.error('Error updating cart count:', error);
+        }
+    }
+
+    // Add a new method to update saved count
+    updateSavedCount() {
+        try {
+            // Get saved items from localStorage
+            const savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+
+            // Update the badge
+            const savedBadge = document.querySelector('.saved-badge');
+            if (savedBadge) {
+                if (savedItems.length > 0) {
+                    savedBadge.textContent = savedItems.length;
+                    savedBadge.style.display = 'flex';
+                } else {
+                    savedBadge.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error updating saved count:', error);
         }
     }
 }

@@ -4,9 +4,23 @@ export default class SavedItems {
         this.savedItems = [];
         this.deletedItems = {}; // Track deleted items for undo functionality
         this.deleteTimers = {}; // Track deletion timers
+        this.progressIntervals = {}; // Add this to track progress bar intervals
         this.currentPage = 1;
         this.itemsPerPage = 35; // 5 columns × 7 rows = 35 items per page
+        this.createNotificationContainer(); // Add this line to create global notification container
         this.init();
+    }
+    
+    // Add this method to create a global notification container
+    createNotificationContainer() {
+        // Remove any existing notification container
+        const existingContainer = document.querySelector('.global-notification-container');
+        if (existingContainer) return;
+        
+        // Create a new container appended to body
+        const container = document.createElement('div');
+        container.className = 'notification-container global-notification-container';
+        document.body.appendChild(container);
     }
 
     async init() {
@@ -330,6 +344,7 @@ export default class SavedItems {
         });
     }
 
+    // Update the removeItem method
     removeItem(itemId) {
         // Find the item in the savedItems array
         const itemIndex = this.savedItems.findIndex(item => item.id === itemId);
@@ -338,7 +353,8 @@ export default class SavedItems {
         // Store the item for potential undo
         this.deletedItems[itemId] = {
             item: this.savedItems[itemIndex],
-            index: itemIndex
+            index: itemIndex,
+            timestamp: new Date().getTime() // Add timestamp for notification display
         };
 
         // Remove the item from the savedItems array
@@ -349,19 +365,7 @@ export default class SavedItems {
         allSavedItems = allSavedItems.filter(item => item.id !== itemId);
         localStorage.setItem('savedItems', JSON.stringify(allSavedItems));
 
-        // Show notification with undo option
-        this.showNotification(itemId);
-
-        // Set timer for permanent deletion
-        if (this.deleteTimers[itemId]) {
-            clearTimeout(this.deleteTimers[itemId]);
-        }
-
-        this.deleteTimers[itemId] = setTimeout(() => {
-            this.permanentlyDeleteItem(itemId);
-        }, 10000); // 10 seconds
-
-        // Update the UI
+        // Update the UI first
         this.updateItemCards();
         this.updatePagination();
         
@@ -371,12 +375,28 @@ export default class SavedItems {
             itemCountElement.textContent = `${this.savedItems.length} items saved`;
         }
 
+        // Show notification with timer AFTER UI update
+        this.showNotification(itemId);
+
+        // Set timer for permanent deletion - changed to 5 seconds
+        if (this.deleteTimers[itemId]) {
+            clearTimeout(this.deleteTimers[itemId]);
+        }
+
+        this.deleteTimers[itemId] = setTimeout(() => {
+            this.permanentlyDeleteItem(itemId);
+        }, 5000); // 5 seconds
+
         // If no items left, show the empty state
         if (this.savedItems.length === 0) {
             this.render();
         }
+        
+        // Dispatch event to update saved badge
+        document.dispatchEvent(new CustomEvent('updateSavedBadge'));
     }
 
+    // Update undoRemove method to handle progress intervals
     undoRemove(itemId) {
         // Check if the item exists in deletedItems
         if (!this.deletedItems[itemId]) return;
@@ -386,21 +406,24 @@ export default class SavedItems {
             clearTimeout(this.deleteTimers[itemId]);
             delete this.deleteTimers[itemId];
         }
+        
+        // Clear the progress interval if it exists
+        if (this.progressIntervals[itemId]) {
+            clearInterval(this.progressIntervals[itemId]);
+            delete this.progressIntervals[itemId];
+        }
 
-        // Get the deleted item info
+        // Rest of the method stays the same
         const { item, index } = this.deletedItems[itemId];
 
-        // Re-insert the item at the original position if possible, or at the beginning
         if (index < this.savedItems.length) {
             this.savedItems.splice(index, 0, item);
         } else {
             this.savedItems.push(item);
         }
 
-        // Remove from deletedItems
         delete this.deletedItems[itemId];
 
-        // Update localStorage - make sure to mark as saved
         let allSavedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
         if (!allSavedItems.some(savedItem => savedItem.id === item.id)) {
             allSavedItems.push({
@@ -410,26 +433,31 @@ export default class SavedItems {
         }
         localStorage.setItem('savedItems', JSON.stringify(allSavedItems));
 
-        // Remove the notification
         this.removeNotification(itemId);
-
-        // Update the UI
         this.updateItemCards();
         this.updatePagination();
         
-        // Update item count in header
         const itemCountElement = document.querySelector('.saved-header p');
         if (itemCountElement) {
             itemCountElement.textContent = `${this.savedItems.length} items saved`;
         }
 
-        // If this was the first item added back to an empty list, re-render entire component
         if (this.savedItems.length === 1) {
             this.render();
         }
+        
+        // Dispatch event to update saved badge
+        document.dispatchEvent(new CustomEvent('updateSavedBadge'));
     }
 
+    // Update permanentlyDeleteItem method to clear progress intervals
     permanentlyDeleteItem(itemId) {
+        // Clear the progress interval if it exists
+        if (this.progressIntervals[itemId]) {
+            clearInterval(this.progressIntervals[itemId]);
+            delete this.progressIntervals[itemId];
+        }
+        
         // Remove from deletedItems
         delete this.deletedItems[itemId];
         delete this.deleteTimers[itemId];
@@ -438,21 +466,29 @@ export default class SavedItems {
         this.removeNotification(itemId);
     }
 
+    // Update showNotification method with timer display
     showNotification(itemId) {
-        const notificationContainer = document.querySelector('.notification-container');
-        if (!notificationContainer) return;
+        const notificationContainer = document.querySelector('.global-notification-container');
+        if (!notificationContainer) {
+            console.error('Notification container not found');
+            return;
+        }
 
         const item = this.deletedItems[itemId].item;
         const notification = document.createElement('div');
         notification.className = 'notification fade-in';
         notification.dataset.id = itemId;
 
+        // Calculate time remaining - 5 seconds
+        const secondsRemaining = 5;
+        
         notification.innerHTML = `
             <div class="notification-content">
                 <i class='bx bx-check-circle notification-icon'></i>
                 <div class="notification-text">
                     <p>"${item.name}" removed from saved items</p>
                     <button class="undo-btn" data-id="${itemId}">Undo</button>
+                    <span class="notification-time">${secondsRemaining}s</span>
                 </div>
                 <button class="close-notification-btn">
                     <i class='bx bx-x'></i>
@@ -463,21 +499,58 @@ export default class SavedItems {
 
         notificationContainer.appendChild(notification);
 
-        // Start the progress bar animation
-        setTimeout(() => {
-            const progressBar = notification.querySelector('.notification-progress');
-            if (progressBar) {
+        // Initialize timer display and progress bar
+        const timeDisplay = notification.querySelector('.notification-time');
+        const progressBar = notification.querySelector('.notification-progress');
+        
+        if (progressBar) {
+            // Use CSS transition for smooth progress bar animation
+            progressBar.style.transition = 'width 5s linear';
+            
+            // Force a reflow before changing the width to ensure the transition works
+            void progressBar.offsetWidth;
+            
+            // Start with full width
+            progressBar.style.width = '100%';
+            
+            // After a tiny delay, set width to 0 to start the animation
+            setTimeout(() => {
                 progressBar.style.width = '0%';
-            }
-        }, 50);
-
-        // Add close button functionality
-        const closeBtn = notification.querySelector('.close-notification-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                this.removeNotification(itemId);
-            });
+            }, 50);
         }
+        
+        // Create a countdown timer that updates every second
+        let timeLeft = secondsRemaining;
+        
+        this.progressIntervals[itemId] = setInterval(() => {
+            timeLeft--;
+            
+            if (timeDisplay) {
+                timeDisplay.textContent = `${timeLeft}s`;
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(this.progressIntervals[itemId]);
+                delete this.progressIntervals[itemId];
+            }
+        }, 1000);
+
+        // Add event listeners for this specific notification
+        notification.querySelector('.close-notification-btn').addEventListener('click', () => {
+            if (this.deleteTimers[itemId]) {
+                clearTimeout(this.deleteTimers[itemId]);
+            }
+            if (this.progressIntervals[itemId]) {
+                clearInterval(this.progressIntervals[itemId]);
+                delete this.progressIntervals[itemId];
+            }
+            this.permanentlyDeleteItem(itemId);
+            this.removeNotification(itemId);
+        });
+
+        notification.querySelector('.undo-btn').addEventListener('click', () => {
+            this.undoRemove(itemId);
+        });
     }
 
     removeNotification(itemId) {
