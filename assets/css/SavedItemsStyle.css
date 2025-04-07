@@ -708,12 +708,14 @@ body.dark-mode .view-details-btn:hover {
 }
 
 body.dark-mode .no-items {
-    background: #1a202c;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    background: #080f26;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #1a2d5a;
 }
 
 body.dark-mode .no-items-icon {
-    background: linear-gradient(135deg, #2d3748, #1a202c);
+    background: linear-gradient(135deg, #14203a, #0c1638);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .no-items-icon i {
@@ -729,13 +731,14 @@ body.dark-mode .no-items p {
 }
 
 body.dark-mode .explore-btn {
-    background: var(--accent-dark, #1565c0);
-    box-shadow: 0 4px 6px rgba(49, 130, 206, 0.3);
+    background: linear-gradient(135deg, var(--accent-dark, #3182ce), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
 }
 
 body.dark-mode .explore-btn:hover {
-    background: #3178c6;
-    box-shadow: 0 6px 12px rgba(49, 130, 206, 0.4);
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
 }
 
 body.dark-mode .pagination-container {

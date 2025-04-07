@@ -1283,15 +1283,18 @@ body.dark-mode .checkout-btn:disabled {
 
 /* Empty cart dark mode styles */
 body.dark-mode .empty-cart {
-    background: #1a202c;
+    background: #080f26;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #1a2d5a;
 }
 
 body.dark-mode .empty-cart-icon {
-    background: #2d3748;
+    background: linear-gradient(135deg, #14203a, #0c1638);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .empty-cart-icon i {
-    color: #718096;
+    color: var(--accent-dark, #58a6ff);
 }
 
 body.dark-mode .empty-cart h3 {
@@ -1300,6 +1303,17 @@ body.dark-mode .empty-cart h3 {
 
 body.dark-mode .empty-cart p {
     color: #a0aec0;
+}
+
+body.dark-mode .continue-shopping-btn {
+    background: linear-gradient(135deg, var(--accent-dark, #3182ce), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
+}
+
+body.dark-mode .continue-shopping-btn:hover {
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
 }
 
 /*** RESPONSIVE DESIGN ***/
