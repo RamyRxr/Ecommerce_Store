@@ -4,7 +4,6 @@ export default class CartItem2 {
         this.cartItems = [];
         this.deletedItems = {}; // Track deleted items for undo functionality
         this.deleteTimers = {}; // Track deletion timers
-        this.showingSummary = false; // Track if summary is shown
         this.init();
     }
 
@@ -74,19 +73,14 @@ export default class CartItem2 {
             itemCount += item.quantity;
         });
 
-        const shippingCost = this.cartItems.length > 0 ? 12.99 : 0;
-        const total = subtotal + shippingCost;
-        
         return {
             subtotal: subtotal.toFixed(2),
-            shipping: shippingCost.toFixed(2),
-            total: total.toFixed(2),
             itemCount
         };
     }
 
     render() {
-        const { subtotal, itemCount, total } = this.calculateTotals();
+        const { subtotal, itemCount } = this.calculateTotals();
 
         const cartHTML = `
             <div class="cart-content-v2">
@@ -124,30 +118,9 @@ export default class CartItem2 {
                                     <i class='bx bx-left-arrow-alt'></i>
                                     Continue Shopping
                                 </a>
-                                <button class="checkout-btn" id="proceed-btn">
+                                <button class="checkout-btn" id="proceed-btn" ${this.cartItems.length === 0 ? 'disabled' : ''}>
                                     <i class='bx bx-credit-card'></i>
                                     Proceed to Checkout
-                                </button>
-                            </div>
-                            <div class="order-summary-container ${this.showingSummary ? 'visible' : ''}">
-                                <h2>Order Summary</h2>
-                                <div class="summary-details">
-                                    <div class="summary-row">
-                                        <span>Subtotal</span>
-                                        <span>$${subtotal}</span>
-                                    </div>
-                                    <div class="summary-row">
-                                        <span>Shipping</span>
-                                        <span>$12.99</span>
-                                    </div>
-                                    <div class="summary-row total">
-                                        <span>Total</span>
-                                        <span>$${total}</span>
-                                    </div>
-                                </div>
-                                <button class="checkout-final-btn">
-                                    <i class='bx bx-lock-alt'></i>
-                                    Complete Purchase
                                 </button>
                             </div>
                         </div>
@@ -276,24 +249,14 @@ export default class CartItem2 {
         // Proceed to checkout button
         document.addEventListener('click', (e) => {
             if (e.target.closest('#proceed-btn')) {
-                this.showingSummary = !this.showingSummary;
-                const summaryContainer = document.querySelector('.order-summary-container');
-                if (summaryContainer) {
-                    summaryContainer.classList.toggle('visible', this.showingSummary);
+                if (this.cartItems.length > 0) {
+                    // Dispatch event to show checkout summary
+                    document.dispatchEvent(new CustomEvent('showCheckoutSummary', {
+                        detail: {
+                            items: this.cartItems
+                        }
+                    }));
                 }
-            }
-        });
-
-        // Complete purchase button
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.checkout-final-btn')) {
-                alert(`Thank you for your purchase of $${this.calculateTotals().total}!`);
-                // In a real app, you would redirect to a confirmation page
-                // and clear the cart
-                this.cartItems = [];
-                localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
-                document.dispatchEvent(new CustomEvent('updateCartBadge'));
-                this.render();
             }
         });
     }
