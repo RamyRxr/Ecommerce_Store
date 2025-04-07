@@ -1,5 +1,5 @@
 import SideBar2 from '../components/SideBar2.js';
-import CartItem2 from '../components/CartItem2.js';
+import CartItem2 from '../components/CartItem.js';
 import CheckoutSummary from '../components/checkoutSummary.js';
 
 document.addEventListener('DOMContentLoaded', () => {

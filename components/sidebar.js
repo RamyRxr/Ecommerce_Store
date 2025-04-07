@@ -173,7 +173,7 @@ export default class SideBar {
                         </a>
                     </li>
                     <li class="${this.activeMenuItem === 'cart' ? 'active' : ''}">
-                        <a href="../HTML-Pages/CartPage2.html">
+                        <a href="../HTML-Pages/CartPage.html">
                             <i class='bx bx-cart'></i>
                             <span class="links_name">Cart</span>
                         </a>
