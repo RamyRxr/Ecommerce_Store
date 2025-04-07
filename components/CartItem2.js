@@ -1,9 +1,10 @@
-export default class CartItems {
+export default class CartItem2 {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.cartItems = [];
         this.deletedItems = {}; // Track deleted items for undo functionality
         this.deleteTimers = {}; // Track deletion timers
+        this.showingSummary = false; // Track if summary is shown
         this.init();
     }
 
@@ -73,18 +74,23 @@ export default class CartItems {
             itemCount += item.quantity;
         });
 
+        const shippingCost = this.cartItems.length > 0 ? 12.99 : 0;
+        const total = subtotal + shippingCost;
+        
         return {
             subtotal: subtotal.toFixed(2),
+            shipping: shippingCost.toFixed(2),
+            total: total.toFixed(2),
             itemCount
         };
     }
 
     render() {
-        const { subtotal, itemCount } = this.calculateTotals();
+        const { subtotal, itemCount, total } = this.calculateTotals();
 
         const cartHTML = `
-            <div class="cart-content">
-                <div class="cart-items-container">
+            <div class="cart-content-v2">
+                <div class="cart-main-container">
                     <div class="cart-header">
                         <h1>Your Cart</h1>
                         <p>${itemCount} item${itemCount !== 1 ? 's' : ''} added</p>
@@ -111,12 +117,41 @@ export default class CartItems {
                         <!-- Cart item rows will be inserted here -->
                     </div>
                     
-                    <div class="cart-footer">
-                        <a href="ExplorePage.html" class="continue-shopping-btn">
-                            <i class='bx bx-left-arrow-alt'></i>
-                            Continue Shopping
-                        </a>
-                    </div>
+                    ${this.cartItems.length > 0 ? `
+                        <div class="cart-footer">
+                            <div class="cart-actions">
+                                <a href="ExplorePage.html" class="continue-shopping-btn">
+                                    <i class='bx bx-left-arrow-alt'></i>
+                                    Continue Shopping
+                                </a>
+                                <button class="checkout-btn" id="proceed-btn">
+                                    <i class='bx bx-credit-card'></i>
+                                    Proceed to Checkout
+                                </button>
+                            </div>
+                            <div class="order-summary-container ${this.showingSummary ? 'visible' : ''}">
+                                <h2>Order Summary</h2>
+                                <div class="summary-details">
+                                    <div class="summary-row">
+                                        <span>Subtotal</span>
+                                        <span>$${subtotal}</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span>Shipping</span>
+                                        <span>$12.99</span>
+                                    </div>
+                                    <div class="summary-row total">
+                                        <span>Total</span>
+                                        <span>$${total}</span>
+                                    </div>
+                                </div>
+                                <button class="checkout-final-btn">
+                                    <i class='bx bx-lock-alt'></i>
+                                    Complete Purchase
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -125,7 +160,7 @@ export default class CartItems {
         cartContainer.innerHTML = cartHTML;
 
         // Check if cart content already exists
-        const existingCartContent = document.querySelector('.cart-content');
+        const existingCartContent = document.querySelector('.cart-content-v2');
         if (existingCartContent) {
             existingCartContent.replaceWith(cartContainer.firstElementChild);
         } else {
@@ -133,14 +168,6 @@ export default class CartItems {
         }
 
         this.updateCartItemsList();
-
-        // Trigger a custom event to notify the order summary to update
-        document.dispatchEvent(new CustomEvent('cartUpdated', {
-            detail: {
-                items: this.cartItems,
-                totals: this.calculateTotals()
-            }
-        }));
     }
 
     updateCartItemsList() {
@@ -175,7 +202,6 @@ export default class CartItems {
                 </div>
                 <div class="item-details">
                     <h3 class="item-name">${item.name}</h3>
-                    <p class="item-color">${item.color}</p>
                     <div class="quantity-controls">
                         <button class="qty-btn decrease-qty" ${item.quantity <= 1 ? 'disabled' : ''}>
                             <i class='bx bx-minus'></i>
@@ -190,7 +216,6 @@ export default class CartItems {
                     <span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>
                     <button class="remove-btn">
                         <i class='bx bx-trash'></i>
-                        Remove
                     </button>
                 </div>
             `;
@@ -247,6 +272,30 @@ export default class CartItems {
                 }
             }
         });
+
+        // Proceed to checkout button
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#proceed-btn')) {
+                this.showingSummary = !this.showingSummary;
+                const summaryContainer = document.querySelector('.order-summary-container');
+                if (summaryContainer) {
+                    summaryContainer.classList.toggle('visible', this.showingSummary);
+                }
+            }
+        });
+
+        // Complete purchase button
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.checkout-final-btn')) {
+                alert(`Thank you for your purchase of $${this.calculateTotals().total}!`);
+                // In a real app, you would redirect to a confirmation page
+                // and clear the cart
+                this.cartItems = [];
+                localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
+                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+                this.render();
+            }
+        });
     }
 
     updateItemQuantity(itemId, change) {
@@ -266,15 +315,7 @@ export default class CartItems {
         document.dispatchEvent(new CustomEvent('updateCartBadge'));
         
         // Update the UI
-        this.updateCartItemsList();
-        
-        // Notify order summary to update
-        document.dispatchEvent(new CustomEvent('cartUpdated', {
-            detail: {
-                items: this.cartItems,
-                totals: this.calculateTotals()
-            }
-        }));
+        this.render();
     }
 
     removeItem(itemId) {
