@@ -15,10 +15,9 @@ export default class CartItems {
 
     async loadCartItems() {
         try {
-            // In a real app, this would fetch from a backend API
-            // For demonstration, we'll check localStorage first
+            // Get cart items from localStorage
             const cartItemsJson = localStorage.getItem('cartItems');
-            
+
             if (cartItemsJson) {
                 this.cartItems = JSON.parse(cartItemsJson);
             } else {
@@ -55,7 +54,7 @@ export default class CartItems {
                         dateAdded: new Date().toISOString()
                     }
                 ];
-                
+
                 this.cartItems = demoCartItems;
                 localStorage.setItem('cartItems', JSON.stringify(demoCartItems));
             }
@@ -68,12 +67,12 @@ export default class CartItems {
     calculateTotals() {
         let subtotal = 0;
         let itemCount = 0;
-        
+
         this.cartItems.forEach(item => {
             subtotal += item.price * item.quantity;
             itemCount += item.quantity;
         });
-        
+
         return {
             subtotal: subtotal.toFixed(2),
             itemCount
@@ -82,7 +81,7 @@ export default class CartItems {
 
     render() {
         const { subtotal, itemCount } = this.calculateTotals();
-        
+
         const cartHTML = `
             <div class="cart-content">
                 <div class="cart-items-container">
@@ -91,11 +90,11 @@ export default class CartItems {
                         <p>${itemCount} item${itemCount !== 1 ? 's' : ''} added</p>
                     </div>
                     
-                    <div class="notification-container">
-                        <!-- Deleted item notifications will be displayed here -->
-                    </div>
-                    
                     <div class="cart-items-list">
+                        <div class="notification-container">
+                            <!-- Deleted item notifications will be displayed here -->
+                        </div>
+                        
                         ${this.cartItems.length > 0 ? '' : `
                             <div class="empty-cart">
                                 <div class="empty-cart-icon">
@@ -134,7 +133,7 @@ export default class CartItems {
         }
 
         this.updateCartItemsList();
-        
+
         // Trigger a custom event to notify the order summary to update
         document.dispatchEvent(new CustomEvent('cartUpdated', {
             detail: {
@@ -153,8 +152,12 @@ export default class CartItems {
             return;
         }
 
-        // Clear existing items
+        // Keep the notification container but clear other content
+        const notificationContainer = cartItemsList.querySelector('.notification-container');
         cartItemsList.innerHTML = '';
+        if (notificationContainer) {
+            cartItemsList.appendChild(notificationContainer);
+        }
 
         // Add each item to the list
         this.cartItems.forEach(item => {
@@ -168,13 +171,13 @@ export default class CartItems {
                 </div>
                 <div class="item-details">
                     <h3 class="item-name">${item.name}</h3>
-                    <p class="item-color">Color: ${item.color}</p>
+                    <p class="item-color">${item.color}</p>
                     <div class="quantity-controls">
-                        <button class="qty-btn minus-btn" ${item.quantity <= 1 ? 'disabled' : ''}>
+                        <button class="qty-btn decrease-qty" ${item.quantity <= 1 ? 'disabled' : ''}>
                             <i class='bx bx-minus'></i>
                         </button>
                         <span class="quantity">${item.quantity}</span>
-                        <button class="qty-btn plus-btn">
+                        <button class="qty-btn increase-qty">
                             <i class='bx bx-plus'></i>
                         </button>
                     </div>
@@ -193,36 +196,51 @@ export default class CartItems {
     }
 
     setupEventListeners() {
-        // Quantity control buttons
+        // Quantity change buttons
         document.addEventListener('click', (e) => {
-            // Plus button
-            if (e.target.closest('.plus-btn')) {
+            if (e.target.closest('.increase-qty') || e.target.closest('.decrease-qty')) {
                 const itemRow = e.target.closest('.cart-item');
+                if (!itemRow) return;
+                
                 const itemId = parseInt(itemRow.dataset.id);
-                this.updateItemQuantity(itemId, 1);
+                const change = e.target.closest('.increase-qty') ? 1 : -1;
+                
+                this.updateItemQuantity(itemId, change);
             }
-            
-            // Minus button
-            if (e.target.closest('.minus-btn')) {
-                const itemRow = e.target.closest('.cart-item');
-                const itemId = parseInt(itemRow.dataset.id);
-                this.updateItemQuantity(itemId, -1);
-            }
-            
-            // Remove button
+        });
+
+        // Remove item button
+        document.addEventListener('click', (e) => {
             if (e.target.closest('.remove-btn')) {
                 const itemRow = e.target.closest('.cart-item');
+                if (!itemRow) return;
+                
                 const itemId = parseInt(itemRow.dataset.id);
                 this.removeItem(itemId);
             }
         });
 
-        // Undo button event
+        // Undo button in notification
         document.addEventListener('click', (e) => {
-            const undoBtn = e.target.closest('.undo-btn');
-            if (undoBtn) {
-                const itemId = parseInt(undoBtn.dataset.id);
+            if (e.target.closest('.undo-btn')) {
+                const itemId = parseInt(e.target.closest('.undo-btn').dataset.id);
                 this.undoRemove(itemId);
+            }
+        });
+
+        // Close notification button
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.close-notification-btn')) {
+                const notification = e.target.closest('.notification');
+                if (notification) {
+                    const itemId = parseInt(notification.dataset.id);
+                    // Clear the delete timer when manually closed
+                    if (this.deleteTimers[itemId]) {
+                        clearTimeout(this.deleteTimers[itemId]);
+                        this.permanentlyDeleteItem(itemId);
+                    }
+                    this.removeNotification(itemId);
+                }
             }
         });
     }
@@ -239,6 +257,9 @@ export default class CartItems {
         
         // Update localStorage
         localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
+        
+        // Dispatch event to update cart badge
+        document.dispatchEvent(new CustomEvent('updateCartBadge'));
         
         // Update the UI
         this.updateCartItemsList();
@@ -281,6 +302,9 @@ export default class CartItems {
             this.permanentlyDeleteItem(itemId);
         }, 5000); // 5 seconds
 
+        // Dispatch event to update cart badge
+        document.dispatchEvent(new CustomEvent('updateCartBadge'));
+
         // Update the UI
         this.render();
     }
@@ -310,6 +334,9 @@ export default class CartItems {
 
         // Update localStorage
         localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
+
+        // Dispatch event to update cart badge
+        document.dispatchEvent(new CustomEvent('updateCartBadge'));
 
         // Remove the notification
         this.removeNotification(itemId);
@@ -360,13 +387,30 @@ export default class CartItems {
             }
         }, 50);
 
-        // Add close button functionality
-        const closeBtn = notification.querySelector('.close-notification-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                this.removeNotification(itemId);
-            });
-        }
+        // Make notification temporarily pause progress on hover
+        notification.addEventListener('mouseenter', () => {
+            if (this.deleteTimers[itemId]) {
+                clearTimeout(this.deleteTimers[itemId]);
+                const progressBar = notification.querySelector('.notification-progress');
+                if (progressBar) {
+                    progressBar.style.transition = 'none';
+                }
+            }
+        });
+
+        notification.addEventListener('mouseleave', () => {
+            if (this.deletedItems[itemId]) {
+                const progressBar = notification.querySelector('.notification-progress');
+                if (progressBar) {
+                    progressBar.style.transition = 'width 5s linear';
+                    progressBar.style.width = '0%';
+                }
+                
+                this.deleteTimers[itemId] = setTimeout(() => {
+                    this.permanentlyDeleteItem(itemId);
+                }, 5000);
+            }
+        });
     }
 
     removeNotification(itemId) {
