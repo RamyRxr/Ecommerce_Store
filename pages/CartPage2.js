@@ -1,6 +1,6 @@
 import SideBar2 from '../components/SideBar2.js';
 import CartItem2 from '../components/CartItem2.js';
-import CheckoutSummary from '../components/CheckoutSummary.js';
+import CheckoutSummary from '../components/checkoutSummary.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize the sidebar with cart as active item
