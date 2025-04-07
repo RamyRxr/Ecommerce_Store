@@ -11,7 +11,7 @@
 .cart-content-v2 {
     position: fixed;
     left: calc(var(--sidebar-collapsed-width) + 10px);
-    right: 20px;
+    right: 40px;
     z-index: 90;
 }
 
@@ -90,6 +90,7 @@
         opacity: 0;
         transform: translateX(30px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -101,6 +102,7 @@
         opacity: 1;
         transform: translateX(0);
     }
+
     to {
         opacity: 0;
         transform: translateX(30px);
@@ -358,7 +360,7 @@
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 12px 24px;
+    padding: 10px 20px;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
@@ -390,7 +392,7 @@
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 12px 24px;
+    padding: 10px 20px;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
@@ -425,7 +427,7 @@
 
 /*** CART FOOTER ***/
 .cart-footer {
-    padding: 20px 30px;
+    padding: 7px 30px;
     display: flex;
     flex-direction: column;
     margin-top: auto;
@@ -435,7 +437,6 @@
 .cart-actions {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
 }
 
 /*** CHECKOUT SUMMARY ***/
@@ -463,8 +464,9 @@
     background: white;
     border-radius: 15px;
     padding: 0;
+    margin-top: 10px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    max-height: 80vh;
+    max-height: 95vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -474,8 +476,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 15px 20px;
+    /* Reduced from 20px */
     border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 .summary-header h2 {
@@ -508,10 +513,37 @@
 }
 
 .summary-items {
-    padding: 20px;
-    max-height: 30vh;
+    padding: 15px 20px;
+    max-height: 70vh;
+    /* Significantly increased from 50vh */
+    flex-grow: 1;
+    /* Allow it to take available space */
+    flex-shrink: 0;
+    /* Prevent shrinking */
     overflow-y: auto;
     border-bottom: 1px solid #eee;
+    /* Add a nice scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Custom scrollbar for summary items */
+.summary-items::-webkit-scrollbar {
+    width: 5px;
+}
+
+.summary-items::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.summary-items::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+/* Dark mode scrollbar */
+body.dark-mode .summary-items::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .summary-item {
@@ -553,21 +585,28 @@
 }
 
 .shipping-options {
-    padding: 20px;
+    padding: 12px 20px;
+    /* Reduced from 20px */
     border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 .shipping-options h3 {
-    margin: 0 0 15px;
-    font-size: 16px;
+    margin: 0 0 10px;
+    /* Reduced from 15px */
+    font-size: 15px;
+    /* Smaller font */
     font-weight: 600;
 }
 
 .shipping-option {
-    padding: 10px;
+    padding: 8px;
+    /* Reduced from 10px */
     border: 1px solid #ddd;
     border-radius: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    /* Reduced from 10px */
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -642,13 +681,18 @@
 }
 
 .promo-code-section {
-    padding: 20px;
+    padding: 12px 20px;
+    /* Reduced from 20px */
     border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 .promo-code-section h3 {
-    margin: 0 0 15px;
-    font-size: 16px;
+    margin: 0 0 10px;
+    /* Reduced from 15px */
+    font-size: 15px;
+    /* Smaller font */
     font-weight: 600;
 }
 
@@ -676,9 +720,26 @@
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-    20%, 40%, 60%, 80% { transform: translateX(5px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-5px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(5px);
+    }
 }
 
 .apply-promo-btn {
@@ -734,12 +795,21 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes bounceIn {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.5); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.5);
+    }
 }
 
 .promo-message {
@@ -756,7 +826,10 @@
 }
 
 .summary-totals {
-    padding: 20px;
+    padding: 12px 20px;
+    /* Reduced from 20px */
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 .summary-row {
@@ -784,8 +857,10 @@
 }
 
 .complete-purchase-btn {
-    margin: 0 20px 20px;
-    padding: 14px;
+    margin: 0 20px 15px;
+    /* Reduced bottom margin from 20px */
+    padding: 12px;
+    /* Reduced from 14px */
     background-color: #4caf50;
     color: white;
     border: none;
@@ -799,6 +874,8 @@
     gap: 10px;
     transition: all 0.3s;
     box-shadow: 0 4px 6px rgba(76, 175, 80, 0.2);
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 .complete-purchase-btn:hover {

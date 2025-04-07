@@ -133,21 +133,21 @@ export default class CheckoutSummary {
                 <div class="summary-totals">
                     <div class="summary-row">
                         <span>Subtotal</span>
-                        <span>$${totals.subtotal}</span>
+                        <span class="subtotal-value">$${totals.subtotal}</span>
                     </div>
                     <div class="summary-row">
                         <span>Shipping</span>
-                        <span>$${totals.shipping}</span>
+                        <span class="shipping-value">$${totals.shipping}</span>
                     </div>
                     ${totals.discount > 0 ? `
                         <div class="summary-row discount">
                             <span>Discount</span>
-                            <span>-$${totals.discount}</span>
+                            <span class="discount-value">-$${totals.discount}</span>
                         </div>
                     ` : ''}
                     <div class="summary-row total">
                         <span>Total</span>
-                        <span>$${totals.total}</span>
+                        <span class="total-value">$${totals.total}</span>
                     </div>
                 </div>
                 
@@ -185,8 +185,8 @@ export default class CheckoutSummary {
             const shippingOption = e.target.closest('.shipping-option');
             if (shippingOption && this.isVisible) {
                 const method = shippingOption.dataset.shipping;
-                this.shippingMethod = method;
-                this.render();
+                // Don't render the entire component, just update the shipping method
+                this.updateShippingMethod(method);
             }
 
             // Apply promo code
@@ -206,6 +206,57 @@ export default class CheckoutSummary {
                 this.applyPromoCode();
             }
         });
+    }
+
+    // New method to update shipping without full re-render
+    updateShippingMethod(method) {
+        if (this.shippingMethod === method) return; // No change needed
+        
+        // Update shipping method
+        this.shippingMethod = method;
+        
+        // Update the UI for shipping options
+        const standardOption = document.querySelector('.shipping-option[data-shipping="standard"]');
+        const expressOption = document.querySelector('.shipping-option[data-shipping="express"]');
+        
+        if (standardOption && expressOption) {
+            // Update selected classes
+            standardOption.classList.toggle('selected', method === 'standard');
+            expressOption.classList.toggle('selected', method === 'express');
+            
+            // Update radio dots
+            standardOption.querySelector('.radio-dot').classList.toggle('selected', method === 'standard');
+            expressOption.querySelector('.radio-dot').classList.toggle('selected', method === 'express');
+        }
+        
+        // Calculate new totals
+        const totals = this.calculateTotals();
+        
+        // Update just the shipping and total values in the DOM
+        const shippingValue = document.querySelector('.shipping-value');
+        const totalValue = document.querySelector('.total-value');
+        
+        if (shippingValue) {
+            shippingValue.textContent = `$${totals.shipping}`;
+        }
+        
+        if (totalValue) {
+            totalValue.textContent = `$${totals.total}`;
+        }
+        
+        // Apply a flash effect to highlight the change
+        this.flashElement(shippingValue);
+        this.flashElement(totalValue);
+    }
+
+    // Helper method to flash an element to highlight changes
+    flashElement(element) {
+        if (!element) return;
+        
+        element.classList.add('flash-update');
+        setTimeout(() => {
+            element.classList.remove('flash-update');
+        }, 500);
     }
 
     applyPromoCode() {
@@ -239,17 +290,48 @@ export default class CheckoutSummary {
                     // Show success animation
                     this.successAnimation(applyBtn);
                     
-                    // Re-render after animation
-                    setTimeout(() => {
-                        this.render();
-                    }, 1500);
+                    // Update totals without full re-render
+                    const totals = this.calculateTotals();
+                    
+                    // Update the discount row or add it if it doesn't exist
+                    let discountRow = document.querySelector('.summary-row.discount');
+                    if (!discountRow) {
+                        discountRow = document.createElement('div');
+                        discountRow.className = 'summary-row discount';
+                        discountRow.innerHTML = `
+                            <span>Discount</span>
+                            <span class="discount-value">-$${totals.discount}</span>
+                        `;
+                        
+                        // Insert before the total row
+                        const totalRow = document.querySelector('.summary-row.total');
+                        if (totalRow) {
+                            totalRow.parentNode.insertBefore(discountRow, totalRow);
+                        }
+                    } else {
+                        // Just update the value
+                        const discountValue = discountRow.querySelector('.discount-value');
+                        if (discountValue) {
+                            discountValue.textContent = `-$${totals.discount}`;
+                        }
+                    }
+                    
+                    // Update the total
+                    const totalValue = document.querySelector('.total-value');
+                    if (totalValue) {
+                        totalValue.textContent = `$${totals.total}`;
+                    }
+                    
+                    // Flash to highlight changes
+                    this.flashElement(discountRow);
+                    this.flashElement(totalValue);
+                    
                 } else {
                     promoMessage.innerHTML = '<span class="error">Invalid promo code</span>';
                     this.promoCode = '';
                     this.promoDiscount = 0;
                     applyBtn.classList.remove('loading');
                     this.shakeElement(promoInput);
-                    this.render();
                 }
             }, 800);
         }
