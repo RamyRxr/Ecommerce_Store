@@ -74,7 +74,8 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     overflow: hidden;
     margin-bottom: 10px;
-    border-left: 4px solid #4caf50;
+    position: relative;
+    transform-origin: right center;
 }
 
 .notification.fade-in {
@@ -132,6 +133,12 @@
     color: #333;
 }
 
+.notification-time {
+    font-size: 12px;
+    color: #666;
+    margin-left: 5px;
+}
+
 .undo-btn {
     background: none;
     border: none;
@@ -141,11 +148,18 @@
     cursor: pointer;
     padding: 0;
     text-decoration: underline;
+    transition: color 0.2s;
 }
 
 .undo-btn:hover {
+    color: var(--accent-dark, #1565c0);
     text-decoration: underline;
 }
+
+.undo-btn:active {
+    transform: scale(0.98);
+}
+
 
 .close-notification-btn {
     background: none;
@@ -167,6 +181,9 @@
     background: var(--accent, #1e88e5);
     width: 100%;
     transition: width 10s linear;
+    position: absolute;
+    bottom: 0;
+    left: 0;
 }
 
 /*** CART ITEMS LIST ***/
@@ -953,6 +970,18 @@ body.dark-mode .continue-shopping-btn:hover {
 body.dark-mode .notification {
     background: #1a202c;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .notification-time {
+    color: #aaa;
+}
+
+body.dark-mode .undo-btn {
+    color: var(--accent-dark, #58a6ff);
+}
+
+body.dark-mode .undo-btn:hover {
+    color: #79bfff;
 }
 
 body.dark-mode .notification-text p {

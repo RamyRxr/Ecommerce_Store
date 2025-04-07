@@ -4,6 +4,7 @@ export default class CartItem2 {
         this.cartItems = [];
         this.deletedItems = {}; // Track deleted items for undo functionality
         this.deleteTimers = {}; // Track deletion timers
+        this.createNotificationContainer();
         this.init();
     }
 
@@ -203,10 +204,10 @@ export default class CartItem2 {
             if (e.target.closest('.increase-qty') || e.target.closest('.decrease-qty')) {
                 const itemRow = e.target.closest('.cart-item');
                 if (!itemRow) return;
-                
+
                 const itemId = parseInt(itemRow.dataset.id);
                 const change = e.target.closest('.increase-qty') ? 1 : -1;
-                
+
                 this.updateItemQuantity(itemId, change);
             }
         });
@@ -216,7 +217,7 @@ export default class CartItem2 {
             if (e.target.closest('.remove-btn')) {
                 const itemRow = e.target.closest('.cart-item');
                 if (!itemRow) return;
-                
+
                 const itemId = parseInt(itemRow.dataset.id);
                 this.removeItem(itemId);
             }
@@ -270,13 +271,13 @@ export default class CartItem2 {
         if (newQuantity < 1) return;
 
         this.cartItems[itemIndex].quantity = newQuantity;
-        
+
         // Update localStorage
         localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
-        
+
         // Dispatch event to update cart badge
         document.dispatchEvent(new CustomEvent('updateCartBadge'));
-        
+
         // Update the UI
         this.render();
     }
@@ -298,7 +299,10 @@ export default class CartItem2 {
         // Update localStorage
         localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
 
-        // Show notification with undo option
+        // Update the UI FIRST
+        this.render();
+
+        // THEN show notification AFTER rendering
         this.showNotification(itemId);
 
         // Set a timer to permanently delete after 10 seconds
@@ -312,9 +316,6 @@ export default class CartItem2 {
 
         // Dispatch event to update cart badge
         document.dispatchEvent(new CustomEvent('updateCartBadge'));
-
-        // Update the UI
-        this.render();
     }
 
     undoRemove(itemId) {
@@ -364,7 +365,10 @@ export default class CartItem2 {
 
     showNotification(itemId) {
         const notificationContainer = document.querySelector('.notification-container');
-        if (!notificationContainer) return;
+        if (!notificationContainer) {
+            console.error('Notification container not found');
+            return;
+        }
 
         const item = this.deletedItems[itemId].item;
         const notification = document.createElement('div');
@@ -401,10 +405,21 @@ export default class CartItem2 {
         if (notification) {
             notification.classList.remove('fade-in');
             notification.classList.add('fade-out');
-            
+
             setTimeout(() => {
                 notification.remove();
             }, 300);
         }
+    }
+
+    createNotificationContainer() {
+        // Remove any existing notification container
+        const existingContainer = document.querySelector('.global-notification-container');
+        if (existingContainer) return;
+        
+        // Create a new container appended to body
+        const container = document.createElement('div');
+        container.className = 'notification-container global-notification-container';
+        document.body.appendChild(container);
     }
 }
