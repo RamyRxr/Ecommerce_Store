@@ -4,6 +4,7 @@ export default class CartItem2 {
         this.cartItems = [];
         this.deletedItems = {}; // Track deleted items for undo functionality
         this.deleteTimers = {}; // Track deletion timers
+        this.progressIntervals = {}; // Track progress bar intervals
         this.createNotificationContainer();
         this.init();
     }
@@ -290,7 +291,8 @@ export default class CartItem2 {
         // Store the item for potential undo
         this.deletedItems[itemId] = {
             item: this.cartItems[itemIndex],
-            index: itemIndex
+            index: itemIndex,
+            timestamp: new Date().getTime() // Add timestamp for notification display
         };
 
         // Remove the item from the cart
@@ -302,7 +304,7 @@ export default class CartItem2 {
         // Update the UI FIRST
         this.render();
 
-        // THEN show notification AFTER rendering
+        // THEN show notification AFTER rendering with its own timer
         this.showNotification(itemId);
 
         // Set a timer to permanently delete after 10 seconds
@@ -326,6 +328,12 @@ export default class CartItem2 {
         if (this.deleteTimers[itemId]) {
             clearTimeout(this.deleteTimers[itemId]);
             delete this.deleteTimers[itemId];
+        }
+
+        // Clear the progress interval if it exists
+        if (this.progressIntervals[itemId]) {
+            clearInterval(this.progressIntervals[itemId]);
+            delete this.progressIntervals[itemId];
         }
 
         // Get the deleted item info
@@ -355,6 +363,12 @@ export default class CartItem2 {
     }
 
     permanentlyDeleteItem(itemId) {
+        // Clear the progress interval if it exists
+        if (this.progressIntervals[itemId]) {
+            clearInterval(this.progressIntervals[itemId]);
+            delete this.progressIntervals[itemId];
+        }
+
         // Remove from deletedItems
         delete this.deletedItems[itemId];
         delete this.deleteTimers[itemId];
@@ -364,7 +378,7 @@ export default class CartItem2 {
     }
 
     showNotification(itemId) {
-        const notificationContainer = document.querySelector('.notification-container');
+        const notificationContainer = document.querySelector('.global-notification-container');
         if (!notificationContainer) {
             console.error('Notification container not found');
             return;
@@ -375,12 +389,16 @@ export default class CartItem2 {
         notification.className = 'notification fade-in';
         notification.dataset.id = itemId;
 
+        // Calculate time remaining
+        const secondsRemaining = 10;
+
         notification.innerHTML = `
             <div class="notification-content">
                 <i class='bx bx-check-circle notification-icon'></i>
                 <div class="notification-text">
                     <p>"${item.name}" removed from cart</p>
                     <button class="undo-btn" data-id="${itemId}">Undo</button>
+                    <span class="notification-time">${secondsRemaining}s</span>
                 </div>
                 <button class="close-notification-btn">
                     <i class='bx bx-x'></i>
@@ -391,13 +409,58 @@ export default class CartItem2 {
 
         notificationContainer.appendChild(notification);
 
-        // Start the progress bar animation
-        setTimeout(() => {
-            const progressBar = notification.querySelector('.notification-progress');
-            if (progressBar) {
+        // Initialize timer display and progress bar
+        const timeDisplay = notification.querySelector('.notification-time');
+        const progressBar = notification.querySelector('.notification-progress');
+
+        if (progressBar) {
+            // Use CSS transition for smooth progress bar animation
+            progressBar.style.transition = 'width 10s linear';
+
+            // Force a reflow before changing the width to ensure the transition works
+            void progressBar.offsetWidth;
+
+            // Start with full width
+            progressBar.style.width = '100%';
+
+            // After a tiny delay, set width to 0 to start the animation
+            setTimeout(() => {
                 progressBar.style.width = '0%';
+            }, 50);
+        }
+
+        // Create a countdown timer that updates every second
+        let timeLeft = secondsRemaining;
+
+        this.progressIntervals[itemId] = setInterval(() => {
+            timeLeft--;
+
+            if (timeDisplay) {
+                timeDisplay.textContent = `${timeLeft}s`;
             }
-        }, 50);
+
+            if (timeLeft <= 0) {
+                clearInterval(this.progressIntervals[itemId]);
+                delete this.progressIntervals[itemId];
+            }
+        }, 1000);
+
+        // Add event listeners for this specific notification
+        notification.querySelector('.close-notification-btn').addEventListener('click', () => {
+            if (this.deleteTimers[itemId]) {
+                clearTimeout(this.deleteTimers[itemId]);
+            }
+            if (this.progressIntervals[itemId]) {
+                clearInterval(this.progressIntervals[itemId]);
+                delete this.progressIntervals[itemId];
+            }
+            this.permanentlyDeleteItem(itemId);
+            this.removeNotification(itemId);
+        });
+
+        notification.querySelector('.undo-btn').addEventListener('click', () => {
+            this.undoRemove(itemId);
+        });
     }
 
     removeNotification(itemId) {

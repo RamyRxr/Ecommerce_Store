@@ -7,6 +7,30 @@
     --available-width: calc(100vw - var(--sidebar-total-width) - 40px);
 }
 
+/* Prevent scrollbar flickering */
+html {
+    overflow-y: scroll; /* Always show scrollbar */
+    scrollbar-width: thin; /* Use thin scrollbar for Firefox */
+}
+
+/* For Webkit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+body.dark-mode::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
 /*** LAYOUT STRUCTURE ***/
 .cart-content-v2 {
     position: fixed;
@@ -184,6 +208,24 @@
     position: absolute;
     bottom: 0;
     left: 0;
+}
+
+/* Global notification container position */
+.global-notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 350px;
+    max-width: 90vw;
+    z-index: 1100; /* Higher than other content */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* Allow clicking through container but not children */
+}
+
+.global-notification-container * {
+    pointer-events: auto; /* Restore pointer events for children */
 }
 
 /*** CART ITEMS LIST ***/
@@ -1189,4 +1231,14 @@ body.dark-mode .empty-cart p {
     .checkout-summary-container {
         width: 95%;
     }
+}
+
+/* Flash animation for price updates */
+@keyframes flash-update {
+    0%, 100% { color: inherit; }
+    50% { color: var(--accent, #1e88e5); font-weight: bold; }
+}
+
+.flash-update {
+    animation: flash-update 0.5s ease;
 }
