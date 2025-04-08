@@ -88,7 +88,8 @@
 }
 
 /* Cart badge */
-.cart-badge {
+.cart-badge ,
+.saved-badge {
     position: absolute;
     top: 5px;
     right: 5px;
@@ -105,11 +106,14 @@
     transition: all 0.3s;
 }
 
-body.dark-mode .cart-badge {
+body.dark-mode .cart-badge ,
+body.dark-mode .saved-badge {
     background: var(--accent-dark, #58a6ff);
 }
 
-.sidebar.collapsed .cart-badge {
+.sidebar.collapsed .cart-badge ,
+.sidebar.collapsed .saved-badge {
+    top: 8px;
     right: 8px;
 }
 
