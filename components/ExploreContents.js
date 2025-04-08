@@ -717,22 +717,31 @@ export default class ExploreContents {
 
         // Save product (heart icon)
         document.addEventListener('click', e => {
-            if (e.target.matches('.save-btn') || e.target.closest('.save-btn')) {
-                const saveBtn = e.target.matches('.save-btn') ? e.target : e.target.closest('.save-btn');
+            const saveBtn = e.target.closest('.save-btn');
+            if (saveBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const productCard = saveBtn.closest('.product-card');
+                if (!productCard) return;
+                
                 const productId = parseInt(productCard.dataset.id);
-
                 const product = this.products.find(p => p.id === productId);
+                
                 if (product) {
                     product.isSaved = !product.isSaved;
-
-                    // Update the button
                     saveBtn.classList.toggle('saved', product.isSaved);
-                    const icon = saveBtn.querySelector('i');
-                    icon.className = product.isSaved ? 'bx bxs-heart' : 'bx bx-heart';
-
-                    // Save to localStorage
+                    
+                    if (product.isSaved) {
+                        saveBtn.innerHTML = '<i class="bx bxs-heart"></i>';
+                    } else {
+                        saveBtn.innerHTML = '<i class="bx bx-heart"></i>';
+                    }
+                    
                     this.updateSavedItems(product);
+                    
+                    // Add this line to immediately update the badge count
+                    document.dispatchEvent(new CustomEvent('updateSavedBadge'));
                 }
             }
         });
@@ -759,24 +768,23 @@ export default class ExploreContents {
         let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
 
         if (product.isSaved) {
-            // Add to saved items if it's not already there
+            // If the product isn't already in saved items, add it
             if (!savedItems.some(item => item.id === product.id)) {
-                // Add dateAdded property to track when it was saved
-                const savedItem = {
+                savedItems.push({
                     ...product,
                     dateAdded: new Date().toISOString()
-                };
-                savedItems.push(savedItem);
-                console.log(`Added product ${product.id} to saved items`);
+                });
             }
         } else {
-            // Remove from saved items
+            // Remove product from saved items
             savedItems = savedItems.filter(item => item.id !== product.id);
-            console.log(`Removed product ${product.id} from saved items`);
         }
 
         // Save back to localStorage
         localStorage.setItem('savedItems', JSON.stringify(savedItems));
+        
+        // Dispatch event to update saved badge (add this if it's not already there)
+        document.dispatchEvent(new CustomEvent('updateSavedBadge'));
     }
 
     // Add this method to the ExploreContents class
