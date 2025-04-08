@@ -217,20 +217,33 @@ export default class SavedItems {
     }
 
     updatePagination() {
-        const paginationContainer = document.querySelector('.pagination');
+        // Get the outer pagination container
+        const paginationContainer = document.querySelector('.pagination-container');
         if (!paginationContainer) return;
-
+        
+        // Hide pagination if no saved items
+        if (this.savedItems.length === 0) {
+            paginationContainer.style.display = 'none';
+            return;
+        } else {
+            paginationContainer.style.display = 'flex';
+        }
+        
+        // Get the inner pagination element
+        const pagination = document.querySelector('.pagination');
+        if (!pagination) return;
+    
         const totalPages = Math.max(1, Math.ceil(this.savedItems.length / this.itemsPerPage));
-
+    
         let paginationHTML = '';
-
+    
         // Prev button
         paginationHTML += `
             <button class="pagination-btn prev-btn" ${this.currentPage === 1 ? 'disabled' : ''}>
                 <i class='bx bx-chevron-left'></i>
             </button>
         `;
-
+    
         // Page numbers with dynamic styling
         if (totalPages <= 7) {
             // Show all pages if 7 or fewer
@@ -247,15 +260,15 @@ export default class SavedItems {
             paginationHTML += `
                 <button class="pagination-btn page-number ${this.currentPage === 1 ? 'active' : ''}" data-page="1">1</button>
             `;
-
+    
             if (this.currentPage > 3) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
-
+    
             // Pages around current page
             const start = Math.max(2, this.currentPage - 1);
             const end = Math.min(totalPages - 1, this.currentPage + 1);
-
+    
             for (let i = start; i <= end; i++) {
                 paginationHTML += `
                     <button class="pagination-btn page-number ${i === this.currentPage ? 'active' : ''}" 
@@ -264,11 +277,11 @@ export default class SavedItems {
                     </button>
                 `;
             }
-
+    
             if (this.currentPage < totalPages - 2) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
-
+    
             paginationHTML += `
                 <button class="pagination-btn page-number ${this.currentPage === totalPages ? 'active' : ''}" 
                         data-page="${totalPages}">
@@ -276,15 +289,15 @@ export default class SavedItems {
                 </button>
             `;
         }
-
+    
         // Next button
         paginationHTML += `
             <button class="pagination-btn next-btn" ${this.currentPage === totalPages ? 'disabled' : ''}>
                 <i class='bx bx-chevron-right'></i>
             </button>
         `;
-
-        paginationContainer.innerHTML = paginationHTML;
+    
+        pagination.innerHTML = paginationHTML;
     }
 
     setupEventListeners() {

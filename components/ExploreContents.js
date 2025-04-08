@@ -526,10 +526,25 @@ export default class ExploreContents {
     }
 
     updatePagination() {
-        const paginationContainer = document.querySelector('.pagination');
+        const totalItems = this.filteredProducts.length;
+        const totalPages = Math.ceil(totalItems / this.itemsPerPage);
+
+        // Clear existing pagination
+        const paginationContainer = document.querySelector('.pagination-container');
         if (!paginationContainer) return;
 
-        const totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+        // Hide pagination if no products found
+        if (totalItems === 0) {
+            paginationContainer.style.display = 'none';
+            return;
+        } else {
+            paginationContainer.style.display = 'flex';
+        }
+
+        // Rest of your pagination code...
+        const pagination = document.createElement('div');
+        pagination.className = 'pagination';
+        // ...existing pagination generation code
 
         let paginationHTML = '';
 
@@ -721,25 +736,25 @@ export default class ExploreContents {
             if (saveBtn) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 const productCard = saveBtn.closest('.product-card');
                 if (!productCard) return;
-                
+
                 const productId = parseInt(productCard.dataset.id);
                 const product = this.products.find(p => p.id === productId);
-                
+
                 if (product) {
                     product.isSaved = !product.isSaved;
                     saveBtn.classList.toggle('saved', product.isSaved);
-                    
+
                     if (product.isSaved) {
                         saveBtn.innerHTML = '<i class="bx bxs-heart"></i>';
                     } else {
                         saveBtn.innerHTML = '<i class="bx bx-heart"></i>';
                     }
-                    
+
                     this.updateSavedItems(product);
-                    
+
                     // Add this line to immediately update the badge count
                     document.dispatchEvent(new CustomEvent('updateSavedBadge'));
                 }
@@ -782,7 +797,7 @@ export default class ExploreContents {
 
         // Save back to localStorage
         localStorage.setItem('savedItems', JSON.stringify(savedItems));
-        
+
         // Dispatch event to update saved badge (add this if it's not already there)
         document.dispatchEvent(new CustomEvent('updateSavedBadge'));
     }
