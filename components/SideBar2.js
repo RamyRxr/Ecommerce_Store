@@ -58,7 +58,7 @@ export default class SideBar2 {
                         </a>
                     </li>
                     <li class="${this.activeMenuItem === 'selling' ? 'active' : ''}">
-                        <a href="../HTML-Pages/Selling.html">
+                        <a href="../HTML-Pages/SellingPage.html">
                             <i class='bx bx-store'></i>
                             <span class="links_name">Selling</span>
                         </a>
