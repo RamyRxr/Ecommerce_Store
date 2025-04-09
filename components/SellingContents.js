@@ -160,7 +160,7 @@ export default class SellingContents {
                             <label for="product-title">Product Title</label>
                             <input type="text" id="product-title" placeholder="Enter product title">
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="fancy-select-container">
                                 <div class="form-group">
@@ -247,7 +247,7 @@ export default class SellingContents {
                             <textarea id="product-description" placeholder="Describe your item in detail, including any flaws or issues"></textarea>
                         </div>
                         
-                        <div class="form-row">
+                        <div class="price-brand-model-row">
                             <div class="form-group">
                                 <label for="product-price">Price ($)</label>
                                 <input type="number" id="product-price" placeholder="0.00" min="0" step="0.01">

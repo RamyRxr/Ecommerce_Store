@@ -124,9 +124,11 @@
     padding: 20px 30px;
 }
 
+
+
 /*** CREATE LISTING TAB ***/
 .create-listing-container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
 }
 
@@ -134,13 +136,13 @@
     background-color: white;
     border-radius: 10px;
     padding: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-section h2 {
-    margin: 0 0 5px 0;
-    font-size: 18px;
+    margin: 0 0 10px 0;
+    font-size: 20px;
     font-weight: 600;
     color: var(--dark-bg);
 }
@@ -159,11 +161,17 @@
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    align-items: flex-start;
 }
 
-.form-row .form-group {
+.form-row .form-group,
+.form-row .fancy-select-container {
     flex: 1;
-    min-width: 200px;
+    min-width: 220px;
+}
+
+#product-description {
+    margin-top: 10px;
 }
 
 .form-group label {
@@ -173,6 +181,31 @@
     font-weight: 500;
     color: var(--dark-bg);
 }
+
+/* Fix for price, brand and model to be on same line */
+.price-brand-model-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.price-brand-model-row .form-group,
+.price-brand-model-row .fancy-select-container {
+    flex: 1;
+    min-width: 150px;
+}
+
+/* Special width for price to be narrower */
+.price-brand-model-row .form-group:first-child {
+    flex: 0.7;
+}
+
+/* Make sure all fancy selects have consistent height */
+.fancy-select {
+    height: 42px;
+}
+
 
 .form-group input,
 .form-group select,
