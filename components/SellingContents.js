@@ -711,6 +711,66 @@ export default class SellingContents {
         }
     }
 
+    handleImageUpload(inputElement, previewContainer) {
+        const files = inputElement.files;
+
+        if (!files || files.length === 0) {
+            return;
+        }
+
+        // Limit to 8 images
+        const maxImages = 8;
+        const currentImages = previewContainer.querySelectorAll('.image-preview').length;
+        const availableSlots = maxImages - currentImages;
+        const filesToProcess = Math.min(files.length, availableSlots);
+
+        if (currentImages >= maxImages) {
+            alert('Maximum 8 images allowed');
+            return;
+        }
+
+        // Process each file
+        for (let i = 0; i < filesToProcess; i++) {
+            const file = files[i];
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                continue;
+            }
+
+            // Create preview container
+            const previewElement = document.createElement('div');
+            previewElement.className = 'image-preview';
+
+            // Create image element
+            const img = document.createElement('img');
+
+            // Create remove button
+            const removeButton = document.createElement('button');
+            removeButton.className = 'remove-image-btn';
+            removeButton.innerHTML = '<i class="bx bx-x"></i>';
+            removeButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                previewElement.remove();
+            });
+
+            // Use FileReader to read and display the image
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target.result;
+                previewElement.appendChild(img);
+                previewElement.appendChild(removeButton);
+                previewContainer.appendChild(previewElement);
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // Clear the input so the same file can be selected again if needed
+        inputElement.value = '';
+    }
+
     saveListing(type) {
         // Get form values
         const title = document.getElementById('product-title').value;
