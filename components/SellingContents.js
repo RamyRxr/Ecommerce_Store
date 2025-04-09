@@ -813,28 +813,18 @@ export default class SellingContents {
             return;
         }
 
-        // Get uploaded image previews (in a real app, you'd upload these to a server)
+        // Get uploaded image previews
         const imagePreviews = document.querySelectorAll('#image-preview-container .image-preview img');
         if (imagePreviews.length === 0) {
             alert('Please upload at least one image');
             return;
         }
 
-        // For demo purposes, we'll just use placeholder images
+        // Use the actual uploaded images instead of placeholders
         const images = [];
-        if (category === 'smartphones') {
-            images.push("../assets/images/products-images/product-2.svg");
-        } else if (category === 'laptops') {
-            images.push("../assets/images/products-images/product-3.svg");
-        } else if (category === 'tablets') {
-            images.push("../assets/images/products-images/product-4.svg");
-        } else if (category === 'headphones') {
-            images.push("../assets/images/products-images/product-1.svg");
-        } else if (category === 'cameras') {
-            images.push("../assets/images/products-images/product-5.svg");
-        } else {
-            images.push("../assets/images/products-images/product-6.svg");
-        }
+        imagePreviews.forEach(img => {
+            images.push(img.src); // Store the data URL of the uploaded image
+        });
 
         // Create a new listing object
         const newListing = {
@@ -1059,7 +1049,11 @@ export default class SellingContents {
             return;
         }
 
-        // Update the listing (keep original images, ID, and view count)
+        // Get the current images from the preview container
+        const imagePreviews = document.querySelectorAll('#image-preview-container .image-preview img');
+        const images = Array.from(imagePreviews).map(img => img.src);
+
+        // Update the listing (keep ID and view count)
         this.listings[index] = {
             ...this.listings[index], // Keep original properties
             title,
@@ -1071,6 +1065,7 @@ export default class SellingContents {
             model,
             shipping,
             localPickup,
+            images, // Use the updated images
             status: asDraft ? 'draft' : 'active'
         };
 
