@@ -63,7 +63,7 @@ export default class SideBar2 {
                             <span class="links_name">Selling</span>
                         </a>
                     </li>
-                    <li class="${this.activeMenuItem === 'purchase-history' ? 'active' : ''}">
+                    <li class="${this.activeMenuItem === 'purchase_history' ? 'active' : ''}">
                         <a href="../HTML-Pages/HistoryPage.html">
                             <i class='bx bx-history'></i>
                             <span class="links_name">Purchase History</span>
