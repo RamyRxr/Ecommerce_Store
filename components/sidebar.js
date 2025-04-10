@@ -191,7 +191,7 @@ export default class SideBar {
                         </a>
                     </li>
                     <li class="${this.activeMenuItem === 'settings' ? 'active' : ''}">
-                        <a href="../HTML-Pages/Settings.html">
+                        <a href="../HTML-Pages/SettingsPage.html">
                             <i class='bx bx-cog'></i>
                             <span class="links_name">Settings</span>
                         </a>
