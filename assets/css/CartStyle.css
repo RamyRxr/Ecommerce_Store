@@ -1066,14 +1066,6 @@ body.dark-mode .qty-btn i {
     color: var(--light-bg);
 }
 
-body.dark-mode .continue-shopping-btn {
-    background-color: var(--accent-dark, #1565c0);
-}
-
-body.dark-mode .continue-shopping-btn:hover {
-    background-color: #3178c6;
-}
-
 body.dark-mode .notification {
     background: #1a202c;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
