@@ -6,6 +6,7 @@ export default class Settings {
             { id: 1, type: 'visa', last4: '4224', expiryMonth: '04', expiryYear: '25', cardHolder: 'John Doe' },
             { id: 2, type: 'mastercard', last4: '8821', expiryMonth: '12', expiryYear: '24', cardHolder: 'John Doe' }
         ];
+        this.deletedPaymentMethods = []; // Store deleted methods for undo
         this.init();
     }
 
@@ -74,18 +75,12 @@ export default class Settings {
 
     renderTabContent() {
         switch (this.activeTab) {
-            case 'account':
-                return this.renderAccountTab();
-            case 'payment':
-                return this.renderPaymentTab();
-            case 'notifications':
-                return this.renderNotificationsTab();
-            case 'security':
-                return this.renderSecurityTab();
-            case 'language':
-                return this.renderLanguageTab();
-            default:
-                return this.renderAccountTab();
+            case 'account': return this.renderAccountTab();
+            case 'payment': return this.renderPaymentTab();
+            case 'notifications': return this.renderNotificationsTab();
+            case 'security': return this.renderSecurityTab();
+            case 'language': return this.renderLanguageTab();
+            default: return this.renderAccountTab();
         }
     }
 
@@ -432,7 +427,7 @@ export default class Settings {
     }
 
     setupEventListeners() {
-        // Tab switching
+        // Tab switching - use event delegation for better performance
         document.addEventListener('click', e => {
             const tabButton = e.target.closest('.tab-button');
             if (tabButton) {
@@ -447,115 +442,25 @@ export default class Settings {
 
     setupTabSpecificEventListeners() {
         // Personal information form validation
-        const personalInfoForm = document.getElementById('personal-info-form');
-        if (personalInfoForm) {
-            personalInfoForm.addEventListener('submit', e => {
-                e.preventDefault();
-                if (this.validateForm(personalInfoForm)) {
-                    this.animateSaveButton(e.submitter);
-                    this.showNotification({
-                        title: 'Personal information updated',
-                        message: 'Your changes have been saved successfully.',
-                        type: 'success'
-                    });
-                }
-            });
-        }
+        this.setupFormSubmitHandler('personal-info-form', 'Personal information updated');
 
         // Shipping address form validation
-        const shippingForm = document.getElementById('shipping-address-form');
-        if (shippingForm) {
-            shippingForm.addEventListener('submit', e => {
-                e.preventDefault();
-                if (this.validateForm(shippingForm)) {
-                    this.animateSaveButton(e.submitter);
-                    this.showNotification({
-                        title: 'Shipping address updated',
-                        message: 'Your changes have been saved successfully.',
-                        type: 'success'
-                    });
-                }
-            });
-        }
+        this.setupFormSubmitHandler('shipping-address-form', 'Shipping address updated');
 
         // Notification preferences form
-        const notificationsForm = document.getElementById('notifications-form');
-        if (notificationsForm) {
-            notificationsForm.addEventListener('submit', e => {
-                e.preventDefault();
-                this.animateSaveButton(e.submitter);
-                this.showNotification({
-                    title: 'Notification preferences updated',
-                    message: 'Your changes have been saved successfully.',
-                    type: 'success'
-                });
-            });
-        }
+        this.setupFormSubmitHandler('notifications-form', 'Notification preferences updated');
+
+        // Language form
+        this.setupFormSubmitHandler('language-form', 'Language preferences updated');
 
         // Password form validation
         const passwordForm = document.getElementById('password-form');
         if (passwordForm) {
-            const newPassword = passwordForm.querySelector('#new-password');
-            const confirmPassword = passwordForm.querySelector('#confirm-password');
-            
-            if (newPassword) {
-                newPassword.addEventListener('input', () => this.updatePasswordStrength(newPassword.value));
-            }
-            
-            if (confirmPassword) {
-                confirmPassword.addEventListener('input', () => {
-                    const errorElem = confirmPassword.parentElement.nextElementSibling;
-                    if (newPassword.value !== confirmPassword.value) {
-                        errorElem.textContent = "Passwords do not match";
-                        errorElem.classList.remove('hidden');
-                    } else {
-                        errorElem.classList.add('hidden');
-                    }
-                });
-            }
-            
-            passwordForm.addEventListener('submit', e => {
-                e.preventDefault();
-                if (this.validatePasswordForm(passwordForm)) {
-                    this.animateSaveButton(e.submitter);
-                    this.showNotification({
-                        title: 'Password updated',
-                        message: 'Your password has been changed successfully.',
-                        type: 'success'
-                    });
-                }
-            });
-        }
-
-        // Language form
-        const languageForm = document.getElementById('language-form');
-        if (languageForm) {
-            languageForm.addEventListener('submit', e => {
-                e.preventDefault();
-                this.animateSaveButton(e.submitter);
-                this.showNotification({
-                    title: 'Language preferences updated',
-                    message: 'Your changes have been saved successfully.',
-                    type: 'success'
-                });
-            });
+            this.setupPasswordFormHandlers(passwordForm);
         }
 
         // Toggle password visibility
-        document.querySelectorAll('.toggle-password').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const passwordInput = btn.previousElementSibling;
-                const icon = btn.querySelector('i');
-                
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    icon.className = 'bx bx-hide';
-                } else {
-                    passwordInput.type = 'password';
-                    icon.className = 'bx bx-show';
-                }
-            });
-        });
+        this.setupPasswordToggles();
 
         // Forgot password button
         const forgotPasswordButton = document.querySelector('.forgot-password-button');
@@ -570,16 +475,99 @@ export default class Settings {
         if (tfaButton) {
             tfaButton.addEventListener('click', () => {
                 this.animateSaveButton(tfaButton);
-                this.showNotification({
-                    title: 'Two-factor authentication',
-                    message: 'Setup process has been initiated.',
-                    type: 'info'
-                });
+                this.showSuccessAnimation();
+                setTimeout(() => {
+                    this.showNotification({
+                        title: 'Two-factor authentication',
+                        message: 'Setup process has been initiated.',
+                        type: 'info'
+                    });
+                }, 1000);
             });
         }
 
         // Payment methods
-        this.setupPaymentMethodsActions();
+        if (this.activeTab === 'payment') {
+            this.setupPaymentMethodsActions();
+        }
+    }
+
+    setupFormSubmitHandler(formId, successTitle) {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+                if (this.validateForm(form)) {
+                    this.animateSaveButton(e.submitter);
+                    this.showSuccessAnimation();
+                    
+                    setTimeout(() => {
+                        this.showNotification({
+                            title: successTitle,
+                            message: 'Your changes have been saved successfully.',
+                            type: 'success'
+                        });
+                    }, 1000);
+                }
+            });
+        }
+    }
+
+    setupPasswordFormHandlers(form) {
+        const newPassword = form.querySelector('#new-password');
+        const confirmPassword = form.querySelector('#confirm-password');
+        
+        // Live password strength update
+        if (newPassword) {
+            newPassword.addEventListener('input', () => this.updatePasswordStrength(newPassword.value));
+        }
+        
+        // Live password match validation
+        if (confirmPassword) {
+            confirmPassword.addEventListener('input', () => {
+                const errorElem = confirmPassword.parentElement.nextElementSibling;
+                if (newPassword.value !== confirmPassword.value) {
+                    errorElem.textContent = "Passwords do not match";
+                    errorElem.classList.remove('hidden');
+                } else {
+                    errorElem.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Form submission
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            if (this.validatePasswordForm(form)) {
+                this.animateSaveButton(e.submitter);
+                this.showSuccessAnimation();
+                
+                setTimeout(() => {
+                    this.showNotification({
+                        title: 'Password updated',
+                        message: 'Your password has been changed successfully.',
+                        type: 'success'
+                    });
+                }, 1000);
+            }
+        });
+    }
+
+    setupPasswordToggles() {
+        document.querySelectorAll('.toggle-password').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const passwordInput = btn.previousElementSibling;
+                const icon = btn.querySelector('i');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.className = 'bx bx-hide';
+                } else {
+                    passwordInput.type = 'password';
+                    icon.className = 'bx bx-show';
+                }
+            });
+        });
     }
 
     setupPaymentMethodsActions() {
@@ -589,37 +577,30 @@ export default class Settings {
                 const card = btn.closest('.payment-method-card');
                 const cardId = parseInt(card.dataset.id);
                 
+                // Store the card before removing it
+                const removedCard = this.paymentMethods.find(card => card.id === cardId);
+                this.deletedPaymentMethods.push(removedCard);
+                
                 // Apply fade out animation
                 card.classList.add('fade-out');
                 
-                // Show notification with undo option
-                this.showNotification({
-                    title: 'Payment method removed',
-                    message: 'Your payment method has been deleted.',
-                    type: 'success',
-                    hasUndo: true,
-                    onUndo: () => {
-                        // Store the removed method before removing it from the array
-                        const removedMethod = this.paymentMethods.find(method => method.id === cardId);
-                        
-                        // Remove from data only after saving the reference
-                        this.paymentMethods = this.paymentMethods.filter(method => method.id !== cardId);
-                        
-                        // Restore the payment method when undoing
-                        const restoreMethod = () => {
-                            this.paymentMethods.push(removedMethod);
-                            this.render(); // Re-render to show restored card
-                        };
-                        
-                        return restoreMethod; // Return the restore function
-                    }
-                });
-                
-                // Remove card after animation
                 setTimeout(() => {
-                    this.paymentMethods = this.paymentMethods.filter(method => method.id !== cardId);
-                    this.render();
-                    this.setupTabSpecificEventListeners();
+                    // Remove from payment methods array
+                    this.paymentMethods = this.paymentMethods.filter(card => card.id !== cardId);
+                    card.remove();
+                    
+                    this.showNotification({
+                        title: 'Payment method removed',
+                        message: 'Your payment method has been deleted.',
+                        type: 'success',
+                        hasUndo: true,
+                        onUndo: () => {
+                            // Restore the deleted card
+                            this.paymentMethods.push(removedCard);
+                            this.render();
+                            this.setupTabSpecificEventListeners();
+                        }
+                    });
                 }, 300);
             });
         });
@@ -629,7 +610,7 @@ export default class Settings {
             btn.addEventListener('click', e => {
                 const card = btn.closest('.payment-method-card');
                 const cardId = parseInt(card.dataset.id);
-                const cardData = this.paymentMethods.find(method => method.id === cardId);
+                const cardData = this.paymentMethods.find(card => card.id === cardId);
                 
                 if (cardData) {
                     this.showPaymentEditModal(cardData);
@@ -737,11 +718,15 @@ export default class Settings {
         modal.querySelector('.close-modal').addEventListener('click', closeModal);
         modal.querySelector('.cancel-btn').addEventListener('click', closeModal);
         
+        // Handle outside click to close
+        modal.addEventListener('click', e => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // Save/update payment method
         modal.querySelector('.save-payment-btn').addEventListener('click', e => {
             const form = modal.querySelector('#payment-form');
             if (this.validateForm(form)) {
-                this.animateSaveButton(e.target);
-                
                 const cardType = form.querySelector('#card-type').value;
                 const cardNumber = form.querySelector('#card-number').value;
                 const expiryMonth = form.querySelector('#expiry-month').value;
@@ -751,61 +736,64 @@ export default class Settings {
                 // Extract last 4 digits of card number or use existing
                 const last4 = isEditing ? cardData.last4 : cardNumber.replace(/\D/g, '').slice(-4);
                 
-                if (isEditing) {
-                    // Update existing card
-                    const index = this.paymentMethods.findIndex(method => method.id === cardData.id);
-                    if (index !== -1) {
-                        this.paymentMethods[index] = {
-                            ...cardData,
+                this.animateSaveButton(e.target);
+                this.showSuccessAnimation();
+                
+                setTimeout(() => {
+                    if (isEditing) {
+                        // Update existing card
+                        const index = this.paymentMethods.findIndex(method => method.id === cardData.id);
+                        if (index !== -1) {
+                            this.paymentMethods[index] = {
+                                ...cardData,
+                                type: cardType,
+                                expiryMonth,
+                                expiryYear,
+                                cardHolder
+                            };
+                        }
+                        
+                        this.showNotification({
+                            title: 'Card updated',
+                            message: 'Your payment method has been updated successfully.',
+                            type: 'success'
+                        });
+                    } else {
+                        // Add new card
+                        const newId = this.paymentMethods.length > 0 
+                            ? Math.max(...this.paymentMethods.map(m => m.id)) + 1 
+                            : 1;
+                            
+                        this.paymentMethods.push({
+                            id: newId,
                             type: cardType,
+                            last4,
                             expiryMonth,
                             expiryYear,
                             cardHolder
-                        };
-                    }
-                } else {
-                    // Add new card
-                    const newId = this.paymentMethods.length > 0 
-                        ? Math.max(...this.paymentMethods.map(m => m.id)) + 1 
-                        : 1;
+                        });
                         
-                    this.paymentMethods.push({
-                        id: newId,
-                        type: cardType,
-                        last4,
-                        expiryMonth,
-                        expiryYear,
-                        cardHolder
-                    });
-                }
-                
-                closeModal();
-                this.showNotification({
-                    title: isEditing ? 'Card updated' : 'Card added',
-                    message: isEditing 
-                        ? 'Your payment method has been updated successfully.' 
-                        : 'Your payment method has been added successfully.',
-                    type: 'success'
-                });
-                
-                this.render();
-                this.setupTabSpecificEventListeners();
-            }
-        });
-        
-        // Close on outside click
-        modal.addEventListener('click', e => {
-            if (e.target === modal) {
-                closeModal();
+                        this.showNotification({
+                            title: 'Card added',
+                            message: 'Your payment method has been added successfully.',
+                            type: 'success'
+                        });
+                    }
+                    
+                    closeModal();
+                    this.render();
+                    this.setupTabSpecificEventListeners();
+                }, 1000);
             }
         });
     }
 
     showPasswordResetContainer() {
         // Create container for reset password interface
-        const overlay = document.createElement('div');
-        overlay.className = 'modal';
-        overlay.innerHTML = `
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        
+        const resetContainerHTML = `
             <div class="password-reset-container">
                 <div class="password-reset-icon">
                     <i class='bx bx-lock-open'></i>
@@ -813,7 +801,7 @@ export default class Settings {
                 <h3>Reset Your Password</h3>
                 <p>We'll send a verification code to your email to reset your password.</p>
                 
-                <form class="reset-form" id="reset-password-form">
+                <form class="reset-form" id="reset-email-form">
                     <div class="form-group">
                         <label for="reset-email">Email Address</label>
                         <input type="email" id="reset-email" placeholder="Enter your email" required>
@@ -829,12 +817,12 @@ export default class Settings {
                 <div class="verification-step" style="display: none;">
                     <p>Enter the 6-digit code sent to your email</p>
                     <div class="verification-code-container">
-                        <input type="text" maxlength="1" class="code-input" autofocus>
-                        <input type="text" maxlength="1" class="code-input">
-                        <input type="text" maxlength="1" class="code-input">
-                        <input type="text" maxlength="1" class="code-input">
-                        <input type="text" maxlength="1" class="code-input">
-                        <input type="text" maxlength="1" class="code-input">
+                        <input type="text" maxlength="1" class="code-input" data-index="1" autofocus>
+                        <input type="text" maxlength="1" class="code-input" data-index="2">
+                        <input type="text" maxlength="1" class="code-input" data-index="3">
+                        <input type="text" maxlength="1" class="code-input" data-index="4">
+                        <input type="text" maxlength="1" class="code-input" data-index="5">
+                        <input type="text" maxlength="1" class="code-input" data-index="6">
                     </div>
                     <div class="code-timer">Code expires in <span class="countdown">5:00</span></div>
                     <button class="verify-code-btn btn-animate">Verify Code</button>
@@ -846,79 +834,240 @@ export default class Settings {
                 </a>
             </div>
         `;
-
-        // Add to DOM
-        document.body.appendChild(overlay);
         
-        // Show with animation
+        modal.innerHTML = resetContainerHTML;
+        document.body.appendChild(modal);
+        
+        // Show modal with animation
         setTimeout(() => {
-            overlay.classList.add('active');
+            modal.classList.add('active');
         }, 10);
         
-        // Event listeners
-        overlay.querySelector('#back-to-security').addEventListener('click', e => {
+        // Close function
+        const closeModal = () => {
+            modal.classList.remove('active');
+            setTimeout(() => modal.remove(), 300);
+        };
+        
+        // Back button
+        modal.querySelector('.back-to-login').addEventListener('click', e => {
             e.preventDefault();
-            closeResetForm();
+            closeModal();
         });
         
-        overlay.addEventListener('click', e => {
-            if (e.target === overlay) {
-                closeResetForm();
+        // Close on outside click
+        modal.addEventListener('click', e => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // Email form submission - show verification code inputs
+        const emailForm = modal.querySelector('#reset-email-form');
+        emailForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const emailInput = modal.querySelector('#reset-email');
+            
+            if (this.isValidEmail(emailInput.value)) {
+                emailForm.style.display = 'none';
+                const verificationStep = modal.querySelector('.verification-step');
+                verificationStep.style.display = 'block';
+                
+                // Setup verification code input behavior
+                this.setupVerificationCodeInputs(modal);
+                
+                // Start countdown timer
+                this.startCountdownTimer(modal.querySelector('.countdown'));
+                
+                this.showNotification({
+                    title: 'Verification code sent',
+                    message: `Please check your email ${emailInput.value} for the verification code.`,
+                    type: 'info'
+                });
+            } else {
+                const errorMsg = emailInput.nextElementSibling;
+                errorMsg.classList.remove('hidden');
+                emailInput.classList.add('error-input');
             }
         });
         
-        overlay.querySelector('.reset-form').addEventListener('submit', e => {
-            e.preventDefault();
-            const button = e.submitter;
-            this.animateSaveButton(button);
+        // Verify code button
+        modal.querySelector('.verify-code-btn').addEventListener('click', () => {
+            const inputs = modal.querySelectorAll('.code-input');
+            let code = '';
+            let isValid = true;
             
-            // Change content to verification screen
-            const container = overlay.querySelector('.password-reset-container');
-            container.innerHTML = `
-                <div class="password-reset-icon">
-                    <i class='bx bx-envelope'></i>
-                </div>
-                <h3>Check Your Email</h3>
-                <p>We've sent a password reset link to <strong>john.doe@example.com</strong>. The link will expire in 30 minutes.</p>
-                <p>Didn't receive the email? Check your spam folder or try again.</p>
-                
-                <button class="reset-password-btn btn-animate" id="resend-btn">
-                    Resend Email
-                </button>
-                
-                <a href="#" class="back-to-login" id="close-reset">
-                    <i class='bx bx-x'></i> Close
-                </a>
-            `;
+            inputs.forEach(input => {
+                code += input.value;
+                if (!input.value) {
+                    isValid = false;
+                    input.classList.add('error-input');
+                } else {
+                    input.classList.remove('error-input');
+                }
+            });
             
-            // New event listeners for the changed UI
-            container.querySelector('#resend-btn').addEventListener('click', () => {
-                this.showNotification({
-                    title: 'Email sent again',
-                    message: 'Please check your inbox or spam folder.',
-                    type: 'info'
+            if (isValid) {
+                // Show new password form (this would typically verify with server first)
+                modal.querySelector('.password-reset-container').innerHTML = `
+                    <div class="password-reset-icon">
+                        <i class='bx bx-check-circle'></i>
+                    </div>
+                    <h3>Create New Password</h3>
+                    <p>Please enter a new secure password for your account.</p>
+                    
+                    <form class="reset-form" id="new-password-form">
+                        <div class="form-group">
+                            <label for="new-reset-password">New Password</label>
+                            <div class="password-input-container">
+                                <input type="password" id="new-reset-password" placeholder="Enter new password" required>
+                                <button type="button" class="toggle-password">
+                                    <i class='bx bx-show'></i>
+                                </button>
+                            </div>
+                            <div class="password-strength-meter">
+                                <div class="strength-bar" id="reset-strength-bar"></div>
+                                <span class="strength-text" id="reset-strength-text">Password strength</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirm-reset-password">Confirm Password</label>
+                            <div class="password-input-container">
+                                <input type="password" id="confirm-reset-password" placeholder="Confirm new password" required>
+                                <button type="button" class="toggle-password">
+                                    <i class='bx bx-show'></i>
+                                </button>
+                            </div>
+                            <div class="error-message hidden">Passwords do not match</div>
+                        </div>
+                        
+                        <button type="submit" class="reset-password-btn btn-animate">
+                            Reset Password
+                        </button>
+                    </form>
+                `;
+                
+                // Set up password toggle and strength meter
+                this.setupPasswordToggles();
+                
+                const newPasswordInput = document.getElementById('new-reset-password');
+                if (newPasswordInput) {
+                    newPasswordInput.addEventListener('input', () => {
+                        this.updatePasswordStrength(newPasswordInput.value, 'reset-strength-bar', 'reset-strength-text');
+                    });
+                }
+                
+                // Set up form submission
+                document.getElementById('new-password-form').addEventListener('submit', e => {
+                    e.preventDefault();
+                    const newPassword = document.getElementById('new-reset-password').value;
+                    const confirmPassword = document.getElementById('confirm-reset-password').value;
+                    
+                    if (newPassword.length < 8) {
+                        document.getElementById('new-reset-password').classList.add('error-input');
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmPassword) {
+                        document.getElementById('confirm-reset-password').classList.add('error-input');
+                        document.getElementById('confirm-reset-password').nextElementSibling.nextElementSibling.classList.remove('hidden');
+                        return;
+                    }
+                    
+                    // Success - password reset
+                    this.showSuccessAnimation();
+                    
+                    setTimeout(() => {
+                        closeModal();
+                        this.showNotification({
+                            title: 'Password reset successful',
+                            message: 'Your password has been reset. You can now log in with your new password.',
+                            type: 'success'
+                        });
+                    }, 1000);
                 });
-            });
-            
-            container.querySelector('#close-reset').addEventListener('click', e => {
-                e.preventDefault();
-                closeResetForm();
-            });
+            }
         });
         
-        // Close function
-        const closeResetForm = () => {
-            overlay.classList.remove('active');
-            setTimeout(() => {
-                overlay.remove();
-            }, 300);
-        };
+        // Resend code button
+        modal.querySelector('.resend-code-btn').addEventListener('click', () => {
+            this.showNotification({
+                title: 'Code resent',
+                message: 'A new verification code has been sent to your email.',
+                type: 'info'
+            });
+            
+            // Reset timer
+            this.startCountdownTimer(modal.querySelector('.countdown'));
+        });
     }
     
-    updatePasswordStrength(password) {
-        // Simple password strength calculator
-        const strengthBar = document.getElementById('password-strength-bar');
-        const strengthText = document.getElementById('password-strength-text');
+    setupVerificationCodeInputs(container) {
+        const inputs = container.querySelectorAll('.code-input');
+        
+        inputs.forEach((input, index) => {
+            // Auto-focus next input after entry
+            input.addEventListener('input', () => {
+                if (input.value && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+            
+            // Handle backspace to go to previous input
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+            
+            // Handle paste event to distribute across inputs
+            input.addEventListener('paste', e => {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('text').trim();
+                if (/^\d+$/.test(pasteData)) {
+                    for (let i = 0; i < Math.min(pasteData.length, inputs.length - index); i++) {
+                        inputs[index + i].value = pasteData[i];
+                    }
+                    // Focus on the next empty input or the last one
+                    const nextEmptyIndex = [...inputs].findIndex((inp, idx) => idx >= index && !inp.value);
+                    if (nextEmptyIndex !== -1) {
+                        inputs[nextEmptyIndex].focus();
+                    } else {
+                        inputs[inputs.length - 1].focus();
+                    }
+                }
+            });
+        });
+    }
+    
+    startCountdownTimer(element) {
+        if (!element) return;
+        
+        let minutes = 5;
+        let seconds = 0;
+        
+        const interval = setInterval(() => {
+            if (seconds === 0) {
+                if (minutes === 0) {
+                    clearInterval(interval);
+                    element.textContent = "Expired";
+                    return;
+                }
+                minutes--;
+                seconds = 59;
+            } else {
+                seconds--;
+            }
+            
+            element.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+        
+        // Store the interval ID for cleanup if needed
+        element.dataset.intervalId = interval;
+    }
+    
+    updatePasswordStrength(password, barId = 'password-strength-bar', textId = 'password-strength-text') {
+        const strengthBar = document.getElementById(barId);
+        const strengthText = document.getElementById(textId);
         
         if (!strengthBar || !strengthText) return;
         
@@ -1066,28 +1215,6 @@ export default class Settings {
         }, 1500);
     }
 
-    // Call this before showing success notifications
-    // For example, in the payment method save function:
-    savePaymentMethod() {
-        if (this.validateForm(form)) {
-            // Process form...
-            
-            // Show success animation then notification
-            this.showSuccessAnimation();
-            
-            setTimeout(() => {
-                this.showNotification({
-                    title: 'Payment method added',
-                    message: 'Your new card has been added successfully.',
-                    type: 'success'
-                });
-            }, 1000);
-            
-            closeModal();
-            this.render();
-        }
-    }
-
     showNotification({ title, message, type = 'success', duration = 5000, hasUndo = false, onUndo = null }) {
         // Create notification container if it doesn't exist
         let container = document.querySelector('.notification-container');
@@ -1099,7 +1226,7 @@ export default class Settings {
         
         // Create notification element
         const notification = document.createElement('div');
-        notification.className = `notification ${type} fade-in`;
+        notification.className = `notification ${type}`;
         const id = Date.now();
         notification.dataset.id = id;
         
@@ -1127,10 +1254,15 @@ export default class Settings {
         // Add to container
         container.appendChild(notification);
         
+        // Store undo function if provided
+        if (hasUndo && onUndo) {
+            notification.undoFunction = onUndo();
+        }
+        
         // Set up progress bar
         const progress = notification.querySelector('.notification-progress');
-        progress.style.width = '100%';
         setTimeout(() => {
+            notification.classList.add('fade-in');
             progress.style.width = '0';
         }, 10);
         
@@ -1139,10 +1271,9 @@ export default class Settings {
             this.removeNotification(id);
         });
         
-        if (hasUndo && onUndo) {
+        if (hasUndo) {
             notification.querySelector('.undo-btn').addEventListener('click', () => {
-                onUndo();
-                this.removeNotification(id);
+                this.removeNotification(id, true);
             });
         }
         
