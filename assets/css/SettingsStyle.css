@@ -736,9 +736,9 @@
 
 /* Reset Password Container */
 .password-reset-container {
-    max-width: 450px;
-    margin: 40px auto;
-    padding: 30px;
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 25px;
     background: white;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -793,6 +793,51 @@
     color: #666;
     font-size: 16px;
     line-height: 1.6;
+}
+
+.verification-step {
+    margin-top: 20px;
+}
+
+.code-timer {
+    font-size: 13px;
+    color: #666;
+    margin: 15px 0;
+}
+
+.countdown {
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.verify-code-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(to right, var(--accent), var(--accent-dark));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.resend-code-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 5px;
+    margin-top: 5px;
+    transition: all 0.2s;
+}
+
+.resend-code-btn:hover {
+    color: var(--accent-dark);
+    text-decoration: underline;
 }
 
 .reset-form .form-group {
@@ -928,7 +973,7 @@
 /* Notification System */
 .notification-container {
     position: fixed;
-    bottom: 30px;
+    top: 30px; /* Changed from bottom to top */
     right: 30px;
     z-index: 1000;
     display: flex;
@@ -944,18 +989,18 @@
     padding: 0;
     overflow: hidden;
     opacity: 0;
-    transform: translateX(50px);
+    transform: translateY(-50px); /* Change from translateX to translateY */
     transition: all 0.3s ease;
 }
 
 .notification.fade-in {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0); /* Change from translateX to translateY */
 }
 
 .notification.fade-out {
     opacity: 0;
-    transform: translateX(100px);
+    transform: translateY(-100px); /* Change direction */
 }
 
 .notification-content {
@@ -1048,6 +1093,60 @@
     background-color: var(--accent);
     width: 100%;
     transition: width 5s linear;
+}
+
+/* Add animation for success confirmation */
+.success-animation-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.success-animation-container.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.success-animation {
+    width: 100px;
+    height: 100px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: successPop 0.5s forwards;
+}
+
+.success-animation i {
+    font-size: 50px;
+    color: #4CAF50;
+    transform: scale(0);
+    animation: successIconPop 0.3s 0.2s forwards;
+}
+
+@keyframes successPop {
+    0% { transform: scale(0.5); }
+    50% { transform: scale(1.1); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+@keyframes successIconPop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
 }
 
 /* Dark Mode Styles */

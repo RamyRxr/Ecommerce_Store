@@ -595,12 +595,23 @@ export default class Settings {
                 // Show notification with undo option
                 this.showNotification({
                     title: 'Payment method removed',
-                    message: 'Card has been deleted successfully.',
+                    message: 'Your payment method has been deleted.',
                     type: 'success',
                     hasUndo: true,
                     onUndo: () => {
-                        // Restore the card
-                        card.classList.remove('fade-out');
+                        // Store the removed method before removing it from the array
+                        const removedMethod = this.paymentMethods.find(method => method.id === cardId);
+                        
+                        // Remove from data only after saving the reference
+                        this.paymentMethods = this.paymentMethods.filter(method => method.id !== cardId);
+                        
+                        // Restore the payment method when undoing
+                        const restoreMethod = () => {
+                            this.paymentMethods.push(removedMethod);
+                            this.render(); // Re-render to show restored card
+                        };
+                        
+                        return restoreMethod; // Return the restore function
                     }
                 });
                 
@@ -797,24 +808,41 @@ export default class Settings {
         overlay.innerHTML = `
             <div class="password-reset-container">
                 <div class="password-reset-icon">
-                    <i class='bx bx-lock-open-alt'></i>
+                    <i class='bx bx-lock-open'></i>
                 </div>
                 <h3>Reset Your Password</h3>
-                <p>Enter your email address below and we'll send you instructions to reset your password.</p>
+                <p>We'll send a verification code to your email to reset your password.</p>
                 
-                <form class="reset-form">
+                <form class="reset-form" id="reset-password-form">
                     <div class="form-group">
                         <label for="reset-email">Email Address</label>
-                        <input type="email" id="reset-email" placeholder="Enter your email" value="john.doe@example.com" required>
+                        <input type="email" id="reset-email" placeholder="Enter your email" required>
+                        <div class="error-message hidden">Please enter a valid email address</div>
                     </div>
                     
                     <button type="submit" class="reset-password-btn btn-animate">
-                        Send Reset Link
+                        Send Code
                     </button>
                 </form>
                 
-                <a href="#" class="back-to-login" id="back-to-security">
-                    <i class='bx bx-arrow-back'></i> Back to Security Settings
+                <!-- Verification code step (initially hidden) -->
+                <div class="verification-step" style="display: none;">
+                    <p>Enter the 6-digit code sent to your email</p>
+                    <div class="verification-code-container">
+                        <input type="text" maxlength="1" class="code-input" autofocus>
+                        <input type="text" maxlength="1" class="code-input">
+                        <input type="text" maxlength="1" class="code-input">
+                        <input type="text" maxlength="1" class="code-input">
+                        <input type="text" maxlength="1" class="code-input">
+                        <input type="text" maxlength="1" class="code-input">
+                    </div>
+                    <div class="code-timer">Code expires in <span class="countdown">5:00</span></div>
+                    <button class="verify-code-btn btn-animate">Verify Code</button>
+                    <button class="resend-code-btn">Didn't receive the code? Resend</button>
+                </div>
+                
+                <a href="#" class="back-to-login">
+                    <i class='bx bx-arrow-back'></i> Back
                 </a>
             </div>
         `;
@@ -1014,6 +1042,52 @@ export default class Settings {
         }, 600);
     }
     
+    // Function to display success animation
+    showSuccessAnimation() {
+        const animContainer = document.createElement('div');
+        animContainer.className = 'success-animation-container';
+        animContainer.innerHTML = `
+            <div class="success-animation">
+                <i class='bx bx-check'></i>
+            </div>
+        `;
+        
+        document.body.appendChild(animContainer);
+        
+        setTimeout(() => {
+            animContainer.classList.add('active');
+        }, 10);
+        
+        setTimeout(() => {
+            animContainer.classList.remove('active');
+            setTimeout(() => {
+                animContainer.remove();
+            }, 300);
+        }, 1500);
+    }
+
+    // Call this before showing success notifications
+    // For example, in the payment method save function:
+    savePaymentMethod() {
+        if (this.validateForm(form)) {
+            // Process form...
+            
+            // Show success animation then notification
+            this.showSuccessAnimation();
+            
+            setTimeout(() => {
+                this.showNotification({
+                    title: 'Payment method added',
+                    message: 'Your new card has been added successfully.',
+                    type: 'success'
+                });
+            }, 1000);
+            
+            closeModal();
+            this.render();
+        }
+    }
+
     showNotification({ title, message, type = 'success', duration = 5000, hasUndo = false, onUndo = null }) {
         // Create notification container if it doesn't exist
         let container = document.querySelector('.notification-container');
@@ -1078,9 +1152,13 @@ export default class Settings {
         }, duration);
     }
     
-    removeNotification(id) {
+    removeNotification(id, executeUndo = false) {
         const notification = document.querySelector(`.notification[data-id="${id}"]`);
         if (notification) {
+            if (executeUndo && notification.undoFunction) {
+                notification.undoFunction();
+            }
+            
             notification.classList.remove('fade-in');
             notification.classList.add('fade-out');
             
