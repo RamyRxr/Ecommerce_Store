@@ -72,6 +72,7 @@
     display: flex;
     padding: 0 30px;
     border-bottom: 2px solid var(--dark-bg);
+    flex-wrap: wrap;
 }
 
 .tab-button {
@@ -104,15 +105,12 @@
     transition: background-color 0.2s;
 }
 
-.tab-button:hover::after {
-    background-color: rgba(var(--accent-rgb), 0.5);
-}
-
 .tab-button.active {
     color: var(--accent);
 }
 
-.tab-button.active::after {
+.tab-button.active::after ,
+.tab-button:hover::after {
     background-color: var(--accent);
 }
 
@@ -1049,6 +1047,10 @@ body.dark-mode .selling-tabs {
 
 body.dark-mode .tab-button {
     color: var(--light-bg);
+}
+
+body.dark-mode .tab-button.active {
+    color: var(--accent);
 }
 
 body.dark-mode .selling-content-body {

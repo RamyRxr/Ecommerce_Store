@@ -155,7 +155,7 @@ export default class PurchaseHistory {
             <div class="purchase-history-content">
                 <div class="main-content-container">
                     <div class="purchase-header">
-                            <h1>Recent Orders</h1>
+                            <h1>Purchacse History</h1>
                             <p>${this.orders.length} orders placed</p>
                     </div>
                     
