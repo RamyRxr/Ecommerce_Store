@@ -357,7 +357,7 @@ export default class PurchaseHistory {
                         View Details
                     </button>
                     <div class="order-total">
-                        <span>Order Total:</span>
+                        <span class="total-label">Order Total:</span>
                         <span class="total-amount">$${order.totalAmount.toFixed(2)}</span>
                     </div>
                     <div class="order-action">

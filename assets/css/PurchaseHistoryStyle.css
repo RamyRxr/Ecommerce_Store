@@ -72,10 +72,7 @@
     display: flex;
     padding: 0 30px;
     border-bottom: 2px solid var(--dark-bg);
-}
-
-.purchase-tabs::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
 }
 
 .tab-button {
@@ -91,7 +88,6 @@
     gap: 8px;
     position: relative;
     transition: all 0.2s;
-    white-space: nowrap;
 }
 
 .tab-button i {
@@ -110,10 +106,11 @@
 }
 
 .tab-button:hover::after {
-    background-color: rgba(var(--accent-rgb), 0.5);
+    background-color: var(--accent);
 }
 
-.tab-button.active {
+.tab-button.active,
+.tab-button:hover::after {
     color: var(--accent);
 }
 
@@ -613,22 +610,22 @@
 }
 
 .status-badge.processing {
-    background-color: #fff4de;
+    background-color: var(--dark-bg);
     color: #ff9800;
 }
 
 .status-badge.shipped {
-    background-color: #e3f2fd;
+    background-color: var(--dark-bg)d;
     color: #2196f3;
 }
 
 .status-badge.delivered {
-    background-color: #e8f5e9;
+    background-color: var(--dark-bg);
     color: #4caf50;
 }
 
 .status-badge.cancelled {
-    background-color: #feecec;
+    background-color: var(--dark-bg);
     color: #f44336;
 }
 
@@ -662,7 +659,7 @@
 }
 
 .order-items-table {
-    border: 1px solid #eee;
+    border: 1px solid var(--dark-bg);
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 20px;
@@ -704,6 +701,7 @@
 
 .price-col, .qty-col, .total-col {
     text-align: center;
+    color: var(--accent);
 }
 
 .order-totals {
@@ -714,12 +712,19 @@
     background-color: #f9f9f9;
     border-radius: 8px;
     margin-top: 20px;
+    border: 1px solid var(--dark-bg);
 }
 
 .subtotal, .shipping, .tax, .grand-total {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+body.dark-mode .subtotal,
+body.dark-mode .shipping,
+body.dark-mode .tax {
+    color: var(--light-bg);
 }
 
 .grand-total {
@@ -886,6 +891,10 @@ body.dark-mode .tab-button {
     color: var(--light-bg);
 }
 
+body.dark-mode .tab-button.active {
+    color: var(--accent);
+}
+
 body.dark-mode .purchase-content-body {
     scrollbar-color: rgba(var(--accent-dark-rgb), 0.6) transparent;
 }
@@ -977,6 +986,7 @@ body.dark-mode .summary-value {
     color: var(--light-bg);
 }
 
+
 body.dark-mode .shipping-address h3,
 body.dark-mode .payment-method h3,
 body.dark-mode .order-items-section h3 {
@@ -985,11 +995,12 @@ body.dark-mode .order-items-section h3 {
 
 body.dark-mode .shipping-address p,
 body.dark-mode .payment-method p {
-    color: #bbb;
+    color: #aaa;
 }
 
 body.dark-mode .order-items-table {
     border-color: #1a2d5a;
+    border: 1px solid var(--light-bg);
 }
 
 body.dark-mode .order-items-header {
@@ -1004,7 +1015,13 @@ body.dark-mode .order-item-row {
 
 body.dark-mode .order-totals {
     background-color: #0a1022;
+    border: 1px solid var(--light-bg);
 }
+
+body.dark-mode .order-total .total-label {
+    color: var(--light-bg);
+}
+
 
 body.dark-mode .grand-total {
     border-top-color: #1a2d5a;
