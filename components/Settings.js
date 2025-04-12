@@ -579,14 +579,18 @@ export default class Settings {
                 
                 // Store the card before removing it
                 const removedCard = this.paymentMethods.find(card => card.id === cardId);
-                this.deletedPaymentMethods.push(removedCard);
                 
                 // Apply fade out animation
                 card.classList.add('fade-out');
                 
                 setTimeout(() => {
-                    // Remove from payment methods array
+                    // Remove from payment methods array - this is the key line that needs to work
                     this.paymentMethods = this.paymentMethods.filter(card => card.id !== cardId);
+                    
+                    // Store the removed card for potential undo
+                    const deletedCard = {...removedCard};
+                    this.deletedPaymentMethods.push(deletedCard);
+                    
                     card.remove();
                     
                     this.showNotification({
@@ -595,10 +599,15 @@ export default class Settings {
                         type: 'success',
                         hasUndo: true,
                         onUndo: () => {
-                            // Restore the deleted card
-                            this.paymentMethods.push(removedCard);
-                            this.render();
-                            this.setupTabSpecificEventListeners();
+                            // Return a function that will restore the deleted card
+                            return () => {
+                                // We need to push the exact same card (with the same ID) back
+                                this.paymentMethods.push(deletedCard);
+                                
+                                // Re-render to show restored card
+                                this.render();
+                                this.setupTabSpecificEventListeners();
+                            };
                         }
                     });
                 }, 300);
@@ -1287,6 +1296,7 @@ export default class Settings {
         const notification = document.querySelector(`.notification[data-id="${id}"]`);
         if (notification) {
             if (executeUndo && notification.undoFunction) {
+                // Execute the stored undo function
                 notification.undoFunction();
             }
             

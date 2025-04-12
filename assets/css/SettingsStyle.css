@@ -99,15 +99,12 @@
     transition: background-color 0.2s;
 }
 
-.tab-button:hover::after {
-    background-color: rgba(var(--accent-rgb), 0.5);
-}
-
 .tab-button.active {
     color: var(--accent);
 }
 
-.tab-button.active::after {
+.tab-button.active::after , 
+.tab-button:hover::after {
     background-color: var(--accent);
 }
 
@@ -1139,40 +1136,52 @@
     100% { transform: scale(1); }
 }
 
-/* Dark Mode Styles */
-body.dark-mode .modal-content,
-body.dark-mode .payment-modal,
-body.dark-mode .password-reset-container {
-    background-color: #1a2035;
-    color: var(--light-bg);
+/* Update dark mode styles in SettingsStyle.css */
+
+/* Main content container */
+body.dark-mode .main-content-container {
+    background: var(--dark-bg);
+    box-shadow: var(--dark-shadow);
 }
 
-body.dark-mode .modal-header,
-body.dark-mode .modal-footer {
-    border-color: #2a334a;
+body.dark-mode .main-content-container:hover {
+    box-shadow: var(--dark-hover-shadow);
 }
 
-body.dark-mode .modal-header h2 {
-    color: var(--light-bg);
-}
-
-body.dark-mode .close-modal:hover {
-    color: var(--light-bg);
-}
-
+/* Settings sections */
 body.dark-mode .settings-section {
-    background-color: #1a2035;
+    background-color: #080f26;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .settings-section h2 {
+    color: var(--light-text);
+}
+
+/* Settings header & tabs */
+body.dark-mode .settings-header {
+    border-bottom: 2px solid var(--light-bg);
+}
+
+body.dark-mode .settings-header h1 {
     color: var(--light-bg);
 }
 
-body.dark-mode .settings-section p,
-body.dark-mode .form-group label,
-body.dark-mode .option-description,
-body.dark-mode .tfa-description {
-    color: #a0a8c0;
+body.dark-mode .settings-tabs {
+    border-bottom: 2px solid var(--light-bg);
+}
+
+body.dark-mode .tab-button {
+    color: var(--light-bg);
+}
+
+body.dark-mode .tab-button.active {
+    color: var(--accent);
+}
+
+/* Form elements */
+body.dark-mode .form-group label {
+    color: var(--light-text);
 }
 
 body.dark-mode .form-group input,
@@ -1180,9 +1189,9 @@ body.dark-mode .form-group select,
 body.dark-mode .form-group textarea,
 body.dark-mode .reset-form input,
 body.dark-mode .code-input {
-    background-color: #252d47;
-    border-color: #323a56;
-    color: var(--light-bg);
+    background-color: #121c33;
+    border-color: #1e2745;
+    color: var(--light-text);
 }
 
 body.dark-mode .form-group input:focus,
@@ -1191,20 +1200,21 @@ body.dark-mode .form-group textarea:focus,
 body.dark-mode .reset-form input:focus,
 body.dark-mode .code-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.25);
 }
 
+/* Payment method cards */
 body.dark-mode .payment-method-card {
-    background-color: #252d47;
-    border-color: #323a56;
+    background-color: #121c33;
+    border-color: #1e2745;
+}
+
+body.dark-mode .payment-method-card:hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .card-name {
-    color: var(--light-bg);
-}
-
-body.dark-mode .password-reset-icon i {
-    color: var(--light-bg);
+    color: var(--light-text);
 }
 
 body.dark-mode .card-expiry {
@@ -1212,55 +1222,118 @@ body.dark-mode .card-expiry {
 }
 
 body.dark-mode .card-actions button:hover {
-    background-color: #323a56;
-    color: var(--light-bg);
-}
-
-body.dark-mode .card-actions .delete-btn:hover {
-    background-color: rgba(229, 57, 53, 0.1);
+    background-color: #1e2745;
 }
 
 body.dark-mode .add-payment-method {
-    border-color: #323a56;
+    border-color: #1e2745;
+}
+
+body.dark-mode .add-payment-method:hover {
+    background-color: rgba(var(--accent-rgb), 0.1);
+}
+
+/* Notification options */
+body.dark-mode .notification-option {
+    border-bottom-color: #1e2745;
 }
 
 body.dark-mode .option-name {
-    color: var(--light-bg);
+    color: var(--light-text);
 }
 
-body.dark-mode .notification {
-    background-color: #1a2035;
-}
-
-body.dark-mode .notification-title {
-    color: var(--light-bg);
-}
-
-body.dark-mode .notification-message {
+body.dark-mode .option-description {
     color: #a0a8c0;
 }
 
-body.dark-mode .close-notification-btn:hover {
-    color: var(--light-bg);
+/* Toggle switch */
+body.dark-mode .toggle-label {
+    background-color: #1e2745;
+}
+
+/* Modal elements */
+body.dark-mode .modal-content,
+body.dark-mode .payment-modal,
+body.dark-mode .password-reset-container {
+    background-color: #080f26;
+    color: var(--light-text);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    border-color: #1e2745;
+}
+
+body.dark-mode .modal-header h2 {
+    color: var(--light-text);
+}
+
+body.dark-mode .close-modal:hover {
+    color: var(--light-text);
+}
+
+/* Reset password */
+body.dark-mode .password-reset-icon {
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .password-reset-icon i {
+    color: white;
+}
+
+body.dark-mode .password-reset-container h3 {
+    color: var(--light-text);
 }
 
 body.dark-mode .password-reset-container p {
     color: #a0a8c0;
 }
 
-body.dark-mode .password-reset-container h3 {
-    color: var(--light-bg);
+/* Notifications */
+body.dark-mode .notification {
+    background-color: #080f26;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
-body.dark-mode .reset-password-btn {
-    background: linear-gradient(to right, var(--accent), var(--accent-dark));
+body.dark-mode .notification-title {
+    color: var(--light-text);
 }
 
+body.dark-mode .notification-message {
+    color: #a0a8c0;
+}
+
+/* Success animation */
+body.dark-mode .success-animation {
+    background-color: #080f26;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Buttons */
 body.dark-mode .cancel-btn {
-    background-color: #323a56;
-    color: var(--light-bg);
+    background-color: #1e2745;
+    color: var(--light-text);
 }
 
 body.dark-mode .cancel-btn:hover {
-    background-color: #3a4366;
+    background-color: #2a3456;
+}
+
+/* Scrollbar */
+body.dark-mode .settings-content-body::-webkit-scrollbar-track {
+    background: #121c33;
+}
+
+body.dark-mode .settings-content-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.7), rgba(var(--accent-rgb), 0.5));
+}
+
+body.dark-mode .main-content-container::-webkit-scrollbar-track {
+    background: #121c33;
+}
+
+body.dark-mode .main-content-container::-webkit-scrollbar-thumb {
+    background: #2a3456;
 }
