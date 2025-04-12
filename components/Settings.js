@@ -95,12 +95,12 @@ export default class Settings {
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="first-name">First Name</label>
-                                <input type="text" id="first-name" value="John" required>
+                                <input type="text" id="first-name" placeholder="Enter first name" required>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">
                                 <label for="last-name">Last Name</label>
-                                <input type="text" id="last-name" value="Doe" required>
+                                <input type="text" id="last-name"  placeholder="Enter last name" required>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                         </div>
@@ -108,12 +108,12 @@ export default class Settings {
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="email">Email Address</label>
-                                <input type="email" id="email" value="john.doe@example.com" required>
+                                <input type="email" id="email" placeholder="Enter email address" required>
                                 <div class="error-message hidden">Please enter a valid email address</div>
                             </div>
                             <div class="form-group">
                                 <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone" value="+1 (555) 123-4567" required>
+                                <input type="tel" id="phone"  placeholder="Enter phone number" required>
                                 <div class="error-message hidden">Please enter a valid phone number</div>
                             </div>
                         </div>
@@ -134,19 +134,19 @@ export default class Settings {
                     <form class="settings-form" id="shipping-address-form">
                         <div class="form-group">
                             <label for="street-address">Street Address</label>
-                            <input type="text" id="street-address" value="123 Main Street" required>
+                            <input type="text" id="street-address" placeholder="Enter street address" required>
                             <div class="error-message hidden">This field is required</div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="city">City</label>
-                                <input type="text" id="city" value="New York" required>
+                                <input type="text" id="city" placeholder="Enter city" required>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">
                                 <label for="state">State/Province</label>
-                                <input type="text" id="state" value="NY" required>
+                                <input type="text" id="state" placeholder="Enter state/province" required>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                         </div>
@@ -154,7 +154,7 @@ export default class Settings {
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="zip">ZIP/Postal Code</label>
-                                <input type="text" id="zip" value="10001" required>
+                                <input type="text" id="zip" placeholder="Enter ZIP/Postal code" required>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">

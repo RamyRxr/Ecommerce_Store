@@ -1155,7 +1155,11 @@ body.dark-mode .settings-section {
 }
 
 body.dark-mode .settings-section h2 {
-    color: var(--light-text);
+    color: var(--light-bg);
+}
+
+body.dark-mode .settings-section p {
+    color: #aaa;
 }
 
 /* Settings header & tabs */
@@ -1181,7 +1185,7 @@ body.dark-mode .tab-button.active {
 
 /* Form elements */
 body.dark-mode .form-group label {
-    color: var(--light-text);
+    color: var(--light-bg);
 }
 
 body.dark-mode .form-group input,
@@ -1189,9 +1193,9 @@ body.dark-mode .form-group select,
 body.dark-mode .form-group textarea,
 body.dark-mode .reset-form input,
 body.dark-mode .code-input {
-    background-color: #121c33;
-    border-color: #1e2745;
-    color: var(--light-text);
+    background-color: #14203a;
+    border-color: #1a2d5a;
+    color: var(--light-bg);
 }
 
 body.dark-mode .form-group input:focus,
@@ -1201,6 +1205,17 @@ body.dark-mode .reset-form input:focus,
 body.dark-mode .code-input:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.25);
+}
+
+body.dark-mode .save-button {
+    background: linear-gradient(135deg, var(--accent-dark), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
+}
+
+body.dark-mode .save-button:hover {
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
 }
 
 /* Payment method cards */
