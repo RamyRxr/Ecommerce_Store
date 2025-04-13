@@ -991,16 +991,30 @@ body.dark-mode .edit-rating h4 {
 }
 
 .discard-btn {
-    padding: 10px 15px;
+    padding: 10px 18px;
     background: none;
     border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .discard-btn:hover {
     background-color: rgba(0, 0, 0, 0.05);
+    border-color: var(--text-secondary);
+    color: var(--dark-bg);
+    transform: translateY(-1px);
+}
+
+.discard-btn:active {
+    transform: translateY(0);
 }
 
 .save-btn {
@@ -1035,6 +1049,17 @@ body.dark-mode .save-btn:hover {
     background: linear-gradient(135deg, #4299e1, #63b3ed);
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
+}
+
+body.dark-mode .discard-btn {
+    color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .discard-btn:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--light-bg);
 }
 
 /* Review Delete Notification */
