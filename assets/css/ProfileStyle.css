@@ -925,12 +925,22 @@ body.dark-mode .activity-item:hover {
 }
 
 .edit-rating {
-    margin: 20px 0;
+    margin-top: 20px;
+}
+
+.edit-rating h4 {
+    color: var(--dark-bg);
+    padding: 10px;
+}
+
+body.dark-mode .edit-rating h4 {
+    color: var(--light-bg);
 }
 
 .star-rating {
     display: flex;
     gap: 5px;
+    padding-left: 10px;
 }
 
 .star-rating button {
@@ -954,15 +964,24 @@ body.dark-mode .activity-item:hover {
     margin-bottom: 20px;
 }
 
+.edit-review-text h4 {
+    padding: 10px;
+}
+
 .edit-review-text textarea {
     width: 100%;
     min-height: 120px;
     padding: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--accent);
     border-radius: 6px;
     font-family: inherit;
     font-size: 14px;
     resize: vertical;
+}
+
+.edit-review-text textarea:focus {
+    outline: none;
+    border: 1px solid var(--accent);
 }
 
 .modal-actions {
@@ -985,17 +1004,37 @@ body.dark-mode .activity-item:hover {
 }
 
 .save-btn {
-    padding: 10px 15px;
+    padding: 10px 20px;
     background-color: var(--accent);
     color: white;
     border: none;
     border-radius: 6px;
-    cursor: pointer;
+    font-size: 15px;
     font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(var(--accent-rgb), 0.3);
 }
 
 .save-btn:hover {
     background-color: var(--accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(var(--accent-rgb), 0.4);
+}
+
+body.dark-mode .save-btn {
+    background: linear-gradient(135deg, var(--accent-dark), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
+}
+
+body.dark-mode .save-btn:hover {
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
 }
 
 /* Review Delete Notification */
@@ -1113,8 +1152,9 @@ body.dark-mode .activity-item:hover {
 
 /* Dark mode for edit modal */
 body.dark-mode .edit-review-modal {
-    background-color: var(--dark-bg);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    background: #080f26;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #1a2d5a;
 }
 
 body.dark-mode .modal-header {
@@ -1138,9 +1178,16 @@ body.dark-mode .edit-product-name {
     color: var(--light-bg);
 }
 
+body.dark-mode .edit-rating h4 {
+    color: var(--light-bg);
+}
+
 body.dark-mode .edit-review-text textarea {
     background-color: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--light-bg);
+}
+
+body.dark-mode .edit-review-text h4 {
     color: var(--light-bg);
 }
 
