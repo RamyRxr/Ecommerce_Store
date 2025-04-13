@@ -259,7 +259,7 @@ export default class Profile {
 
         return `
             <div class="activity-container">
-                <a href="${savedItems.link}" class="activity-item">
+                <a href="${savedItems.link}?tab=saved" class="activity-item">
                     <div class="activity-icon" style="background: linear-gradient(135deg, #9c27b0, #6a0080);">
                         <i class='bx ${savedItems.icon}'></i>
                     </div>
@@ -269,7 +269,7 @@ export default class Profile {
                     </div>
                 </a>
                 
-                <a href="${orders.link}" class="activity-item">
+                <a href="${orders.link}?tab=orders" class="activity-item">
                     <div class="activity-icon" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">
                         <i class='bx ${orders.icon}'></i>
                     </div>
@@ -279,7 +279,7 @@ export default class Profile {
                     </div>
                 </a>
                 
-                <a href="${listedItems.link}" class="activity-item">
+                <a href="${listedItems.link}?tab=selling" class="activity-item">
                     <div class="activity-icon" style="background: linear-gradient(135deg, #ff9800, #e65100);">
                         <i class='bx ${listedItems.icon}'></i>
                     </div>
@@ -313,7 +313,7 @@ export default class Profile {
                     </div>
                     
                     <div class="edit-rating">
-                        <h4>Your Rating</h4>
+                        <h4>Your Rating :</h4>
                         <div class="star-rating">
                             <button class="star-btn" data-rating="1">
                                 <i class='bx bxs-star'></i>
@@ -334,7 +334,7 @@ export default class Profile {
                     </div>
                     
                     <div class="edit-review-text">
-                        <h4>Your Review</h4>
+                        <h4>Your Review :</h4>
                         <textarea id="edit-review-textarea" placeholder="Write your review here..."></textarea>
                     </div>
                     
@@ -566,7 +566,10 @@ export default class Profile {
             notification.classList.add('fade-out');
             
             setTimeout(() => {
-                notification.remove();
+                // Check if notification still exists before removing
+                if (notification && notification.parentElement) {
+                    notification.remove();
+                }
             }, 300);
         }, 3000);
     }
@@ -668,6 +671,9 @@ export default class Profile {
             if (timeLeft <= 0) {
                 clearInterval(this.progressIntervals[reviewId]);
                 delete this.progressIntervals[reviewId];
+                
+                // Add this line to automatically remove notification when timer ends
+                this.removeNotification(reviewId);
             }
         }, 1000);
     }
@@ -719,21 +725,32 @@ export default class Profile {
             delete this.progressIntervals[reviewId];
         }
         
+        // Also clear any pending timers
+        if (this.deleteTimers[reviewId]) {
+            clearTimeout(this.deleteTimers[reviewId]);
+            delete this.deleteTimers[reviewId];
+        }
+        
         // Clear from tracking objects
         delete this.deletedReviews[reviewId];
-        delete this.deleteTimers[reviewId];
+        
+        // Make sure the notification is removed
+        this.removeNotification(reviewId);
     }
     
     // Method to remove a notification
     removeNotification(reviewId) {
         const notification = document.querySelector(`.notification[data-id="${reviewId}"]`);
-        if (notification) {
-            notification.classList.remove('fade-in');
-            notification.classList.add('fade-out');
-            
-            setTimeout(() => {
+        if (!notification) return;
+        
+        notification.classList.remove('fade-in');
+        notification.classList.add('fade-out');
+        
+        setTimeout(() => {
+            // Check if notification still exists before removing
+            if (notification && notification.parentElement) {
                 notification.remove();
-            }, 300);
-        }
+            }
+        }, 300);
     }
 }
