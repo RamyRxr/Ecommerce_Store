@@ -320,7 +320,24 @@ body.dark-mode .user-stats {
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    flex-shrink: 0;
+    position: relative;
 }
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 
 .review-details {
     flex: 1;
@@ -770,9 +787,8 @@ body.dark-mode .view-all-btn {
 }
 
 body.dark-mode .product-image {
-    border-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05);
 }
-
 body.dark-mode .review-item:hover,
 body.dark-mode .activity-item:hover {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
