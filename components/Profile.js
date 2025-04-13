@@ -59,13 +59,13 @@ export default class Profile {
                 count: 15,
                 icon: 'bx-bookmark',
                 title: 'Saved Items',
-                link: '../HTML-Pages/SavedItemsPage.html'
+                link: '../HTML-Pages/SavedPage.html'
             },
             orders: {
                 count: 28,
                 icon: 'bx-package',
                 title: 'Orders',
-                link: '../HTML-Pages/OrderHistoryPage.html'
+                link: '../HTML-Pages/HistoryPage.html'
             },
             listedItems: {
                 count: 5,
@@ -259,44 +259,35 @@ export default class Profile {
 
         return `
             <div class="activity-container">
-                <div class="activity-item">
-                    <div class="activity-icon">
+                <a href="${savedItems.link}" class="activity-item">
+                    <div class="activity-icon" style="background: linear-gradient(135deg, #9c27b0, #6a0080);">
                         <i class='bx ${savedItems.icon}'></i>
                     </div>
                     <div class="activity-info">
                         <div class="activity-title">${savedItems.title}</div>
                         <div class="activity-count">${savedItems.count} items</div>
                     </div>
-                    <a href="${savedItems.link}" class="view-all-btn">
-                        <i class='bx bx-chevron-right'></i>
-                    </a>
-                </div>
+                </a>
                 
-                <div class="activity-item">
-                    <div class="activity-icon">
+                <a href="${orders.link}" class="activity-item">
+                    <div class="activity-icon" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">
                         <i class='bx ${orders.icon}'></i>
                     </div>
                     <div class="activity-info">
                         <div class="activity-title">${orders.title}</div>
                         <div class="activity-count">${orders.count} orders</div>
                     </div>
-                    <a href="${orders.link}" class="view-all-btn">
-                        <i class='bx bx-chevron-right'></i>
-                    </a>
-                </div>
+                </a>
                 
-                <div class="activity-item">
-                    <div class="activity-icon">
+                <a href="${listedItems.link}" class="activity-item">
+                    <div class="activity-icon" style="background: linear-gradient(135deg, #ff9800, #e65100);">
                         <i class='bx ${listedItems.icon}'></i>
                     </div>
                     <div class="activity-info">
                         <div class="activity-title">${listedItems.title}</div>
                         <div class="activity-count">${listedItems.count} items</div>
                     </div>
-                    <a href="${listedItems.link}" class="view-all-btn">
-                        <i class='bx bx-chevron-right'></i>
-                    </a>
-                </div>
+                </a>
             </div>
         `;
     }
