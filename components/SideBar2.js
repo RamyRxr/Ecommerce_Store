@@ -76,7 +76,7 @@ export default class SideBar2 {
                         </a>
                     </li>
                     <li class="${this.activeMenuItem === 'profile' ? 'active' : ''}">
-                        <a href="../HTML-Pages/Profile.html">
+                        <a href="../HTML-Pages/ProfilePage.html">
                             <i class='bx bx-user'></i>
                             <span class="links_name">Profile</span>
                         </a>

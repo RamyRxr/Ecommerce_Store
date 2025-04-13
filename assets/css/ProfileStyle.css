@@ -255,6 +255,7 @@ body.dark-mode .user-stats {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
+    scrollbar-width: none;
 }
 
 /* Empty Tab Message */
@@ -290,47 +291,81 @@ body.dark-mode .user-stats {
     gap: 20px;
 }
 
+/* Review Item Improved Styling */
 .review-item {
     background-color: #fff;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
     cursor: pointer;
     overflow: hidden;
+    border: 1px solid var(--border-color);
 }
 
 .review-item:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+    transform: translateY(-3px);
 }
 
 .review-item-header {
     display: flex;
     gap: 15px;
-    padding: 15px;
+    padding: 20px;
     border-bottom: 1px solid var(--border-color);
+    align-items: center;
 }
 
 .product-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 6px;
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
     overflow: hidden;
     border: 1px solid var(--border-color);
 }
 
-.product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.review-details {
+    flex: 1;
 }
 
-/* Review content truncation and expansion */
+.product-name {
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--dark-bg);
+}
+
+.rating-date {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stars {
+    display: flex;
+    gap: 2px;
+}
+
+.stars i {
+    color: #ffc107;
+    font-size: 16px;
+}
+
+.review-date {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.review-text {
+    padding: 20px;
+}
+
 .review-content {
     margin: 0;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.6;
+    color: var(--text-primary);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -352,10 +387,10 @@ body.dark-mode .user-stats {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 15px;
+    padding: 15px 20px;
     border-top: 1px solid var(--border-color);
-    background-color: rgba(0, 0, 0, 0.01);
-    border-radius: 0 0 8px 8px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: 0 0 12px 12px;
 }
 
 .helpful {
@@ -368,11 +403,12 @@ body.dark-mode .user-stats {
 
 .helpful i {
     font-size: 16px;
+    color: var(--accent);
 }
 
 .action-buttons {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
 .action-buttons button {
@@ -384,13 +420,13 @@ body.dark-mode .user-stats {
     color: var(--text-secondary);
     font-size: 13px;
     cursor: pointer;
-    padding: 5px 8px;
-    border-radius: 4px;
+    padding: 6px 10px;
+    border-radius: 6px;
     transition: all 0.2s ease;
 }
 
 .action-buttons button:hover {
-    background-color: rgba(0, 0, 0, 0.03);
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .action-buttons button i {
@@ -401,12 +437,101 @@ body.dark-mode .user-stats {
     color: var(--accent);
 }
 
+.view-product-btn:hover i {
+    color: var(--accent);
+}
+
 .edit-review-btn:hover {
+    color: var(--accent);
+}
+
+.edit-review-btn:hover i {
     color: var(--accent);
 }
 
 .delete-review-btn:hover {
     color: #e53935;
+}
+
+.delete-review-btn:hover i {
+    color: #e53935;
+}
+
+/* Dark mode improvements for reviews */
+body.dark-mode .review-item {
+    background: #111827;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .review-item:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+body.dark-mode .review-item-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .product-image {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .product-name {
+    color: #fff;
+}
+
+/* Keep star colors consistent in dark mode */
+body.dark-mode .stars i {
+    color: #ffc107;
+}
+
+body.dark-mode .review-date {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+body.dark-mode .review-content {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+body.dark-mode .review-actions {
+    border-top-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-mode .helpful {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .helpful i {
+    color: var(--accent);
+}
+
+/* Keep button styles consistent in dark mode */
+body.dark-mode .action-buttons button {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .action-buttons button:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .view-product-btn:hover,
+body.dark-mode .edit-review-btn:hover {
+    color: var(--accent);
+}
+
+body.dark-mode .view-product-btn:hover i,
+body.dark-mode .edit-review-btn:hover i {
+    color: var(--accent);
+}
+
+body.dark-mode .delete-review-btn:hover {
+    color: #f44336;
+}
+
+body.dark-mode .delete-review-btn:hover i {
+    color: #f44336;
 }
 
 /* Activity Tab */
