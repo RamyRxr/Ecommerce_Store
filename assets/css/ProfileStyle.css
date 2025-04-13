@@ -1306,3 +1306,118 @@ body.dark-mode .notification-time {
 body.dark-mode .close-notification-btn {
     color: #aaa;
 }
+
+/* Empty State Styling - Using the same style as SavedItemsStyle.css */
+.empty-state {
+    grid-column: 1 / -1;
+    padding: 60px 40px;
+    text-align: center;
+    background: var(--light-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin: 30px auto;
+    max-width: 500px;
+    animation: fadeIn 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #f5f7fa, #e2e5ea);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state-icon i {
+    font-size: 40px;
+    color: var(--accent, #1e88e5);
+}
+
+.empty-state-title {
+    margin: 0 0 15px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #4a5568;
+}
+
+.empty-state-message {
+    margin: 0 0 25px 0;
+    color: #718096;
+    font-size: 16px;
+    line-height: 1.5;
+    max-width: 320px;
+}
+
+.empty-state-action {
+    background: var(--accent, #1e88e5);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(30, 136, 229, 0.2);
+    text-decoration: none;
+}
+
+.empty-state-action:hover {
+    background: var(--accent-dark, #1565c0);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(30, 136, 229, 0.3);
+}
+
+.empty-state-action:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(30, 136, 229, 0.2);
+}
+
+.empty-state-action i {
+    font-size: 18px;
+}
+
+/* Dark mode empty state */
+body.dark-mode .empty-state {
+    background: #080f26;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #1a2d5a;
+}
+
+body.dark-mode .empty-state-icon {
+    background: linear-gradient(135deg, #14203a, #0c1638);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .empty-state-icon i {
+    color: var(--accent-dark, #58a6ff);
+}
+
+body.dark-mode .empty-state-title {
+    color: #e2e8f0;
+}
+
+body.dark-mode .empty-state-message {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .empty-state-action {
+    background: linear-gradient(135deg, var(--accent-dark, #3182ce), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
+}
+
+body.dark-mode .empty-state-action:hover {
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
+}

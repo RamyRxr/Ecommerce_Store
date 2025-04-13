@@ -2,7 +2,7 @@ export default class Profile {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.activeTab = 'reviews'; // Default tab
-
+        
         // Mock user data (in real app would be fetched from API)
         this.userData = {
             name: 'Alex Johnson',
@@ -16,8 +16,8 @@ export default class Profile {
             verified: true
         };
 
-        // Mock review data
-        this.reviewsData = [
+        // Default mock review data
+        const defaultReviews = [
             {
                 id: 1,
                 productName: 'Sony WH-1000XM4 Wireless Headphones',
@@ -52,6 +52,12 @@ export default class Profile {
                 productId: 'product3'
             }
         ];
+
+        // Load reviews from localStorage if available, otherwise use default data
+        this.reviewsData = this.loadReviewsFromStorage() || defaultReviews;
+        
+        // Update user data based on current reviews count
+        this.userData.totalReviews = this.reviewsData.length;
 
         // Activity data
         this.activityData = {
@@ -188,10 +194,16 @@ export default class Profile {
     renderReviewsTab() {
         if (this.reviewsData.length === 0) {
             return `
-                <div class="empty-tab-message">
-                    <i class='bx bx-star'></i>
-                    <h3>No reviews yet</h3>
-                    <p>You haven't written any reviews yet. When you do, they'll appear here.</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class='bx bx-star'></i>
+                    </div>
+                    <h3 class="empty-state-title">No Reviews Yet</h3>
+                    <p class="empty-state-message">You haven't written any reviews yet. Your product reviews will appear here once you share your thoughts.</p>
+                    <a href="../HTML-Pages/HomePage.html" class="empty-state-action">
+                        <i class='bx bx-shopping-bag'></i>
+                        Browse Products
+                    </a>
                 </div>
             `;
         }
@@ -529,6 +541,9 @@ export default class Profile {
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             this.reviewsData[reviewIndex].date = today.toLocaleDateString('en-US', options);
             
+            // Save to localStorage
+            this.saveReviewsToStorage();
+            
             // Close modal and re-render
             this.closeEditModal();
             this.render();
@@ -710,6 +725,9 @@ export default class Profile {
         // Update total reviews count
         this.userData.totalReviews = this.reviewsData.length;
         
+        // Save to localStorage
+        this.saveReviewsToStorage();
+        
         // Remove notification
         this.removeNotification(reviewId);
         
@@ -736,6 +754,9 @@ export default class Profile {
         
         // Make sure the notification is removed
         this.removeNotification(reviewId);
+        
+        // Save the current reviews state to localStorage
+        this.saveReviewsToStorage();
     }
     
     // Method to remove a notification
@@ -752,5 +773,25 @@ export default class Profile {
                 notification.remove();
             }
         }, 300);
+    }
+
+    // Method to load reviews from localStorage
+    loadReviewsFromStorage() {
+        try {
+            const savedReviews = localStorage.getItem('userReviews');
+            return savedReviews ? JSON.parse(savedReviews) : null;
+        } catch (error) {
+            console.error('Error loading reviews from storage:', error);
+            return null;
+        }
+    }
+
+    // Method to save reviews to localStorage
+    saveReviewsToStorage() {
+        try {
+            localStorage.setItem('userReviews', JSON.stringify(this.reviewsData));
+        } catch (error) {
+            console.error('Error saving reviews to storage:', error);
+        }
     }
 }
