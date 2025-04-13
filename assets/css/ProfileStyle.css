@@ -34,6 +34,7 @@
     border-radius: var(--section-radius);
     box-shadow: var(--sidebar-shadow);
     height: calc(100vh - 40px);
+    width: 100%;
     margin: 20px;
     overflow: hidden;
     display: flex;
@@ -208,17 +209,18 @@ body.dark-mode .user-stats {
 }
 
 .tab-btn {
-    padding: 15px 25px;
+    padding: 15px 20px;
     border: none;
     background: none;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dark-bg);
     cursor: pointer;
-    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
+    transition: all 0.2s;
 }
 
 .tab-btn i {
@@ -241,13 +243,9 @@ body.dark-mode .user-stats {
     font-weight: 600;
 }
 
-.tab-btn.active::after {
-    background-color: var(--accent);
-}
-
+.tab-btn.active::after ,
 .tab-btn:hover:not(.active)::after {
     background-color: var(--accent);
-    opacity: 0.5;
 }
 
 /* Tab Content */
@@ -690,17 +688,11 @@ body.dark-mode .edit-profile-btn:hover {
 }
 
 body.dark-mode .tab-btn {
-    color: var(--light-bg);
-    opacity: 0.7;
-}
-
-body.dark-mode .tab-btn.active {
-    opacity: 1;
+    color: var(--accent);
 }
 
 body.dark-mode .tab-btn:hover:not(.active) {
-    color: var(--light-bg);
-    opacity: 0.9;
+    color: var(--accent);
 }
 
 body.dark-mode .empty-tab-message i {
