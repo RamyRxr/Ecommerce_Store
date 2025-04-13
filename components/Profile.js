@@ -3,7 +3,7 @@ export default class Profile {
         this.container = document.getElementById(containerId);
         this.activeTab = 'reviews'; // Default tab
         
-        // Mock user data (in real app would be fetched from API)
+        // User data (unchanged)
         this.userData = {
             name: 'Alex Johnson',
             image: '../assets/images/general-image/RamyRxr.png',
@@ -53,33 +53,34 @@ export default class Profile {
             }
         ];
 
-        // Load reviews from localStorage if available, otherwise use default data
+        // Reviews data loading (unchanged)
         this.reviewsData = this.loadReviewsFromStorage() || defaultReviews;
-        
-        // Update user data based on current reviews count
         this.userData.totalReviews = this.reviewsData.length;
 
-        // Activity data
+        // Activity data with dynamic counts
         this.activityData = {
             savedItems: {
-                count: 15,
                 icon: 'bx-bookmark',
                 title: 'Saved Items',
-                link: '../HTML-Pages/SavedPage.html'
+                link: '../HTML-Pages/SavedPage.html',
+                count: 0 // Will be updated dynamically
             },
             orders: {
-                count: 28,
                 icon: 'bx-package',
                 title: 'Orders',
-                link: '../HTML-Pages/HistoryPage.html'
+                link: '../HTML-Pages/HistoryPage.html',
+                count: 0 // Will be updated dynamically
             },
             listedItems: {
-                count: 5,
                 icon: 'bx-store',
                 title: 'Listed Items',
-                link: '../HTML-Pages/SellingPage.html'
+                link: '../HTML-Pages/SellingPage.html',
+                count: 0 // Will be updated dynamically
             }
         };
+
+        // Load activity counts
+        this.loadActivityCounts();
 
         // Track deletions for undo functionality
         this.deletedReviews = {};
@@ -150,11 +151,11 @@ export default class Profile {
                                     </div>
                                     <div class="stat-item">
                                         <i class='bx bx-store'></i>
-                                        <div class="stat-value">${this.activityData.listedItems.count} listed items</div>
+                                        <div class="stat-value" data-stats="listed-count">${this.activityData.listedItems.count} listed items</div>
                                     </div>
                                     <div class="stat-item">
                                         <i class='bx bx-star'></i>
-                                        <div class="stat-value">${this.userData.totalReviews} reviews</div>
+                                        <div class="stat-value" data-stats="reviews-count">${this.userData.totalReviews} reviews</div>
                                     </div>
                                 </div>
                             </div>
@@ -459,6 +460,30 @@ export default class Profile {
                 }
             });
         }
+        
+        // Listen for storage changes to update counts
+        window.addEventListener('storage', (event) => {
+            if (['savedItems', 'orderHistory', 'activeListings', 'soldItems'].includes(event.key)) {
+                this.loadActivityCounts();
+                this.updateActivityCountsInUI();
+            }
+        });
+        
+        // Listen for custom events from other components
+        document.addEventListener('savedItemsUpdated', () => {
+            this.loadActivityCounts();
+            this.updateActivityCountsInUI();
+        });
+        
+        document.addEventListener('ordersUpdated', () => {
+            this.loadActivityCounts();
+            this.updateActivityCountsInUI();
+        });
+        
+        document.addEventListener('listingsUpdated', () => {
+            this.loadActivityCounts();
+            this.updateActivityCountsInUI();
+        });
     }
     
     // Method to open the edit modal
@@ -792,6 +817,74 @@ export default class Profile {
             localStorage.setItem('userReviews', JSON.stringify(this.reviewsData));
         } catch (error) {
             console.error('Error saving reviews to storage:', error);
+        }
+    }
+
+    // Add this new method to load activity counts from localStorage
+    loadActivityCounts() {
+        try {
+            // Load saved items count
+            const savedItems = localStorage.getItem('savedItems');
+            if (savedItems) {
+                const items = JSON.parse(savedItems);
+                this.activityData.savedItems.count = items.length;
+            }
+            
+            // Load orders count (from purchase history)
+            const orderHistory = localStorage.getItem('orderHistory');
+            if (orderHistory) {
+                const orders = JSON.parse(orderHistory);
+                this.activityData.orders.count = orders.length;
+            }
+            
+            // Load listed items count (active + sold from selling page)
+            const activeListings = localStorage.getItem('activeListings');
+            const soldItems = localStorage.getItem('soldItems');
+            
+            let listedCount = 0;
+            
+            if (activeListings) {
+                listedCount += JSON.parse(activeListings).length;
+            }
+            
+            if (soldItems) {
+                listedCount += JSON.parse(soldItems).length;
+            }
+            
+            this.activityData.listedItems.count = listedCount;
+            
+        } catch (error) {
+            console.error('Error loading activity counts:', error);
+        }
+    }
+    
+    // Add new method to update counts in UI without full re-render
+    updateActivityCountsInUI() {
+        // Update activity counts in the UI
+        const savedItemsCount = document.querySelector('[data-activity="saved-count"]');
+        if (savedItemsCount) {
+            savedItemsCount.textContent = `${this.activityData.savedItems.count} items`;
+        }
+        
+        const ordersCount = document.querySelector('[data-activity="orders-count"]');
+        if (ordersCount) {
+            ordersCount.textContent = `${this.activityData.orders.count} orders`;
+        }
+        
+        const listedItemsCount = document.querySelector('[data-activity="listed-count"]');
+        if (listedItemsCount) {
+            listedItemsCount.textContent = `${this.activityData.listedItems.count} items`;
+        }
+        
+        // Also update user stats
+        const reviewsCount = document.querySelector('[data-stats="reviews-count"]');
+        if (reviewsCount) {
+            reviewsCount.textContent = `${this.userData.totalReviews} reviews`;
+        }
+        
+        const listedStatsCount = document.querySelector('[data-stats="listed-count"]');
+        if (listedStatsCount) {
+            listedStatsCount.textContent = `${this.activityData.listedItems.count} listed items`;
         }
     }
 }
