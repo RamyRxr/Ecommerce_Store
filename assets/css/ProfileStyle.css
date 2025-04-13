@@ -564,12 +564,33 @@ body.dark-mode .delete-review-btn:hover i {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     padding: 15px;
     transition: all 0.3s ease;
+    position: relative;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
 }
+
 
 .activity-item:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
 }
+
+.activity-item::after {
+    content: '\ea4a';
+    font-family: 'boxicons';
+    position: absolute;
+    right: 15px;
+    color: var(--text-secondary);
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.activity-item:hover::after {
+    transform: translateX(5px);
+    color: var(--accent);
+}
+
 
 .activity-icon {
     width: 50px;
@@ -580,6 +601,7 @@ body.dark-mode .delete-review-btn:hover i {
     justify-content: center;
     color: white;
     margin-right: 15px;
+    flex-shrink: 0;
 }
 
 .activity-item:nth-child(1) .activity-icon {
@@ -600,6 +622,7 @@ body.dark-mode .delete-review-btn:hover i {
 
 .activity-info {
     flex: 1;
+    padding-right: 30px; 
 }
 
 .activity-title {
@@ -630,12 +653,13 @@ body.dark-mode .delete-review-btn:hover i {
     color: var(--accent);
 }
 
+.view-all-btn {
+    display: none;
+}
+
 .view-all-btn i {
     font-size: 20px;
 }
-
-
-
 
 /* Dark Mode Support - Complete Updates */
 body.dark-mode .profile-page-container {
@@ -705,6 +729,10 @@ body.dark-mode .edit-profile-btn:hover {
 }
 
 body.dark-mode .tab-btn {
+    color: var(--light-bg);
+}
+
+body.dark-mode .tab-btn.active {
     color: var(--accent);
 }
 
@@ -789,6 +817,20 @@ body.dark-mode .view-all-btn {
 body.dark-mode .product-image {
     background-color: rgba(255, 255, 255, 0.05);
 }
+
+body.dark-mode .activity-item {
+    background-color: #111827;
+    color: var(--light-bg);
+}
+
+body.dark-mode .activity-item::after {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .activity-item:hover::after {
+    color: var(--accent);
+}
+
 body.dark-mode .review-item:hover,
 body.dark-mode .activity-item:hover {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
