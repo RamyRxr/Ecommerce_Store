@@ -12,17 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebar = new SideBar2('app', 'profile');
 
     // Initialize profile component after a short delay to ensure sidebar is ready
-    setTimeout(() => {
-        const profile = new Profile('app');
-
-        // Hide loading spinner
-        setTimeout(() => {
-            spinner.style.opacity = '0';
-            setTimeout(() => {
-                spinner.style.display = 'none';
-            }, 300);
-        }, 300);
-    }, 100);
+    const profile = new Profile('app');
 
     // Listen for theme toggle events
     document.addEventListener('themeToggled', () => {

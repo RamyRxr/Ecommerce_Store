@@ -75,8 +75,26 @@ export default class Profile {
             }
         };
 
+        // Track deletions for undo functionality
+        this.deletedReviews = {};
+        this.deleteTimers = {};
+        this.progressIntervals = {};
+        
+        this.createNotificationContainer(); // Create global notification container
         this.render();
         this.setupEventListeners();
+    }
+
+    // Create a global notification container
+    createNotificationContainer() {
+        // Remove any existing notification container
+        const existingContainer = document.querySelector('.global-notification-container');
+        if (existingContainer) return;
+        
+        // Create a new container appended to body
+        const container = document.createElement('div');
+        container.className = 'notification-container global-notification-container';
+        document.body.appendChild(container);
     }
 
     render() {
@@ -153,6 +171,9 @@ export default class Profile {
                         </div>
                     </div>
                 </div>
+                
+                <!-- Edit Review Modal -->
+                ${this.renderEditModal()}
             </div>
         `;
 
@@ -162,9 +183,6 @@ export default class Profile {
         } else {
             this.container.insertAdjacentHTML('beforeend', profileHTML);
         }
-
-        // Check if any review needs truncation markers
-        this.checkReviewOverflow();
     }
 
     renderReviewsTab() {
@@ -282,6 +300,61 @@ export default class Profile {
             </div>
         `;
     }
+    
+    renderEditModal() {
+        return `
+            <div class="edit-modal-backdrop">
+                <div class="edit-review-modal">
+                    <div class="modal-header">
+                        <h3>Edit Your Review</h3>
+                        <button class="close-modal-btn">
+                            <i class='bx bx-x'></i>
+                        </button>
+                    </div>
+                    
+                    <div class="edit-product-info">
+                        <div class="edit-product-image">
+                            <img id="modal-product-image" src="" alt="">
+                        </div>
+                        <div>
+                            <h4 class="edit-product-name" id="modal-product-name"></h4>
+                        </div>
+                    </div>
+                    
+                    <div class="edit-rating">
+                        <h4>Your Rating</h4>
+                        <div class="star-rating">
+                            <button class="star-btn" data-rating="1">
+                                <i class='bx bxs-star'></i>
+                            </button>
+                            <button class="star-btn" data-rating="2">
+                                <i class='bx bxs-star'></i>
+                            </button>
+                            <button class="star-btn" data-rating="3">
+                                <i class='bx bxs-star'></i>
+                            </button>
+                            <button class="star-btn" data-rating="4">
+                                <i class='bx bxs-star'></i>
+                            </button>
+                            <button class="star-btn" data-rating="5">
+                                <i class='bx bxs-star'></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="edit-review-text">
+                        <h4>Your Review</h4>
+                        <textarea id="edit-review-textarea" placeholder="Write your review here..."></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="discard-btn">Discard</button>
+                        <button class="save-btn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     setupEventListeners() {
         // Tab switching
@@ -295,7 +368,8 @@ export default class Profile {
 
             // Review item click to expand/collapse
             const reviewItem = e.target.closest('.review-item');
-            if (reviewItem && !e.target.closest('button')) {
+            const actionBtn = e.target.closest('button');
+            if (reviewItem && !actionBtn) {
                 reviewItem.classList.toggle('expanded');
                 return;
             }
@@ -312,7 +386,7 @@ export default class Profile {
             const editReviewBtn = e.target.closest('.edit-review-btn');
             if (editReviewBtn) {
                 const reviewId = parseInt(editReviewBtn.dataset.reviewId);
-                this.editReview(reviewId);
+                this.openEditModal(reviewId);
                 return;
             }
 
@@ -323,42 +397,352 @@ export default class Profile {
                 this.deleteReview(reviewId);
                 return;
             }
-        });
-
-        // Window resize - check review overflow
-        window.addEventListener('resize', () => {
-            this.checkReviewOverflow();
-        });
-    }
-
-    checkReviewOverflow() {
-        document.querySelectorAll('.review-content').forEach(content => {
-            const reviewText = content.closest('.review-text');
-            if (content.scrollHeight > content.clientHeight) {
-                reviewText.classList.add('has-overflow');
-            } else {
-                reviewText.classList.remove('has-overflow');
+            
+            // Close edit modal
+            const closeModalBtn = e.target.closest('.close-modal-btn');
+            if (closeModalBtn) {
+                this.closeEditModal();
+                return;
+            }
+            
+            // Discard changes
+            const discardBtn = e.target.closest('.discard-btn');
+            if (discardBtn) {
+                this.closeEditModal();
+                return;
+            }
+            
+            // Save review changes
+            const saveBtn = e.target.closest('.save-btn');
+            if (saveBtn) {
+                this.saveReviewChanges();
+                return;
+            }
+            
+            // Star rating buttons
+            const starBtn = e.target.closest('.star-btn');
+            if (starBtn) {
+                const rating = parseInt(starBtn.dataset.rating);
+                this.updateStarRating(rating);
+                return;
+            }
+            
+            // Undo button in notification
+            const undoBtn = e.target.closest('.undo-btn');
+            if (undoBtn) {
+                const reviewId = parseInt(undoBtn.dataset.id);
+                this.undoDelete(reviewId);
+                return;
+            }
+            
+            // Close notification button
+            const closeNotificationBtn = e.target.closest('.close-notification-btn');
+            if (closeNotificationBtn) {
+                const notification = closeNotificationBtn.closest('.notification');
+                const reviewId = parseInt(notification.dataset.id);
+                
+                this.removeNotification(reviewId);
+                this.permanentlyDeleteReview(reviewId);
+                return;
             }
         });
+
+        // Extra click handler for modal backdrop to close modal when clicking outside
+        const editModalBackdrop = document.querySelector('.edit-modal-backdrop');
+        if (editModalBackdrop) {
+            editModalBackdrop.addEventListener('click', (e) => {
+                if (e.target === editModalBackdrop) {
+                    this.closeEditModal();
+                }
+            });
+        }
     }
-
-    editReview(reviewId) {
-        alert(`Editing review ${reviewId}`);
-        // In a real app, this would open a modal to edit the review
+    
+    // Method to open the edit modal
+    openEditModal(reviewId) {
+        const review = this.reviewsData.find(r => r.id === reviewId);
+        if (!review) return;
+        
+        // Set current review ID being edited
+        this.currentEditReviewId = reviewId;
+        
+        // Get modal elements
+        const modal = document.querySelector('.edit-modal-backdrop');
+        const productNameEl = document.getElementById('modal-product-name');
+        const productImageEl = document.getElementById('modal-product-image');
+        const textareaEl = document.getElementById('edit-review-textarea');
+        const starBtns = document.querySelectorAll('.star-btn');
+        
+        // Set initial values
+        productNameEl.textContent = review.productName;
+        productImageEl.src = review.productImage;
+        productImageEl.alt = review.productName;
+        textareaEl.value = review.reviewText;
+        
+        // Set star rating
+        this.updateStarRating(review.rating);
+        
+        // Show modal with animation
+        modal.classList.add('active');
     }
-
-    deleteReview(reviewId) {
-        if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
-            // Remove review from data
-            this.reviewsData = this.reviewsData.filter(r => r.id !== reviewId);
-
-            // Update total reviews count
-            this.userData.totalReviews = this.reviewsData.length;
-
-            // Re-render component
+    
+    // Method to close the edit modal
+    closeEditModal() {
+        const modal = document.querySelector('.edit-modal-backdrop');
+        modal.classList.remove('active');
+        this.currentEditReviewId = null;
+    }
+    
+    // Method to update star rating in the modal
+    updateStarRating(rating) {
+        const starBtns = document.querySelectorAll('.star-btn');
+        
+        starBtns.forEach((btn, index) => {
+            const btnRating = parseInt(btn.dataset.rating);
+            
+            if (btnRating <= rating) {
+                btn.classList.add('active');
+                btn.querySelector('i').className = 'bx bxs-star';
+            } else {
+                btn.classList.remove('active');
+                btn.querySelector('i').className = 'bx bx-star';
+            }
+        });
+        
+        // Store the current rating
+        this.currentEditRating = rating;
+    }
+    
+    // Method to save review changes
+    saveReviewChanges() {
+        if (!this.currentEditReviewId) return;
+        
+        const textareaEl = document.getElementById('edit-review-textarea');
+        const newReviewText = textareaEl.value.trim();
+        const newRating = this.currentEditRating;
+        
+        // Validate
+        if (!newReviewText) {
+            alert('Please enter a review text');
+            return;
+        }
+        
+        // Find and update the review
+        const reviewIndex = this.reviewsData.findIndex(r => r.id === this.currentEditReviewId);
+        if (reviewIndex !== -1) {
+            this.reviewsData[reviewIndex].reviewText = newReviewText;
+            this.reviewsData[reviewIndex].rating = newRating;
+            
+            // Update date to today
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            this.reviewsData[reviewIndex].date = today.toLocaleDateString('en-US', options);
+            
+            // Close modal and re-render
+            this.closeEditModal();
             this.render();
-
-            alert('Review deleted successfully');
+            
+            // Show success notification
+            this.showEditSuccessNotification(this.reviewsData[reviewIndex].productName);
+        }
+    }
+    
+    // Method to show edit success notification
+    showEditSuccessNotification(productName) {
+        const notificationContainer = document.querySelector('.global-notification-container');
+        if (!notificationContainer) return;
+        
+        const notification = document.createElement('div');
+        notification.className = 'notification fade-in';
+        
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class='bx bx-check-circle notification-icon'></i>
+                <div class="notification-text">
+                    <p>Your review for "${productName}" has been updated.</p>
+                </div>
+                <button class="close-notification-btn">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+        `;
+        
+        notificationContainer.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.remove('fade-in');
+            notification.classList.add('fade-out');
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Method to delete a review with undo functionality
+    deleteReview(reviewId) {
+        // Find the review in the array
+        const reviewIndex = this.reviewsData.findIndex(r => r.id === reviewId);
+        if (reviewIndex === -1) return;
+        
+        // Store the review for potential undo
+        this.deletedReviews[reviewId] = {
+            review: this.reviewsData[reviewIndex],
+            index: reviewIndex,
+            timestamp: new Date().getTime()
+        };
+        
+        // Remove from array
+        this.reviewsData.splice(reviewIndex, 1);
+        
+        // Update total reviews count
+        this.userData.totalReviews = this.reviewsData.length;
+        
+        // Re-render
+        this.render();
+        
+        // Show notification
+        this.showDeleteNotification(reviewId);
+        
+        // Set timer for permanent deletion - 5 seconds
+        if (this.deleteTimers[reviewId]) {
+            clearTimeout(this.deleteTimers[reviewId]);
+        }
+        
+        this.deleteTimers[reviewId] = setTimeout(() => {
+            this.permanentlyDeleteReview(reviewId);
+        }, 5000);
+    }
+    
+    // Method to show delete notification
+    showDeleteNotification(reviewId) {
+        const notificationContainer = document.querySelector('.global-notification-container');
+        if (!notificationContainer) return;
+        
+        const reviewData = this.deletedReviews[reviewId].review;
+        const notification = document.createElement('div');
+        notification.className = 'notification fade-in';
+        notification.dataset.id = reviewId;
+        
+        // Calculate time remaining - 5 seconds
+        const secondsRemaining = 5;
+        
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class='bx bx-check-circle notification-icon'></i>
+                <div class="notification-text">
+                    <p>Review for "${reviewData.productName}" has been deleted.</p>
+                    <button class="undo-btn" data-id="${reviewId}">Undo</button>
+                    <span class="notification-time">${secondsRemaining}s</span>
+                </div>
+                <button class="close-notification-btn">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <div class="notification-progress"></div>
+        `;
+        
+        notificationContainer.appendChild(notification);
+        
+        // Initialize progress bar
+        const progressBar = notification.querySelector('.notification-progress');
+        if (progressBar) {
+            // Use CSS transition for smooth animation
+            progressBar.style.transition = 'width 5s linear';
+            
+            // Force a reflow before changing width
+            void progressBar.offsetWidth;
+            
+            // Start with full width
+            progressBar.style.width = '100%';
+            
+            // Set width to 0 after a tiny delay
+            setTimeout(() => {
+                progressBar.style.width = '0%';
+            }, 50);
+        }
+        
+        // Create countdown timer
+        const timeDisplay = notification.querySelector('.notification-time');
+        let timeLeft = secondsRemaining;
+        
+        this.progressIntervals[reviewId] = setInterval(() => {
+            timeLeft--;
+            
+            if (timeDisplay) {
+                timeDisplay.textContent = `${timeLeft}s`;
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(this.progressIntervals[reviewId]);
+                delete this.progressIntervals[reviewId];
+            }
+        }, 1000);
+    }
+    
+    // Method to undo a review deletion
+    undoDelete(reviewId) {
+        if (!this.deletedReviews[reviewId]) return;
+        
+        // Clear timers
+        if (this.deleteTimers[reviewId]) {
+            clearTimeout(this.deleteTimers[reviewId]);
+            delete this.deleteTimers[reviewId];
+        }
+        
+        // Clear progress intervals
+        if (this.progressIntervals[reviewId]) {
+            clearInterval(this.progressIntervals[reviewId]);
+            delete this.progressIntervals[reviewId];
+        }
+        
+        // Get the deleted review info
+        const { review, index } = this.deletedReviews[reviewId];
+        
+        // Restore review at original position if possible
+        if (index <= this.reviewsData.length) {
+            this.reviewsData.splice(index, 0, review);
+        } else {
+            this.reviewsData.push(review);
+        }
+        
+        // Remove from deleted reviews
+        delete this.deletedReviews[reviewId];
+        
+        // Update total reviews count
+        this.userData.totalReviews = this.reviewsData.length;
+        
+        // Remove notification
+        this.removeNotification(reviewId);
+        
+        // Re-render
+        this.render();
+    }
+    
+    // Method to permanently delete a review
+    permanentlyDeleteReview(reviewId) {
+        // Clear progress interval if it exists
+        if (this.progressIntervals[reviewId]) {
+            clearInterval(this.progressIntervals[reviewId]);
+            delete this.progressIntervals[reviewId];
+        }
+        
+        // Clear from tracking objects
+        delete this.deletedReviews[reviewId];
+        delete this.deleteTimers[reviewId];
+    }
+    
+    // Method to remove a notification
+    removeNotification(reviewId) {
+        const notification = document.querySelector(`.notification[data-id="${reviewId}"]`);
+        if (notification) {
+            notification.classList.remove('fade-in');
+            notification.classList.add('fade-out');
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
         }
     }
 }
