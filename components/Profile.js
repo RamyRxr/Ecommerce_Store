@@ -6,7 +6,7 @@ export default class Profile {
         // Mock user data (in real app would be fetched from API)
         this.userData = {
             name: 'Alex Johnson',
-            image: '../assets/images/profile.jpg',
+            image: '../assets/images/general-image/RamyRxr.png',
             address: 'San Francisco, CA',
             memberSince: 'April 2023',
             email: 'alex.johnson@example.com',
@@ -21,7 +21,7 @@ export default class Profile {
             {
                 id: 1,
                 productName: 'Sony WH-1000XM4 Wireless Headphones',
-                productImage: '../assets/images/products/headphones.jpg',
+                productImage: '../assets/images/products-images/headphone-1.jpg',
                 rating: 5,
                 date: 'March 10, 2023',
                 reviewText: 'These headphones are amazing! The noise cancellation is top-notch, and the sound quality is incredible. Battery life is also excellent - I can use them for an entire workday without recharging. Highly recommended for anyone who works in a noisy environment or travels frequently.',
@@ -32,7 +32,7 @@ export default class Profile {
             {
                 id: 2,
                 productName: 'Samsung Galaxy S24 Ultra',
-                productImage: '../assets/images/products/galaxy.jpg',
+                productImage: '../assets/images/products-images/product-5.svg',
                 rating: 4,
                 date: 'February 22, 2023',
                 reviewText: 'Great phone with an excellent camera system. The S-Pen functionality is a nice bonus, but I do wish the battery life was a bit better. Still, it handles everything I throw at it with ease.',
@@ -43,7 +43,7 @@ export default class Profile {
             {
                 id: 3,
                 productName: 'Apple MacBook Pro M3',
-                productImage: '../assets/images/products/macbook.jpg',
+                productImage: '../assets/images/products-images/product-3.svg',
                 rating: 5,
                 date: 'January 15, 2023',
                 reviewText: 'The M3 MacBook Pro is incredibly fast and efficient. I can run multiple design applications simultaneously without any lag. The battery life is outstanding - I can work an entire day without plugging in. The display is also gorgeous with accurate colors. Definitely worth the investment for creative professionals.',
@@ -92,7 +92,6 @@ export default class Profile {
                         <div class="profile-sidebar">
                             <div class="user-info-card">
                                 <div class="user-avatar">
-                                    ${this.userData.verified ? '<div class="verified-badge"><i class="bx bxs-check-circle"></i></div>' : ''}
                                     <img src="${this.userData.image}" alt="${this.userData.name}">
                                 </div>
                                 
@@ -114,20 +113,24 @@ export default class Profile {
                                 
                                 <div class="user-stats">
                                     <div class="stat-item">
-                                        <div class="stat-label">Email</div>
+                                        <i class='bx bx-envelope'></i>
                                         <div class="stat-value">${this.userData.email}</div>
                                     </div>
                                     <div class="stat-item">
-                                        <div class="stat-label">Joined</div>
-                                        <div class="stat-value">${this.userData.joinDate}</div>
+                                        <i class='bx bx-calendar-check'></i>
+                                        <div class="stat-value">Joined on ${this.userData.joinDate}</div>
                                     </div>
                                     <div class="stat-item">
-                                        <div class="stat-label">Orders</div>
-                                        <div class="stat-value">${this.userData.ordersPlaced}</div>
+                                        <i class='bx bx-package'></i>
+                                        <div class="stat-value">${this.userData.ordersPlaced} orders</div>
                                     </div>
                                     <div class="stat-item">
-                                        <div class="stat-label">Reviews</div>
-                                        <div class="stat-value">${this.userData.totalReviews}</div>
+                                        <i class='bx bx-store'></i>
+                                        <div class="stat-value">${this.activityData.listedItems.count} listed items</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class='bx bx-star'></i>
+                                        <div class="stat-value">${this.userData.totalReviews} reviews</div>
                                     </div>
                                 </div>
                             </div>

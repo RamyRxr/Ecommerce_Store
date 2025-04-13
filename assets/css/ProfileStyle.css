@@ -83,31 +83,15 @@
     overflow: hidden;
     margin-bottom: 15px;
     position: relative;
-    border: 3px solid #fff;
+    border: 3px solid var(--dark-bg);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1;
 }
 
 .user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-.verified-badge {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    width: 24px;
-    height: 24px;
-    background-color: var(--accent);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 14px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    border: 2px solid white;
 }
 
 .user-name {
@@ -135,51 +119,77 @@
 
 /* Edit Profile Button */
 .edit-profile-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    border-radius: 6px;
-    font-size: 14px;
+    background: var(--accent, #1e88e5);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 15px;
     font-weight: 500;
-    text-decoration: none;
     cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    margin-bottom: 25px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(30, 136, 229, 0.2);
+    text-decoration: none;
 }
 
 .edit-profile-btn:hover {
-    background-color: rgba(var(--accent-rgb), 0.05);
+    background: var(--accent-dark, #1565c0);
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(var(--accent-rgb), 0.1);
+    box-shadow: 0 6px 12px rgba(30, 136, 229, 0.3);
 }
 
-/* User Stats */
+
+
+/* Updated User Stats */
 .user-stats {
     width: 100%;
     border-top: 1px solid var(--border-color);
-    padding-top: 20px;
+    padding: 15px;
+    margin-top: 20px;
+    background-color: #f9fafb;
+    border-radius: 8px;
 }
 
 .stat-item {
     display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    border-left: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
 }
 
-.stat-label {
-    color: var(--text-secondary);
-    font-size: 14px;
+.stat-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.stat-item i {
+    margin-right: 10px;
+    font-size: 18px;
+    color: var(--accent, #1e88e5);
+    width: 22px;
+    text-align: center;
 }
 
 .stat-value {
     font-weight: 500;
     font-size: 14px;
+}
+
+/* Remove specific styling for individual borders */
+.stat-item:nth-child(1),
+.stat-item:nth-child(2),
+.stat-item:nth-child(3),
+.stat-item:nth-child(4) {
+    border-left: none;
+}
+
+body.dark-mode .user-stats {
+    background-color: rgba(255, 255, 255, 0.03);
 }
 
 /* Main Content Area */
@@ -553,22 +563,99 @@
 }
 
 /* Dark Mode Support */
+
+/* Dark Mode Support - Complete Updates */
 body.dark-mode .profile-page-container {
     background: var(--dark-bg);
     box-shadow: var(--dark-shadow);
 }
 
+body.dark-mode .profile-header {
+    border-bottom: 2px solid var(--light-bg);
+}
+
 body.dark-mode .profile-header h1 {
-    color: var(--light-text);
+    color: var(--light-bg);
+}
+
+body.dark-mode .profile-sidebar {
+    border-right-color: rgba(255, 255, 255, 0.1);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 body.dark-mode .user-name {
-    color: var(--light-text);
+    color: var(--light-bg);
+}
+
+body.dark-mode .user-location {
+    color: var(--light-bg);
+    opacity: 0.9;
+}
+
+body.dark-mode .user-member-since {
+    color: var(--light-bg);
+    opacity: 0.9;
 }
 
 body.dark-mode .user-avatar {
-    border-color: var(--dark-bg);
+    border: 3px solid var(--light-bg);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .user-stats {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .stat-item {
+    color: var(--light-bg);
+}
+
+body.dark-mode .stat-value {
+    color: var(--light-bg);
+}
+
+body.dark-mode .stat-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .edit-profile-btn {
+    background: linear-gradient(135deg, var(--accent-dark, #3182ce), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
+}
+
+body.dark-mode .edit-profile-btn:hover {
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
+}
+
+body.dark-mode .tab-btn {
+    color: var(--light-bg);
+    opacity: 0.7;
+}
+
+body.dark-mode .tab-btn.active {
+    opacity: 1;
+}
+
+body.dark-mode .tab-btn:hover:not(.active) {
+    color: var(--light-bg);
+    opacity: 0.9;
+}
+
+body.dark-mode .empty-tab-message i {
+    color: var(--light-bg);
+    opacity: 0.6;
+}
+
+body.dark-mode .empty-tab-message h3 {
+    color: var(--light-bg);
+}
+
+body.dark-mode .empty-tab-message p {
+    color: var(--light-bg);
+    opacity: 0.8;
 }
 
 body.dark-mode .review-item,
@@ -577,18 +664,66 @@ body.dark-mode .activity-item {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-body.dark-mode .review-item:hover,
-body.dark-mode .activity-item:hover {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+body.dark-mode .review-item-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .product-name {
+    color: var(--light-bg);
+}
+
+body.dark-mode .review-date {
+    color: var(--light-bg);
+    opacity: 0.7;
+}
+
+body.dark-mode .review-content {
+    color: var(--light-bg);
+    opacity: 0.9;
+}
+
+body.dark-mode .review-actions {
+    border-top-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+body.dark-mode .helpful {
+    color: var(--light-bg);
+    opacity: 0.7;
+}
+
+body.dark-mode .action-buttons button {
+    color: var(--light-bg);
+    opacity: 0.7;
 }
 
 body.dark-mode .action-buttons button:hover,
 body.dark-mode .view-all-btn:hover {
     background-color: rgba(255, 255, 255, 0.05);
+    opacity: 1;
 }
 
-body.dark-mode .empty-tab-message h3 {
-    color: var(--light-text);
+body.dark-mode .activity-title {
+    color: var(--light-bg);
+}
+
+body.dark-mode .activity-count {
+    color: var(--light-bg);
+    opacity: 0.8;
+}
+
+body.dark-mode .view-all-btn {
+    color: var(--light-bg);
+    opacity: 0.7;
+}
+
+body.dark-mode .product-image {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .review-item:hover,
+body.dark-mode .activity-item:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-mode #loading-spinner {
