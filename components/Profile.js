@@ -795,3 +795,46 @@ export default class Profile {
         }
     }
 }
+
+// Create three sample reviews with different product types
+const sampleReviews = [
+  {
+    id: 1,
+    productName: 'Sony WH-1000XM5 Wireless Headphones',
+    productImage: '../assets/images/products-images/headphone-1.jpg',
+    rating: 5,
+    date: 'April 2, 2025',
+    reviewText: 'These are the best headphones I\'ve ever owned! The noise cancellation is incredible - I can\'t hear anything around me when I\'m working. The sound quality is crisp and balanced with deep bass that doesn\'t overwhelm. Battery life lasts me almost a full work week. The comfort level is also impressive, I can wear them for hours without any discomfort. Highly recommend for anyone working in noisy environments.',
+    helpful: 47,
+    verified: true,
+    productId: 'product1'
+  },
+  {
+    id: 2,
+    productName: 'Apple MacBook Air M3',
+    productImage: '../assets/images/products-images/product-3.svg',
+    rating: 4,
+    date: 'March 15, 2025',
+    reviewText: 'The new M3 MacBook Air is lightning fast and the battery life is amazing. I can easily get through a full day of work without needing to charge it. The display is gorgeous with vibrant colors and excellent contrast. Only giving 4 stars because I wish it had more ports - still need dongles for most connections which is annoying. Otherwise, it\'s a fantastic laptop for both work and entertainment.',
+    helpful: 28,
+    verified: true,
+    productId: 'product3'
+  },
+  {
+    id: 3,
+    productName: 'Samsung S25 Ultra Smartphone',
+    productImage: '../assets/images/products-images/product-5.svg',
+    rating: 5,
+    date: 'February 10, 2025',
+    reviewText: 'This phone exceeds all my expectations! The camera system is mind-blowing - the photos I\'ve taken look professional. The 200MP main sensor captures incredible detail, and the 10x optical zoom is fantastic for travel photography. The display is bright enough to use even in direct sunlight with excellent color accuracy. Battery easily lasts all day even with heavy use. The S-Pen is a nice bonus feature that I\'ve found myself using more than expected. Worth every penny if you\'re looking for the best Android experience possible.',
+    helpful: 63,
+    verified: true,
+    productId: 'product5'
+  }
+];
+
+// Save to localStorage
+localStorage.setItem('userReviews', JSON.stringify(sampleReviews));
+
+// Confirm the save was successful
+console.log('Sample reviews added to localStorage! Refresh the page to see them.');
