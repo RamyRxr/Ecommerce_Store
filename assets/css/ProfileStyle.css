@@ -1,4 +1,3 @@
-/* Base Styling */
 :root {
     --profile-card-bg: #ffffff;
     --profile-icon-color: #777;
@@ -13,7 +12,6 @@
     --profile-border-radius: 8px;
 }
 
-/* Profile Component Layout */
 .profile-component {
     position: fixed;
     left: calc(var(--sidebar-collapsed-width) + 10px);
@@ -61,7 +59,6 @@
     height: calc(100% - 60px);
 }
 
-/* Sidebar with User Info */
 .profile-sidebar {
     width: 300px;
     padding: 20px;
@@ -76,7 +73,6 @@
     text-align: center;
 }
 
-/* User Avatar */
 .user-avatar {
     width: 120px;
     height: 120px;
@@ -118,7 +114,6 @@
     margin-bottom: 20px;
 }
 
-/* Edit Profile Button */
 .edit-profile-btn {
     background: var(--accent, #1e88e5);
     color: white;
@@ -143,8 +138,6 @@
 }
 
 
-
-/* Updated User Stats */
 .user-stats {
     width: 100%;
     border-top: 1px solid var(--border-color);
@@ -181,19 +174,6 @@
     font-size: 14px;
 }
 
-/* Remove specific styling for individual borders */
-.stat-item:nth-child(1),
-.stat-item:nth-child(2),
-.stat-item:nth-child(3),
-.stat-item:nth-child(4) {
-    border-left: none;
-}
-
-body.dark-mode .user-stats {
-    background-color: rgba(255, 255, 255, 0.03);
-}
-
-/* Main Content Area */
 .profile-main {
     flex: 1;
     display: flex;
@@ -201,7 +181,6 @@ body.dark-mode .user-stats {
     overflow: hidden;
 }
 
-/* Tabs */
 .profile-tabs {
     display: flex;
     border-bottom: 1px solid var(--border-color);
@@ -243,12 +222,11 @@ body.dark-mode .user-stats {
     font-weight: 600;
 }
 
-.tab-btn.active::after ,
+.tab-btn.active::after,
 .tab-btn:hover:not(.active)::after {
     background-color: var(--accent);
 }
 
-/* Tab Content */
 .tab-content {
     flex: 1;
     overflow-y: auto;
@@ -256,40 +234,12 @@ body.dark-mode .user-stats {
     scrollbar-width: none;
 }
 
-/* Empty Tab Message */
-.empty-tab-message {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    height: 100%;
-}
-
-.empty-tab-message i {
-    font-size: 50px;
-    color: var(--text-secondary);
-    margin-bottom: 15px;
-}
-
-.empty-tab-message h3 {
-    margin: 0 0 10px;
-    color: var(--dark-bg);
-}
-
-.empty-tab-message p {
-    max-width: 300px;
-    color: var(--text-secondary);
-}
-
-/* Reviews Tab */
 .reviews-container {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Review Item Improved Styling */
 .review-item {
     background-color: #fff;
     border-radius: 12px;
@@ -304,6 +254,10 @@ body.dark-mode .user-stats {
 .review-item:hover {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
     transform: translateY(-3px);
+}
+
+.review-item.expanded {
+    transform: scale(1.01);
 }
 
 .review-item-header {
@@ -338,7 +292,6 @@ body.dark-mode .user-stats {
     left: 0;
 }
 
-
 .review-details {
     flex: 1;
 }
@@ -370,6 +323,7 @@ body.dark-mode .user-stats {
 .review-date {
     font-size: 13px;
     color: var(--text-secondary);
+    margin-top: 4px;
 }
 
 .review-text {
@@ -393,11 +347,6 @@ body.dark-mode .user-stats {
     max-height: none;
 }
 
-.review-item.expanded {
-    transform: scale(1.01);
-}
-
-/* Review Actions */
 .review-actions {
     display: flex;
     justify-content: space-between;
@@ -472,84 +421,6 @@ body.dark-mode .user-stats {
     color: #e53935;
 }
 
-/* Dark mode improvements for reviews */
-body.dark-mode .review-item {
-    background: #111827;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-body.dark-mode .review-item:hover {
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-body.dark-mode .review-item-header {
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-}
-
-body.dark-mode .product-image {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .product-name {
-    color: #fff;
-}
-
-/* Keep star colors consistent in dark mode */
-body.dark-mode .stars i {
-    color: #ffc107;
-}
-
-body.dark-mode .review-date {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-body.dark-mode .review-content {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-body.dark-mode .review-actions {
-    border-top-color: rgba(255, 255, 255, 0.08);
-    background-color: rgba(255, 255, 255, 0.03);
-}
-
-body.dark-mode .helpful {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-body.dark-mode .helpful i {
-    color: var(--accent);
-}
-
-/* Keep button styles consistent in dark mode */
-body.dark-mode .action-buttons button {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-body.dark-mode .action-buttons button:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-}
-
-body.dark-mode .view-product-btn:hover,
-body.dark-mode .edit-review-btn:hover {
-    color: var(--accent);
-}
-
-body.dark-mode .view-product-btn:hover i,
-body.dark-mode .edit-review-btn:hover i {
-    color: var(--accent);
-}
-
-body.dark-mode .delete-review-btn:hover {
-    color: #f44336;
-}
-
-body.dark-mode .delete-review-btn:hover i {
-    color: #f44336;
-}
-
-/* Activity Tab */
 .activity-container {
     display: flex;
     flex-direction: column;
@@ -570,7 +441,6 @@ body.dark-mode .delete-review-btn:hover i {
     color: inherit;
 }
 
-
 .activity-item:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
@@ -590,7 +460,6 @@ body.dark-mode .delete-review-btn:hover i {
     transform: translateX(5px);
     color: var(--accent);
 }
-
 
 .activity-icon {
     width: 50px;
@@ -622,7 +491,7 @@ body.dark-mode .delete-review-btn:hover i {
 
 .activity-info {
     flex: 1;
-    padding-right: 30px; 
+    padding-right: 30px;
 }
 
 .activity-title {
@@ -637,263 +506,113 @@ body.dark-mode .delete-review-btn:hover i {
 }
 
 .view-all-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.view-all-btn:hover {
-    background-color: rgba(0, 0, 0, 0.03);
-    color: var(--accent);
-}
-
-.view-all-btn {
     display: none;
 }
 
-.view-all-btn i {
-    font-size: 20px;
+.empty-state {
+    grid-column: 1 / -1;
+    padding: 60px 40px;
+    text-align: center;
+    background: var(--light-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin: 30px auto;
+    max-width: 500px;
+    animation: fadeIn 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Dark Mode Support - Complete Updates */
-body.dark-mode .profile-page-container {
-    background: var(--dark-bg);
-    box-shadow: var(--dark-shadow);
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #f5f7fa, #e2e5ea);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-body.dark-mode .profile-header {
-    border-bottom: 2px solid var(--light-bg);
+.empty-state-icon i {
+    font-size: 40px;
+    color: var(--accent, #1e88e5);
 }
 
-body.dark-mode .profile-header h1 {
-    color: var(--light-bg);
+.empty-state-title {
+    margin: 0 0 15px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #4a5568;
 }
 
-body.dark-mode .profile-sidebar {
-    border-right-color: rgba(255, 255, 255, 0.1);
-    border-bottom-color: rgba(255, 255, 255, 0.1);
+.empty-state-message {
+    margin: 0 0 25px 0;
+    color: #718096;
+    font-size: 16px;
+    line-height: 1.5;
+    max-width: 320px;
 }
 
-body.dark-mode .user-name {
-    color: var(--light-bg);
+.empty-state-action {
+    background: var(--accent, #1e88e5);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(30, 136, 229, 0.2);
+    text-decoration: none;
 }
 
-body.dark-mode .user-location {
-    color: var(--light-bg);
-    opacity: 0.9;
+.empty-state-action:hover {
+    background: var(--accent-dark, #1565c0);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(30, 136, 229, 0.3);
 }
 
-body.dark-mode .user-member-since {
-    color: var(--light-bg);
-    opacity: 0.9;
+.empty-state-action:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 4px rgba(30, 136, 229, 0.2);
 }
 
-body.dark-mode .user-avatar {
-    border: 3px solid var(--light-bg);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+.empty-state-action i {
+    font-size: 18px;
 }
 
-body.dark-mode .user-stats {
-    background: #080f26;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    border: 1px solid #1a2d5a;
+.empty-tab-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
 }
 
-body.dark-mode .stat-item {
-    color: var(--light-bg);
+.empty-tab-message i {
+    font-size: 50px;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
 }
 
-body.dark-mode .stat-value {
-    color: var(--light-bg);
+.empty-tab-message h3 {
+    margin: 0 0 10px;
+    color: var(--dark-bg);
 }
 
-body.dark-mode .stat-item:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+.empty-tab-message p {
+    max-width: 300px;
+    color: var(--text-secondary);
 }
 
-body.dark-mode .edit-profile-btn {
-    background: linear-gradient(135deg, var(--accent-dark, #3182ce), #4299e1);
-    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
-}
-
-body.dark-mode .edit-profile-btn:hover {
-    background: linear-gradient(135deg, #4299e1, #63b3ed);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
-}
-
-body.dark-mode .tab-btn {
-    color: var(--light-bg);
-}
-
-body.dark-mode .tab-btn.active {
-    color: var(--accent);
-}
-
-body.dark-mode .tab-btn:hover:not(.active) {
-    color: var(--accent);
-}
-
-body.dark-mode .empty-tab-message i {
-    color: var(--light-bg);
-    opacity: 0.6;
-}
-
-body.dark-mode .empty-tab-message h3 {
-    color: var(--light-bg);
-}
-
-body.dark-mode .empty-tab-message p {
-    color: var(--light-bg);
-    opacity: 0.8;
-}
-
-body.dark-mode .review-item,
-body.dark-mode .activity-item {
-    background: #080f26;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    border: 1px solid #1a2d5a;
-}
-
-body.dark-mode .review-item-header {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .product-name {
-    color: var(--light-bg);
-}
-
-body.dark-mode .review-date {
-    color: var(--light-bg);
-    opacity: 0.7;
-}
-
-body.dark-mode .review-content {
-    color: var(--light-bg);
-    opacity: 0.9;
-}
-
-body.dark-mode .review-actions {
-    border-top-color: rgba(255, 255, 255, 0.1);
-    background-color: rgba(255, 255, 255, 0.02);
-}
-
-body.dark-mode .helpful {
-    color: var(--light-bg);
-    opacity: 0.7;
-}
-
-body.dark-mode .action-buttons button {
-    color: var(--light-bg);
-    opacity: 0.7;
-}
-
-body.dark-mode .action-buttons button:hover,
-body.dark-mode .view-all-btn:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    opacity: 1;
-}
-
-body.dark-mode .activity-title {
-    color: var(--light-bg);
-}
-
-body.dark-mode .activity-count {
-    color: var(--light-bg);
-    opacity: 0.8;
-}
-
-body.dark-mode .view-all-btn {
-    color: var(--light-bg);
-    opacity: 0.7;
-}
-
-body.dark-mode .product-image {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-body.dark-mode .activity-item {
-    background-color: #111827;
-    color: var(--light-bg);
-}
-
-body.dark-mode .activity-item::after {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-body.dark-mode .activity-item:hover::after {
-    color: var(--accent);
-}
-
-body.dark-mode .review-item:hover,
-body.dark-mode .activity-item:hover {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* Responsive Design */
-@media (max-width: 992px) {
-    .profile-content {
-        flex-direction: column;
-    }
-
-    .profile-sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        padding: 15px 20px;
-    }
-
-    .user-stats {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .stat-item {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .stat-label {
-        margin-bottom: 4px;
-    }
-}
-
-@media (max-width: 768px) {
-    .profile-component {
-        left: 10px;
-        right: 10px;
-    }
-
-    .profile-page-container {
-        margin: 10px;
-    }
-
-    .review-actions {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    .action-buttons {
-        flex-wrap: wrap;
-    }
-
-    .user-avatar {
-        width: 90px;
-        height: 90px;
-    }
-}
-
-/* Edit Review Modal */
 .edit-modal-backdrop {
     position: fixed;
     top: 0;
@@ -982,6 +701,12 @@ body.dark-mode .activity-item:hover {
     margin: 0 0 5px;
 }
 
+.edit-review-date {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
 .edit-rating {
     margin-top: 20px;
 }
@@ -989,10 +714,6 @@ body.dark-mode .activity-item:hover {
 .edit-rating h4 {
     color: var(--dark-bg);
     padding: 10px;
-}
-
-body.dark-mode .edit-rating h4 {
-    color: var(--light-bg);
 }
 
 .star-rating {
@@ -1098,29 +819,6 @@ body.dark-mode .edit-rating h4 {
     box-shadow: 0 4px 8px rgba(var(--accent-rgb), 0.4);
 }
 
-body.dark-mode .save-btn {
-    background: linear-gradient(135deg, var(--accent-dark), #4299e1);
-    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
-}
-
-body.dark-mode .save-btn:hover {
-    background: linear-gradient(135deg, #4299e1, #63b3ed);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
-}
-
-body.dark-mode .discard-btn {
-    color: rgba(255, 255, 255, 0.7);
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-body.dark-mode .discard-btn:hover {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.25);
-    color: var(--light-bg);
-}
-
-/* Review Delete Notification */
 .notification-container {
     position: fixed;
     top: 20px;
@@ -1153,7 +851,6 @@ body.dark-mode .discard-btn:hover {
         opacity: 0;
         transform: translateX(30px);
     }
-
     to {
         opacity: 1;
         transform: translateX(0);
@@ -1165,7 +862,6 @@ body.dark-mode .discard-btn:hover {
         opacity: 1;
         transform: translateX(0);
     }
-
     to {
         opacity: 0;
         transform: translateX(30px);
@@ -1239,155 +935,184 @@ body.dark-mode .discard-btn:hover {
     left: 0;
 }
 
-/* Dark mode for edit modal */
-body.dark-mode .edit-review-modal {
+body.dark-mode .profile-page-container {
+    background: var(--dark-bg);
+    box-shadow: var(--dark-shadow);
+}
+
+body.dark-mode .profile-header {
+    border-bottom: 2px solid var(--light-bg);
+}
+
+body.dark-mode .profile-header h1 {
+    color: var(--light-bg);
+}
+
+body.dark-mode .profile-sidebar {
+    border-right-color: rgba(255, 255, 255, 0.1);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .user-name {
+    color: var(--light-bg);
+}
+
+body.dark-mode .user-location,
+body.dark-mode .user-member-since {
+    color: var(--light-bg);
+    opacity: 0.9;
+}
+
+body.dark-mode .user-avatar {
+    border: 3px solid var(--light-bg);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .user-stats {
     background: #080f26;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     border: 1px solid #1a2d5a;
 }
 
-body.dark-mode .modal-header {
+body.dark-mode .stat-item {
+    color: var(--light-bg);
+}
+
+body.dark-mode .stat-value {
+    color: var(--light-bg);
+}
+
+body.dark-mode .stat-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .edit-profile-btn {
+    background: linear-gradient(135deg, var(--accent-dark, #3182ce), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
+}
+
+body.dark-mode .edit-profile-btn:hover {
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
+}
+
+body.dark-mode .tab-btn {
+    color: var(--light-bg);
+}
+
+body.dark-mode .tab-btn.active {
+    color: var(--accent);
+}
+
+body.dark-mode .tab-btn:hover:not(.active) {
+    color: var(--accent);
+}
+
+body.dark-mode .review-item {
+    background: #080f26;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #1a2d5a;
+    color: var(--light-bg);
+}
+
+body.dark-mode .review-item:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .review-item-header {
     border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
-body.dark-mode .modal-header h3 {
-    color: var(--light-bg);
-}
-
-body.dark-mode .close-modal-btn {
-    color: var(--light-bg);
-    opacity: 0.7;
-}
-
-body.dark-mode .close-modal-btn:hover {
-    opacity: 1;
-}
-
-body.dark-mode .edit-product-name {
-    color: var(--light-bg);
-}
-
-body.dark-mode .edit-rating h4 {
-    color: var(--light-bg);
-}
-
-body.dark-mode .edit-review-text textarea {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: var(--light-bg);
-}
-
-body.dark-mode .edit-review-text h4 {
-    color: var(--light-bg);
-}
-
-body.dark-mode .discard-btn {
-    color: var(--light-bg);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-body.dark-mode .discard-btn:hover {
+body.dark-mode .product-image {
+    border-color: rgba(255, 255, 255, 0.1);
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Dark mode for notifications */
-body.dark-mode .notification {
-    background: #1a202c;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+body.dark-mode .product-name {
+    color: #fff;
 }
 
-body.dark-mode .notification-text p {
-    color: #e2e8f0;
+body.dark-mode .stars i {
+    color: #ffc107;
 }
 
-body.dark-mode .notification-time {
-    color: #aaa;
+body.dark-mode .review-date {
+    color: rgba(255, 255, 255, 0.6);
 }
 
-body.dark-mode .close-notification-btn {
-    color: #aaa;
+body.dark-mode .review-content {
+    color: rgba(255, 255, 255, 0.9);
 }
 
-/* Empty State Styling - Using the same style as SavedItemsStyle.css */
-.empty-state {
-    grid-column: 1 / -1;
-    padding: 60px 40px;
-    text-align: center;
-    background: var(--light-bg);
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    margin: 30px auto;
-    max-width: 500px;
-    animation: fadeIn 0.5s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+body.dark-mode .review-actions {
+    border-top-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.03);
 }
 
-.empty-state-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 20px;
-    background: linear-gradient(135deg, #f5f7fa, #e2e5ea);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+body.dark-mode .helpful {
+    color: rgba(255, 255, 255, 0.7);
 }
 
-.empty-state-icon i {
-    font-size: 40px;
-    color: var(--accent, #1e88e5);
+body.dark-mode .helpful i {
+    color: var(--accent);
 }
 
-.empty-state-title {
-    margin: 0 0 15px 0;
-    font-size: 24px;
-    font-weight: 700;
-    color: #4a5568;
+body.dark-mode .action-buttons button {
+    color: rgba(255, 255, 255, 0.7);
 }
 
-.empty-state-message {
-    margin: 0 0 25px 0;
-    color: #718096;
-    font-size: 16px;
-    line-height: 1.5;
-    max-width: 320px;
+body.dark-mode .action-buttons button:hover {
+    background-color: rgba(255, 255, 255, 0.08);
 }
 
-.empty-state-action {
-    background: var(--accent, #1e88e5);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    box-shadow: 0 4px 6px rgba(30, 136, 229, 0.2);
-    text-decoration: none;
+body.dark-mode .view-product-btn:hover,
+body.dark-mode .edit-review-btn:hover {
+    color: var(--accent);
 }
 
-.empty-state-action:hover {
-    background: var(--accent-dark, #1565c0);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(30, 136, 229, 0.3);
+body.dark-mode .view-product-btn:hover i,
+body.dark-mode .edit-review-btn:hover i {
+    color: var(--accent);
 }
 
-.empty-state-action:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 4px rgba(30, 136, 229, 0.2);
+body.dark-mode .delete-review-btn:hover {
+    color: #f44336;
 }
 
-.empty-state-action i {
-    font-size: 18px;
+body.dark-mode .delete-review-btn:hover i {
+    color: #f44336;
 }
 
-/* Dark mode empty state */
+body.dark-mode .activity-item {
+    background: #080f26;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #1a2d5a;
+    color: var(--light-bg);
+}
+
+body.dark-mode .activity-item::after {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .activity-item:hover::after {
+    color: var(--accent);
+}
+
+body.dark-mode .activity-title {
+    color: var(--light-bg);
+}
+
+body.dark-mode .review-item:hover,
+body.dark-mode .activity-item:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .activity-count {
+    color: var(--light-bg);
+    opacity: 0.8;
+}
+
 body.dark-mode .empty-state {
     background: #080f26;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
@@ -1420,4 +1145,152 @@ body.dark-mode .empty-state-action:hover {
     background: linear-gradient(135deg, #4299e1, #63b3ed);
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
+}
+
+body.dark-mode .empty-tab-message i {
+    color: var(--light-bg);
+    opacity: 0.6;
+}
+
+body.dark-mode .empty-tab-message h3 {
+    color: var(--light-bg);
+}
+
+body.dark-mode .empty-tab-message p {
+    color: var(--light-bg);
+    opacity: 0.8;
+}
+
+body.dark-mode .edit-review-modal {
+    background: #080f26;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid #1a2d5a;
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .modal-header h3 {
+    color: var(--light-bg);
+}
+
+body.dark-mode .close-modal-btn {
+    color: var(--light-bg);
+    opacity: 0.7;
+}
+
+body.dark-mode .close-modal-btn:hover {
+    opacity: 1;
+}
+
+body.dark-mode .edit-product-name {
+    color: var(--light-bg);
+}
+
+body.dark-mode .edit-review-date {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+body.dark-mode .edit-rating h4,
+body.dark-mode .edit-review-text h4 {
+    color: var(--light-bg);
+}
+
+body.dark-mode .edit-review-text textarea {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--light-bg);
+}
+
+body.dark-mode .discard-btn {
+    color: var(--light-bg);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .discard-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .save-btn {
+    background: linear-gradient(135deg, var(--accent-dark), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
+}
+
+body.dark-mode .save-btn:hover {
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
+}
+
+body.dark-mode .notification {
+    background: #1a202c;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .notification-text p {
+    color: #e2e8f0;
+}
+
+body.dark-mode .notification-time {
+    color: #aaa;
+}
+
+body.dark-mode .close-notification-btn {
+    color: #aaa;
+}
+
+@media (max-width: 992px) {
+    .profile-content {
+        flex-direction: column;
+    }
+
+    .profile-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px 20px;
+    }
+
+    .user-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .stat-item {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-label {
+        margin-bottom: 4px;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-component {
+        left: 10px;
+        right: 10px;
+    }
+
+    .profile-page-container {
+        margin: 10px;
+    }
+
+    .review-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+
+    .user-avatar {
+        width: 90px;
+        height: 90px;
+    }
 }

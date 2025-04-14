@@ -2,7 +2,7 @@ export default class Profile {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.activeTab = 'reviews'; // Default tab
-        
+
         // User data (unchanged)
         this.userData = {
             name: 'Alex Johnson',
@@ -86,7 +86,7 @@ export default class Profile {
         this.deletedReviews = {};
         this.deleteTimers = {};
         this.progressIntervals = {};
-        
+
         this.createNotificationContainer(); // Create global notification container
         this.render();
         this.setupEventListeners();
@@ -97,7 +97,7 @@ export default class Profile {
         // Remove any existing notification container
         const existingContainer = document.querySelector('.global-notification-container');
         if (existingContainer) return;
-        
+
         // Create a new container appended to body
         const container = document.createElement('div');
         container.className = 'notification-container global-notification-container';
@@ -304,7 +304,7 @@ export default class Profile {
             </div>
         `;
     }
-    
+
     renderEditModal() {
         return `
             <div class="edit-modal-backdrop">
@@ -322,6 +322,7 @@ export default class Profile {
                         </div>
                         <div>
                             <h4 class="edit-product-name" id="modal-product-name"></h4>
+                            <div class="edit-review-date" id="modal-review-date"></div>
                         </div>
                     </div>
                     
@@ -401,28 +402,28 @@ export default class Profile {
                 this.deleteReview(reviewId);
                 return;
             }
-            
+
             // Close edit modal
             const closeModalBtn = e.target.closest('.close-modal-btn');
             if (closeModalBtn) {
                 this.closeEditModal();
                 return;
             }
-            
+
             // Discard changes
             const discardBtn = e.target.closest('.discard-btn');
             if (discardBtn) {
                 this.closeEditModal();
                 return;
             }
-            
+
             // Save review changes
             const saveBtn = e.target.closest('.save-btn');
             if (saveBtn) {
                 this.saveReviewChanges();
                 return;
             }
-            
+
             // Star rating buttons
             const starBtn = e.target.closest('.star-btn');
             if (starBtn) {
@@ -430,7 +431,7 @@ export default class Profile {
                 this.updateStarRating(rating);
                 return;
             }
-            
+
             // Undo button in notification
             const undoBtn = e.target.closest('.undo-btn');
             if (undoBtn) {
@@ -438,13 +439,13 @@ export default class Profile {
                 this.undoDelete(reviewId);
                 return;
             }
-            
+
             // Close notification button
             const closeNotificationBtn = e.target.closest('.close-notification-btn');
             if (closeNotificationBtn) {
                 const notification = closeNotificationBtn.closest('.notification');
                 const reviewId = parseInt(notification.dataset.id);
-                
+
                 this.removeNotification(reviewId);
                 this.permanentlyDeleteReview(reviewId);
                 return;
@@ -460,7 +461,7 @@ export default class Profile {
                 }
             });
         }
-        
+
         // Listen for storage changes to update counts
         window.addEventListener('storage', (event) => {
             if (['savedItems', 'orderHistory', 'activeListings', 'soldItems'].includes(event.key)) {
@@ -468,66 +469,67 @@ export default class Profile {
                 this.updateActivityCountsInUI();
             }
         });
-        
+
         // Listen for custom events from other components
         document.addEventListener('savedItemsUpdated', () => {
             this.loadActivityCounts();
             this.updateActivityCountsInUI();
         });
-        
+
         document.addEventListener('ordersUpdated', () => {
             this.loadActivityCounts();
             this.updateActivityCountsInUI();
         });
-        
+
         document.addEventListener('listingsUpdated', () => {
             this.loadActivityCounts();
             this.updateActivityCountsInUI();
         });
     }
-    
+
     // Method to open the edit modal
     openEditModal(reviewId) {
         const review = this.reviewsData.find(r => r.id === reviewId);
         if (!review) return;
-        
+
         // Set current review ID being edited
         this.currentEditReviewId = reviewId;
-        
+
         // Get modal elements
         const modal = document.querySelector('.edit-modal-backdrop');
         const productNameEl = document.getElementById('modal-product-name');
+        const reviewDateEl = document.getElementById('modal-review-date');
         const productImageEl = document.getElementById('modal-product-image');
         const textareaEl = document.getElementById('edit-review-textarea');
-        const starBtns = document.querySelectorAll('.star-btn');
-        
+
         // Set initial values
         productNameEl.textContent = review.productName;
+        reviewDateEl.textContent = `Reviewed on ${review.date}`;  // Add the date here
         productImageEl.src = review.productImage;
         productImageEl.alt = review.productName;
         textareaEl.value = review.reviewText;
-        
+
         // Set star rating
         this.updateStarRating(review.rating);
-        
+
         // Show modal with animation
         modal.classList.add('active');
     }
-    
+
     // Method to close the edit modal
     closeEditModal() {
         const modal = document.querySelector('.edit-modal-backdrop');
         modal.classList.remove('active');
         this.currentEditReviewId = null;
     }
-    
+
     // Method to update star rating in the modal
     updateStarRating(rating) {
         const starBtns = document.querySelectorAll('.star-btn');
-        
+
         starBtns.forEach((btn, index) => {
             const btnRating = parseInt(btn.dataset.rating);
-            
+
             if (btnRating <= rating) {
                 btn.classList.add('active');
                 btn.querySelector('i').className = 'bx bxs-star';
@@ -536,56 +538,56 @@ export default class Profile {
                 btn.querySelector('i').className = 'bx bx-star';
             }
         });
-        
+
         // Store the current rating
         this.currentEditRating = rating;
     }
-    
+
     // Method to save review changes
     saveReviewChanges() {
         if (!this.currentEditReviewId) return;
-        
+
         const textareaEl = document.getElementById('edit-review-textarea');
         const newReviewText = textareaEl.value.trim();
         const newRating = this.currentEditRating;
-        
+
         // Validate
         if (!newReviewText) {
             alert('Please enter a review text');
             return;
         }
-        
+
         // Find and update the review
         const reviewIndex = this.reviewsData.findIndex(r => r.id === this.currentEditReviewId);
         if (reviewIndex !== -1) {
             this.reviewsData[reviewIndex].reviewText = newReviewText;
             this.reviewsData[reviewIndex].rating = newRating;
-            
+
             // Update date to today
             const today = new Date();
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             this.reviewsData[reviewIndex].date = today.toLocaleDateString('en-US', options);
-            
+
             // Save to localStorage
             this.saveReviewsToStorage();
-            
+
             // Close modal and re-render
             this.closeEditModal();
             this.render();
-            
+
             // Show success notification
             this.showEditSuccessNotification(this.reviewsData[reviewIndex].productName);
         }
     }
-    
+
     // Method to show edit success notification
     showEditSuccessNotification(productName) {
         const notificationContainer = document.querySelector('.global-notification-container');
         if (!notificationContainer) return;
-        
+
         const notification = document.createElement('div');
         notification.className = 'notification fade-in';
-        
+
         notification.innerHTML = `
             <div class="notification-content">
                 <i class='bx bx-check-circle notification-icon'></i>
@@ -597,14 +599,14 @@ export default class Profile {
                 </button>
             </div>
         `;
-        
+
         notificationContainer.appendChild(notification);
-        
+
         // Remove after 3 seconds
         setTimeout(() => {
             notification.classList.remove('fade-in');
             notification.classList.add('fade-out');
-            
+
             setTimeout(() => {
                 // Check if notification still exists before removing
                 if (notification && notification.parentElement) {
@@ -613,55 +615,55 @@ export default class Profile {
             }, 300);
         }, 3000);
     }
-    
+
     // Method to delete a review with undo functionality
     deleteReview(reviewId) {
         // Find the review in the array
         const reviewIndex = this.reviewsData.findIndex(r => r.id === reviewId);
         if (reviewIndex === -1) return;
-        
+
         // Store the review for potential undo
         this.deletedReviews[reviewId] = {
             review: this.reviewsData[reviewIndex],
             index: reviewIndex,
             timestamp: new Date().getTime()
         };
-        
+
         // Remove from array
         this.reviewsData.splice(reviewIndex, 1);
-        
+
         // Update total reviews count
         this.userData.totalReviews = this.reviewsData.length;
-        
+
         // Re-render
         this.render();
-        
+
         // Show notification
         this.showDeleteNotification(reviewId);
-        
+
         // Set timer for permanent deletion - 5 seconds
         if (this.deleteTimers[reviewId]) {
             clearTimeout(this.deleteTimers[reviewId]);
         }
-        
+
         this.deleteTimers[reviewId] = setTimeout(() => {
             this.permanentlyDeleteReview(reviewId);
         }, 5000);
     }
-    
+
     // Method to show delete notification
     showDeleteNotification(reviewId) {
         const notificationContainer = document.querySelector('.global-notification-container');
         if (!notificationContainer) return;
-        
+
         const reviewData = this.deletedReviews[reviewId].review;
         const notification = document.createElement('div');
         notification.className = 'notification fade-in';
         notification.dataset.id = reviewId;
-        
+
         // Calculate time remaining - 5 seconds
         const secondsRemaining = 5;
-        
+
         notification.innerHTML = `
             <div class="notification-content">
                 <i class='bx bx-check-circle notification-icon'></i>
@@ -676,90 +678,90 @@ export default class Profile {
             </div>
             <div class="notification-progress"></div>
         `;
-        
+
         notificationContainer.appendChild(notification);
-        
+
         // Initialize progress bar
         const progressBar = notification.querySelector('.notification-progress');
         if (progressBar) {
             // Use CSS transition for smooth animation
             progressBar.style.transition = 'width 5s linear';
-            
+
             // Force a reflow before changing width
             void progressBar.offsetWidth;
-            
+
             // Start with full width
             progressBar.style.width = '100%';
-            
+
             // Set width to 0 after a tiny delay
             setTimeout(() => {
                 progressBar.style.width = '0%';
             }, 50);
         }
-        
+
         // Create countdown timer
         const timeDisplay = notification.querySelector('.notification-time');
         let timeLeft = secondsRemaining;
-        
+
         this.progressIntervals[reviewId] = setInterval(() => {
             timeLeft--;
-            
+
             if (timeDisplay) {
                 timeDisplay.textContent = `${timeLeft}s`;
             }
-            
+
             if (timeLeft <= 0) {
                 clearInterval(this.progressIntervals[reviewId]);
                 delete this.progressIntervals[reviewId];
-                
+
                 // Add this line to automatically remove notification when timer ends
                 this.removeNotification(reviewId);
             }
         }, 1000);
     }
-    
+
     // Method to undo a review deletion
     undoDelete(reviewId) {
         if (!this.deletedReviews[reviewId]) return;
-        
+
         // Clear timers
         if (this.deleteTimers[reviewId]) {
             clearTimeout(this.deleteTimers[reviewId]);
             delete this.deleteTimers[reviewId];
         }
-        
+
         // Clear progress intervals
         if (this.progressIntervals[reviewId]) {
             clearInterval(this.progressIntervals[reviewId]);
             delete this.progressIntervals[reviewId];
         }
-        
+
         // Get the deleted review info
         const { review, index } = this.deletedReviews[reviewId];
-        
+
         // Restore review at original position if possible
         if (index <= this.reviewsData.length) {
             this.reviewsData.splice(index, 0, review);
         } else {
             this.reviewsData.push(review);
         }
-        
+
         // Remove from deleted reviews
         delete this.deletedReviews[reviewId];
-        
+
         // Update total reviews count
         this.userData.totalReviews = this.reviewsData.length;
-        
+
         // Save to localStorage
         this.saveReviewsToStorage();
-        
+
         // Remove notification
         this.removeNotification(reviewId);
-        
+
         // Re-render
         this.render();
     }
-    
+
     // Method to permanently delete a review
     permanentlyDeleteReview(reviewId) {
         // Clear progress interval if it exists
@@ -767,31 +769,31 @@ export default class Profile {
             clearInterval(this.progressIntervals[reviewId]);
             delete this.progressIntervals[reviewId];
         }
-        
+
         // Also clear any pending timers
         if (this.deleteTimers[reviewId]) {
             clearTimeout(this.deleteTimers[reviewId]);
             delete this.deleteTimers[reviewId];
         }
-        
+
         // Clear from tracking objects
         delete this.deletedReviews[reviewId];
-        
+
         // Make sure the notification is removed
         this.removeNotification(reviewId);
-        
+
         // Save the current reviews state to localStorage
         this.saveReviewsToStorage();
     }
-    
+
     // Method to remove a notification
     removeNotification(reviewId) {
         const notification = document.querySelector(`.notification[data-id="${reviewId}"]`);
         if (!notification) return;
-        
+
         notification.classList.remove('fade-in');
         notification.classList.add('fade-out');
-        
+
         setTimeout(() => {
             // Check if notification still exists before removing
             if (notification && notification.parentElement) {
@@ -829,35 +831,35 @@ export default class Profile {
                 const items = JSON.parse(savedItems);
                 this.activityData.savedItems.count = items.length;
             }
-            
+
             // Load orders count (from purchase history)
             const orderHistory = localStorage.getItem('orderHistory');
             if (orderHistory) {
                 const orders = JSON.parse(orderHistory);
                 this.activityData.orders.count = orders.length;
             }
-            
+
             // Load listed items count (active + sold from selling page)
             const activeListings = localStorage.getItem('activeListings');
             const soldItems = localStorage.getItem('soldItems');
-            
+
             let listedCount = 0;
-            
+
             if (activeListings) {
                 listedCount += JSON.parse(activeListings).length;
             }
-            
+
             if (soldItems) {
                 listedCount += JSON.parse(soldItems).length;
             }
-            
+
             this.activityData.listedItems.count = listedCount;
-            
+
         } catch (error) {
             console.error('Error loading activity counts:', error);
         }
     }
-    
+
     // Add new method to update counts in UI without full re-render
     updateActivityCountsInUI() {
         // Update activity counts in the UI
@@ -865,23 +867,23 @@ export default class Profile {
         if (savedItemsCount) {
             savedItemsCount.textContent = `${this.activityData.savedItems.count} items`;
         }
-        
+
         const ordersCount = document.querySelector('[data-activity="orders-count"]');
         if (ordersCount) {
             ordersCount.textContent = `${this.activityData.orders.count} orders`;
         }
-        
+
         const listedItemsCount = document.querySelector('[data-activity="listed-count"]');
         if (listedItemsCount) {
             listedItemsCount.textContent = `${this.activityData.listedItems.count} items`;
         }
-        
+
         // Also update user stats
         const reviewsCount = document.querySelector('[data-stats="reviews-count"]');
         if (reviewsCount) {
             reviewsCount.textContent = `${this.userData.totalReviews} reviews`;
         }
-        
+
         const listedStatsCount = document.querySelector('[data-stats="listed-count"]');
         if (listedStatsCount) {
             listedStatsCount.textContent = `${this.activityData.listedItems.count} listed items`;
@@ -891,39 +893,39 @@ export default class Profile {
 
 // Create three sample reviews with different product types
 const sampleReviews = [
-  {
-    id: 1,
-    productName: 'Sony WH-1000XM5 Wireless Headphones',
-    productImage: '../assets/images/products-images/headphone-1.jpg',
-    rating: 5,
-    date: 'April 2, 2025',
-    reviewText: 'These are the best headphones I\'ve ever owned! The noise cancellation is incredible - I can\'t hear anything around me when I\'m working. The sound quality is crisp and balanced with deep bass that doesn\'t overwhelm. Battery life lasts me almost a full work week. The comfort level is also impressive, I can wear them for hours without any discomfort. Highly recommend for anyone working in noisy environments.',
-    helpful: 47,
-    verified: true,
-    productId: 'product1'
-  },
-  {
-    id: 2,
-    productName: 'Apple MacBook Air M3',
-    productImage: '../assets/images/products-images/product-3.svg',
-    rating: 4,
-    date: 'March 15, 2025',
-    reviewText: 'The new M3 MacBook Air is lightning fast and the battery life is amazing. I can easily get through a full day of work without needing to charge it. The display is gorgeous with vibrant colors and excellent contrast. Only giving 4 stars because I wish it had more ports - still need dongles for most connections which is annoying. Otherwise, it\'s a fantastic laptop for both work and entertainment.',
-    helpful: 28,
-    verified: true,
-    productId: 'product3'
-  },
-  {
-    id: 3,
-    productName: 'Samsung S25 Ultra Smartphone',
-    productImage: '../assets/images/products-images/product-5.svg',
-    rating: 5,
-    date: 'February 10, 2025',
-    reviewText: 'This phone exceeds all my expectations! The camera system is mind-blowing - the photos I\'ve taken look professional. The 200MP main sensor captures incredible detail, and the 10x optical zoom is fantastic for travel photography. The display is bright enough to use even in direct sunlight with excellent color accuracy. Battery easily lasts all day even with heavy use. The S-Pen is a nice bonus feature that I\'ve found myself using more than expected. Worth every penny if you\'re looking for the best Android experience possible.',
-    helpful: 63,
-    verified: true,
-    productId: 'product5'
-  }
+    {
+        id: 1,
+        productName: 'Sony WH-1000XM5 Wireless Headphones',
+        productImage: '../assets/images/products-images/headphone-1.jpg',
+        rating: 5,
+        date: 'April 2, 2025',
+        reviewText: 'These are the best headphones I\'ve ever owned! The noise cancellation is incredible - I can\'t hear anything around me when I\'m working. The sound quality is crisp and balanced with deep bass that doesn\'t overwhelm. Battery life lasts me almost a full work week. The comfort level is also impressive, I can wear them for hours without any discomfort. Highly recommend for anyone working in noisy environments.',
+        helpful: 47,
+        verified: true,
+        productId: 'product1'
+    },
+    {
+        id: 2,
+        productName: 'Apple MacBook Air M3',
+        productImage: '../assets/images/products-images/product-3.svg',
+        rating: 4,
+        date: 'March 15, 2025',
+        reviewText: 'The new M3 MacBook Air is lightning fast and the battery life is amazing. I can easily get through a full day of work without needing to charge it. The display is gorgeous with vibrant colors and excellent contrast. Only giving 4 stars because I wish it had more ports - still need dongles for most connections which is annoying. Otherwise, it\'s a fantastic laptop for both work and entertainment.',
+        helpful: 28,
+        verified: true,
+        productId: 'product3'
+    },
+    {
+        id: 3,
+        productName: 'Samsung S25 Ultra Smartphone',
+        productImage: '../assets/images/products-images/product-5.svg',
+        rating: 5,
+        date: 'February 10, 2025',
+        reviewText: 'This phone exceeds all my expectations! The camera system is mind-blowing - the photos I\'ve taken look professional. The 200MP main sensor captures incredible detail, and the 10x optical zoom is fantastic for travel photography. The display is bright enough to use even in direct sunlight with excellent color accuracy. Battery easily lasts all day even with heavy use. The S-Pen is a nice bonus feature that I\'ve found myself using more than expected. Worth every penny if you\'re looking for the best Android experience possible.',
+        helpful: 63,
+        verified: true,
+        productId: 'product5'
+    }
 ];
 
 // Save to localStorage
