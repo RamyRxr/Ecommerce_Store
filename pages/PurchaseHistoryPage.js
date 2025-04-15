@@ -7,4 +7,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize the Purchase History component
     const purchaseHistory = new PurchaseHistory('app');
+    document.dispatchEvent(new CustomEvent('orderPlaced'));
 });

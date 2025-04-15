@@ -90,6 +90,7 @@ export default class Profile {
         this.createNotificationContainer(); // Create global notification container
         this.render();
         this.setupEventListeners();
+        this.registerCustomEventListeners();
     }
 
     // Create a global notification container
@@ -278,7 +279,7 @@ export default class Profile {
                     </div>
                     <div class="activity-info">
                         <div class="activity-title">${savedItems.title}</div>
-                        <div class="activity-count">${savedItems.count} items</div>
+                        <div class="activity-count" data-activity="saved-count">${savedItems.count} items</div>
                     </div>
                 </a>
                 
@@ -288,7 +289,7 @@ export default class Profile {
                     </div>
                     <div class="activity-info">
                         <div class="activity-title">${orders.title}</div>
-                        <div class="activity-count">${orders.count} orders</div>
+                        <div class="activity-count" data-activity="orders-count">${orders.count} orders</div>
                     </div>
                 </a>
                 
@@ -298,7 +299,7 @@ export default class Profile {
                     </div>
                     <div class="activity-info">
                         <div class="activity-title">${listedItems.title}</div>
-                        <div class="activity-count">${listedItems.count} items</div>
+                        <div class="activity-count" data-activity="listed-count">${listedItems.count} items</div>
                     </div>
                 </a>
             </div>
@@ -469,22 +470,24 @@ export default class Profile {
                 this.updateActivityCountsInUI();
             }
         });
+    }
 
-        // Listen for custom events from other components
-        document.addEventListener('savedItemsUpdated', () => {
-            this.loadActivityCounts();
-            this.updateActivityCountsInUI();
-        });
+    // New method to register custom event listeners
+    registerCustomEventListeners() {
+        // Listen for real-time updates from other components
+        document.addEventListener('cartUpdated', () => this.refreshActivityCounts());
+        document.addEventListener('orderPlaced', () => this.refreshActivityCounts());
+        document.addEventListener('itemSaved', () => this.refreshActivityCounts());
+        document.addEventListener('itemUnsaved', () => this.refreshActivityCounts());
+        document.addEventListener('listingAdded', () => this.refreshActivityCounts());
+        document.addEventListener('listingRemoved', () => this.refreshActivityCounts());
+        document.addEventListener('listingSold', () => this.refreshActivityCounts());
+    }
 
-        document.addEventListener('ordersUpdated', () => {
-            this.loadActivityCounts();
-            this.updateActivityCountsInUI();
-        });
-
-        document.addEventListener('listingsUpdated', () => {
-            this.loadActivityCounts();
-            this.updateActivityCountsInUI();
-        });
+    // Helper method to refresh counts
+    refreshActivityCounts() {
+        this.loadActivityCounts();
+        this.updateActivityCountsInUI();
     }
 
     // Method to open the edit modal
@@ -863,22 +866,22 @@ export default class Profile {
     // Add new method to update counts in UI without full re-render
     updateActivityCountsInUI() {
         // Update activity counts in the UI
-        const savedItemsCount = document.querySelector('[data-activity="saved-count"]');
+        const savedItemsCount = document.querySelector('.activity-container [data-activity="saved-count"]');
         if (savedItemsCount) {
             savedItemsCount.textContent = `${this.activityData.savedItems.count} items`;
         }
 
-        const ordersCount = document.querySelector('[data-activity="orders-count"]');
+        const ordersCount = document.querySelector('.activity-container [data-activity="orders-count"]');
         if (ordersCount) {
             ordersCount.textContent = `${this.activityData.orders.count} orders`;
         }
 
-        const listedItemsCount = document.querySelector('[data-activity="listed-count"]');
+        const listedItemsCount = document.querySelector('.activity-container [data-activity="listed-count"]');
         if (listedItemsCount) {
             listedItemsCount.textContent = `${this.activityData.listedItems.count} items`;
         }
 
-        // Also update user stats
+        // Also update user stats in sidebar
         const reviewsCount = document.querySelector('[data-stats="reviews-count"]');
         if (reviewsCount) {
             reviewsCount.textContent = `${this.userData.totalReviews} reviews`;
@@ -887,6 +890,12 @@ export default class Profile {
         const listedStatsCount = document.querySelector('[data-stats="listed-count"]');
         if (listedStatsCount) {
             listedStatsCount.textContent = `${this.activityData.listedItems.count} listed items`;
+        }
+
+        const ordersStatsCount = document.querySelector('.stat-item .stat-value:not([data-stats])');
+        if (ordersStatsCount && ordersStatsCount.previousElementSibling && ordersStatsCount.previousElementSibling.classList.contains('bx-package')) {
+            ordersStatsCount.textContent = `${this.activityData.orders.count} orders`;
+            this.userData.ordersPlaced = this.activityData.orders.count;
         }
     }
 }
