@@ -195,7 +195,7 @@ export default class LogIn {
         formData.append('password', password);
         
         // Make API request using fetch
-        fetch('http://localhost/Project-Web/api/auth/login.php', {
+        fetch('http://localhost/Project-Web/backend/api/auth/login.php', {
             method: 'POST',
             body: formData
         })

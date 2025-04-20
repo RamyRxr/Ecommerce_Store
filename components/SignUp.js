@@ -454,7 +454,7 @@ export default class SignUp {
         formData.append('phone', document.getElementById('phoneNumber').value);
         
         // Make API request
-        fetch('api/auth/register.php', {
+        fetch('http://localhost/Project-Web/backend/api/auth/register.php', {
             method: 'POST',
             body: formData
         })
