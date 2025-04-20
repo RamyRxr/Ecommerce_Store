@@ -1,5 +1,5 @@
 export default class SignUp {
-    
+
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -52,6 +52,14 @@ export default class SignUp {
                                         <i class='bx bx-user'></i>
                                         <input type="text" id="lastName" class="form-control" placeholder="Last name" required>
                                     </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <div class="input-with-icon">
+                                    <i class='bx bx-user-circle'></i>
+                                    <input type="text" id="username" class="form-control" placeholder="Choose a username" required>
                                 </div>
                             </div>
                             
@@ -172,7 +180,7 @@ export default class SignUp {
         const signupContainer = document.createElement('div');
         signupContainer.id = 'signup-container';
         signupContainer.innerHTML = signupHTML;
-        
+
         // Clear the container first
         this.container.innerHTML = '';
         this.container.appendChild(signupContainer);
@@ -192,7 +200,7 @@ export default class SignUp {
         if (togglePassword) {
             togglePassword.addEventListener('click', () => this.togglePasswordVisibility('password', 'toggle-password'));
         }
-        
+
         const toggleConfirmPassword = document.getElementById('toggle-confirm-password');
         if (toggleConfirmPassword) {
             toggleConfirmPassword.addEventListener('click', () => this.togglePasswordVisibility('confirmPassword', 'toggle-confirm-password'));
@@ -203,7 +211,7 @@ export default class SignUp {
         if (sendCodeBtn) {
             sendCodeBtn.addEventListener('click', () => this.sendVerificationCode());
         }
-        
+
         const resendCodeBtn = document.getElementById('resend-code');
         if (resendCodeBtn) {
             resendCodeBtn.addEventListener('click', () => this.resendVerificationCode());
@@ -220,7 +228,7 @@ export default class SignUp {
         if (signupForm) {
             signupForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                
+
                 // Validate form
                 if (this.validateForm()) {
                     // Submit the form if validation passes
@@ -235,7 +243,7 @@ export default class SignUp {
             input.addEventListener('focus', () => {
                 input.parentElement.classList.add('focused');
             });
-            
+
             input.addEventListener('blur', () => {
                 if (input.value === '') {
                     input.parentElement.classList.remove('focused');
@@ -248,7 +256,7 @@ export default class SignUp {
         const passwordInput = document.getElementById(inputId);
         const toggleButton = document.getElementById(buttonId);
         const icon = toggleButton.querySelector('i');
-        
+
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
             icon.className = 'bx bx-show';
@@ -262,28 +270,28 @@ export default class SignUp {
         const phoneNumber = document.getElementById('phoneNumber').value;
         const sendCodeBtn = document.getElementById('send-code-btn');
         const verificationGroup = document.querySelector('.verification-group');
-        
+
         // Basic phone number validation
         if (!phoneNumber || phoneNumber.length < 10) {
             this.showError('Please enter a valid phone number');
             return;
         }
-        
+
         // Show loading state
         sendCodeBtn.textContent = 'Sending...';
         sendCodeBtn.disabled = true;
-        
+
         // Simulate API call to send verification code
         setTimeout(() => {
             // Show verification code input
             verificationGroup.style.display = 'block';
-            
+
             // Update button state
             sendCodeBtn.textContent = 'Sent';
-            
+
             // Start countdown timer
             this.startVerificationTimer();
-            
+
             // Set verification sent flag
             this.verificationSent = true;
         }, 1500);
@@ -291,16 +299,16 @@ export default class SignUp {
 
     resendVerificationCode() {
         const resendCodeBtn = document.getElementById('resend-code');
-        
+
         // Show loading state
         resendCodeBtn.textContent = 'Sending...';
         resendCodeBtn.disabled = true;
-        
+
         // Simulate API call to resend verification code
         setTimeout(() => {
             // Update button state
             resendCodeBtn.textContent = 'Resend';
-            
+
             // Start countdown timer again
             this.startVerificationTimer();
         }, 1500);
@@ -309,23 +317,23 @@ export default class SignUp {
     startVerificationTimer() {
         const timerElement = document.getElementById('timer');
         const resendCodeBtn = document.getElementById('resend-code');
-        
+
         let timeLeft = 120; // 2 minutes in seconds
-        
+
         // Clear any existing timer
         if (this.verificationTimer) {
             clearInterval(this.verificationTimer);
         }
-        
+
         // Update timer each second
         this.verificationTimer = setInterval(() => {
             timeLeft--;
-            
+
             // Format time as mm:ss
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
             timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
+
             // Enable resend button when timer expires
             if (timeLeft <= 0) {
                 clearInterval(this.verificationTimer);
@@ -338,41 +346,41 @@ export default class SignUp {
     checkPasswordStrength(password) {
         const strengthBar = document.getElementById('strength-bar');
         const strengthText = document.getElementById('strength-text');
-        
+
         // Default - no password
         let strength = 0;
         let status = 'Very weak';
-        
+
         // Check password strength
         if (password.length > 0) {
             strength = 20; // At least has characters
             status = 'Very weak';
         }
-        
+
         if (password.length >= 8) {
             strength = 40; // Decent length
             status = 'Weak';
         }
-        
+
         if (password.match(/[a-z]/) && password.match(/[A-Z]/)) {
             strength = 60; // Has mixed case
             status = 'Medium';
         }
-        
+
         if (password.match(/\d/)) {
             strength = 80; // Has number
             status = 'Strong';
         }
-        
+
         if (password.match(/[^a-zA-Z\d]/)) {
             strength = 100; // Has special character
             status = 'Very strong';
         }
-        
+
         // Update UI
         strengthBar.style.width = `${strength}%`;
         strengthText.textContent = status;
-        
+
         // Set color based on strength
         if (strength <= 40) {
             strengthBar.style.backgroundColor = '#f44336'; // Red
@@ -392,43 +400,43 @@ export default class SignUp {
         const phoneNumber = document.getElementById('phoneNumber').value;
         const verificationCode = document.getElementById('verificationCode').value;
         const termsAccepted = document.getElementById('terms').checked;
-        
+
         // Simple validation rules
         if (!firstName || !lastName) {
             this.showError('Please enter your full name');
             return false;
         }
-        
+
         if (!email || !this.isValidEmail(email)) {
             this.showError('Please enter a valid email address');
             return false;
         }
-        
+
         if (!password || password.length < 8) {
             this.showError('Password must be at least 8 characters long');
             return false;
         }
-        
+
         if (password !== confirmPassword) {
             this.showError('Passwords do not match');
             return false;
         }
-        
+
         if (!phoneNumber || phoneNumber.length < 10) {
             this.showError('Please enter a valid phone number');
             return false;
         }
-        
+
         if (this.verificationSent && (!verificationCode || verificationCode.length !== 6)) {
             this.showError('Please enter the 6-digit verification code');
             return false;
         }
-        
+
         if (!termsAccepted) {
             this.showError('You must accept the Terms of Service and Privacy Policy');
             return false;
         }
-        
+
         return true;
     }
 
@@ -442,7 +450,7 @@ export default class SignUp {
         const signupBtn = document.querySelector('.btn-signup');
         signupBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Creating Account...</span>';
         signupBtn.disabled = true;
-        
+
         // Create form data
         const formData = new FormData();
         formData.append('username', document.getElementById('username').value);
@@ -452,48 +460,48 @@ export default class SignUp {
         formData.append('first_name', document.getElementById('firstName').value);
         formData.append('last_name', document.getElementById('lastName').value);
         formData.append('phone', document.getElementById('phoneNumber').value);
-        
+
         // Make API request
         fetch('http://localhost/Project-Web/backend/api/auth/register.php', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message or redirect
-                window.location.href = './login.html?registered=true';
-            } else {
-                this.showError(data.message || 'Registration failed');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message or redirect
+                    window.location.href = './login.html?registered=true';
+                } else {
+                    this.showError(data.message || 'Registration failed');
+                    signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
+                    signupBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                this.showError('Connection error. Please try again.');
                 signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
                 signupBtn.disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Registration error:', error);
-            this.showError('Connection error. Please try again.');
-            signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
-            signupBtn.disabled = false;
-        });
+            });
     }
 
     showError(message) {
         // Check if an error message already exists
         let errorDiv = document.querySelector('.signup-error');
-        
+
         if (!errorDiv) {
             // Create error element if it doesn't exist
             errorDiv = document.createElement('div');
             errorDiv.className = 'signup-error';
-            
+
             // Add it before the signup button
             const termsGroup = document.querySelector('.terms-group');
             termsGroup.parentNode.insertBefore(errorDiv, termsGroup.nextSibling);
         }
-        
+
         // Set the error message
         errorDiv.textContent = message;
-        
+
         // Shake animation
         document.querySelector('.signup-card').classList.add('shake');
         setTimeout(() => {

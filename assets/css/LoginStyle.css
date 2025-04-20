@@ -366,8 +366,9 @@ body.dark-mode .login-container {
 }
 
 body.dark-mode .login-card {
-    background-color: var(--dark-bg);
-    box-shadow: var(--accent-shadow)
+    box-shadow: var(--accent-shadow);
+    background: #080f26;
+    border: 1px solid #1a2d5a;
 }
 
 body.dark-mode .login-header {

@@ -11,7 +11,7 @@
     justify-content: center; 
     align-items: center;
     padding: 20px;
-    background-color: var(--body-bg);
+    background-color: var(--dark-bg);
     transition: var(--transition-normal);
 }
 
@@ -42,10 +42,6 @@
 .signup-card::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 6px;
-}
-
-body.dark-mode .signup-card::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Signup Header */
@@ -479,8 +475,9 @@ body.dark-mode .signup-card::-webkit-scrollbar-thumb {
 
 /* Dark mode styles */
 body.dark-mode .signup-card {
-    background-color: var(--dark-bg);
     box-shadow: var(--accent-shadow);
+    background: #080f26;
+    border: 1px solid #1a2d5a;
 }
 
 body.dark-mode .signup-header {
