@@ -9,8 +9,8 @@ header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // Include database connection and utilities
-require_once '../../config/database.php';
-require_once '../../utils/functions.php';
+require_once '../config/database.php';
+require_once '../utils/functions.php';
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -28,46 +28,45 @@ $phone = isset($_POST['phone']) ? sanitize_input($_POST['phone']) : '';
 
 // Validate input
 if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-    json_response(false, 'Please fill all required fields');
+    json_response(false, 'All fields are required');
 }
 
 if (!is_valid_email($email)) {
-    json_response(false, 'Please enter a valid email address');
-}
-
-if (strlen($password) < 8) {
-    json_response(false, 'Password must be at least 8 characters long');
+    json_response(false, 'Invalid email format');
 }
 
 if ($password !== $confirm_password) {
     json_response(false, 'Passwords do not match');
 }
 
+if (strlen($password) < 8) {
+    json_response(false, 'Password must be at least 8 characters long');
+}
+
 try {
     // Check if username already exists
-    $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
     $stmt->execute([$username]);
-    
-    if ($stmt->rowCount() > 0) {
-        json_response(false, 'Username already exists');
+    if ($stmt->fetchColumn() > 0) {
+        json_response(false, 'Username already taken');
     }
     
     // Check if email already exists
-    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
     $stmt->execute([$email]);
-    
-    if ($stmt->rowCount() > 0) {
-        json_response(false, 'Email already exists');
+    if ($stmt->fetchColumn() > 0) {
+        json_response(false, 'Email already registered');
     }
     
     // Hash password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     
-    // Insert new user
+    // Insert user
     $stmt = $conn->prepare("INSERT INTO users (username, email, password, first_name, last_name, phone) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->execute([$username, $email, $hashed_password, $first_name, $last_name, $phone]);
     
-    json_response(true, 'Registration successful! Please log in.');
+    // Return success response
+    json_response(true, 'Registration successful');
     
 } catch(PDOException $e) {
     json_response(false, 'Database error: ' . $e->getMessage());

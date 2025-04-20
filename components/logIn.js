@@ -100,7 +100,7 @@ export default class LogIn {
         const loginContainer = document.createElement('div');
         loginContainer.id = 'login-container';
         loginContainer.innerHTML = loginHTML;
-        
+
         // Clear the container first
         this.container.innerHTML = '';
         this.container.appendChild(loginContainer);
@@ -121,7 +121,7 @@ export default class LogIn {
             togglePassword.addEventListener('click', () => {
                 const passwordInput = document.getElementById('password');
                 const icon = togglePassword.querySelector('i');
-                
+
                 if (passwordInput.type === 'password') {
                     passwordInput.type = 'text';
                     icon.className = 'bx bx-show';
@@ -137,17 +137,17 @@ export default class LogIn {
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                
+
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
                 const remember = document.getElementById('remember-me').checked;
-                
+
                 // Validate form
                 if (!username || !password) {
                     this.showError('Please fill in all fields');
                     return;
                 }
-                
+
                 // Simulate login process
                 this.login(username, password, remember);
             });
@@ -159,7 +159,7 @@ export default class LogIn {
             input.addEventListener('focus', () => {
                 input.parentElement.classList.add('focused');
             });
-            
+
             input.addEventListener('blur', () => {
                 if (input.value === '') {
                     input.parentElement.classList.remove('focused');
@@ -177,7 +177,7 @@ export default class LogIn {
         if (rememberedUser) {
             document.getElementById('username').value = rememberedUser;
             document.getElementById('remember-me').checked = true;
-            
+
             // Add focused class to the username input
             document.getElementById('username').parentElement.classList.add('focused');
         }
@@ -188,65 +188,71 @@ export default class LogIn {
         const loginBtn = document.querySelector('.btn-login');
         loginBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Signing in...</span>';
         loginBtn.disabled = true;
-        
+
         // Create form data
         const formData = new FormData();
         formData.append('username', username);
         formData.append('password', password);
-        
-        // Make API request using fetch
-        fetch('http://localhost/Project-Web/backend/api/auth/login.php', {
+
+        // Fix the API endpoint path - removing auth/ subfolder if it doesn't exist
+        fetch('http://localhost/Project-Web/backend/api/login.php', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // If remember me is checked, save to localStorage
-                if (remember) {
-                    localStorage.setItem('rememberedUser', username);
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('userData', JSON.stringify(data.data));
-                } else {
-                    localStorage.removeItem('rememberedUser');
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    sessionStorage.setItem('userData', JSON.stringify(data.data));
+            .then(response => {
+                // Check if the response is successful before parsing as JSON
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                
-                // Redirect to dashboard
-                window.location.href = '../HTML-Pages/Home.html';
-            } else {
-                // Show error
-                this.showError(data.message || 'Invalid username or password');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // If remember me is checked, save to localStorage
+                    if (remember) {
+                        localStorage.setItem('rememberedUser', username);
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('userData', JSON.stringify(data.data));
+                    } else {
+                        localStorage.removeItem('rememberedUser');
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        sessionStorage.setItem('userData', JSON.stringify(data.data));
+                    }
+
+                    // Redirect to home page
+                    window.location.href = '../HTML-Pages/home.html';
+                } else {
+                    // Show error
+                    this.showError(data.message || 'Invalid username or password');
+                    loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Log In</span>';
+                    loginBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                this.showError('Connection error. Please try again.');
                 loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Log In</span>';
                 loginBtn.disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Login error:', error);
-            this.showError('Connection error. Please try again.');
-            loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Sign In</span>';
-            loginBtn.disabled = false;
-        });
+            });
     }
 
     showError(message) {
         // Check if an error message already exists
         let errorDiv = document.querySelector('.login-error');
-        
+
         if (!errorDiv) {
             // Create error element if it doesn't exist
             errorDiv = document.createElement('div');
             errorDiv.className = 'login-error';
-            
+
             // Add it before the login button
             const formGroup = document.querySelector('.checkbox-group').parentNode;
             formGroup.insertBefore(errorDiv, document.querySelector('.btn-login'));
         }
-        
+
         // Set the error message
         errorDiv.textContent = message;
-        
+
         // Shake animation
         document.querySelector('.login-card').classList.add('shake');
         setTimeout(() => {

@@ -9,8 +9,8 @@ header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // Include database connection and utilities
-require_once '../../config/database.php';
-require_once '../../utils/functions.php';
+require_once '../config/database.php';
+require_once '../utils/functions.php';
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

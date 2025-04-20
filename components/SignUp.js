@@ -461,28 +461,34 @@ export default class SignUp {
         formData.append('last_name', document.getElementById('lastName').value);
         formData.append('phone', document.getElementById('phoneNumber').value);
 
-        // Make API request
-        fetch('http://localhost/Project-Web/backend/api/auth/register.php', {
+        // Fix the API endpoint path - removing auth/ subfolder if it doesn't exist
+        fetch('http://localhost/Project-Web/backend/api/register.php', {
             method: 'POST',
             body: formData
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message or redirect
-                    window.location.href = './login.html?registered=true';
-                } else {
-                    this.showError(data.message || 'Registration failed');
-                    signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
-                    signupBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Registration error:', error);
-                this.showError('Connection error. Please try again.');
+        .then(response => {
+            // Check if the response is successful before parsing as JSON
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Show success message or redirect
+                window.location.href = './login.html?registered=true';
+            } else {
+                this.showError(data.message || 'Registration failed');
                 signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
                 signupBtn.disabled = false;
-            });
+            }
+        })
+        .catch(error => {
+            console.error('Registration error:', error);
+            this.showError('Connection error. Please try again.');
+            signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
+            signupBtn.disabled = false;
+        });
     }
 
     showError(message) {
