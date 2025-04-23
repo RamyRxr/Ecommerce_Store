@@ -19,202 +19,29 @@ export default class ExploreContents {
 
     async fetchProducts() {
         try {
-            const productData = [
-                {
-                    id: 1,
-                    name: "Sony WH-1000XM5",
-                    description: "Premium noise-cancelling headphones with industry-leading sound quality and battery life.",
-                    price: 349.99,
-                    originalPrice: 399.99,
-                    category: "headphones",
-                    brand: "sony",
-                    rating: 4.8,
-                    ratingCount: 1254,
-                    image: "../assets/images/products-images/product-1.svg",
-                    isSale: true,
-                    isNew: false
-                },
-                {
-                    id: 2,
-                    name: "iPhone 15 Pro",
-                    description: "Apple's latest flagship smartphone with A17 Pro chip, titanium design and 48MP camera.",
-                    price: 999.99,
-                    originalPrice: null,
-                    category: "smartphones",
-                    brand: "apple",
-                    rating: 4.7,
-                    ratingCount: 857,
-                    image: "../assets/images/products-images/product-2.svg",
-                    isSale: false,
-                    isNew: true
-                },
-                {
-                    id: 3,
-                    name: "Dell XPS 15",
-                    description: "Powerful laptop with 15.6\" OLED display, Intel Core i9 and NVIDIA RTX graphics.",
-                    price: 1899.99,
-                    originalPrice: 2199.99,
-                    category: "laptops",
-                    brand: "dell",
-                    rating: 4.6,
-                    ratingCount: 423,
-                    image: "../assets/images/products-images/product-3.svg",
-                    isSale: true,
-                    isNew: false
-                },
-                {
-                    id: 4,
-                    name: "iPad Pro 12.9",
-                    description: "Apple's professional tablet with M2 chip, Liquid Retina XDR display and all-day battery.",
-                    price: 1099.99,
-                    originalPrice: null,
-                    category: "tablets",
-                    brand: "apple",
-                    rating: 4.9,
-                    ratingCount: 612,
-                    image: "../assets/images/products-images/product-4.svg",
-                    isSale: false,
-                    isNew: true
-                },
-                {
-                    id: 5,
-                    name: "Sony Alpha A7 IV",
-                    description: "Full-frame mirrorless camera with 33MP sensor, 4K60p video and advanced autofocus.",
-                    price: 2499.99,
-                    originalPrice: 2699.99,
-                    category: "cameras",
-                    brand: "sony",
-                    rating: 4.7,
-                    ratingCount: 329,
-                    image: "../assets/images/products-images/product-5.svg",
-                    isSale: true,
-                    isNew: false
-                },
-                {
-                    id: 6,
-                    name: "JBL Flip 6",
-                    description: "Portable Bluetooth speaker with rich sound, waterproof design and 12-hour playtime.",
-                    price: 129.99,
-                    originalPrice: 149.99,
-                    category: "accessories",
-                    brand: "jbl",
-                    rating: 4.5,
-                    ratingCount: 875,
-                    image: "../assets/images/products-images/product-6.svg",
-                    isSale: true,
-                    isNew: false
-                },
-                {
-                    id: 7,
-                    name: "Samsung Galaxy S23 Ultra",
-                    description: "Premium Android smartphone with S Pen support, 200MP camera and 6.8\" Dynamic AMOLED.",
-                    price: 1199.99,
-                    originalPrice: null,
-                    category: "smartphones",
-                    brand: "samsung",
-                    rating: 4.6,
-                    ratingCount: 731,
-                    image: "../assets/images/products-images/product-2.svg",
-                    isSale: false,
-                    isNew: true
-                },
-                {
-                    id: 8,
-                    name: "MacBook Pro 16\"",
-                    description: "Powerful laptop with M3 Pro chip, stunning Liquid Retina XDR display and up to 22-hour battery.",
-                    price: 2499.99,
-                    originalPrice: null,
-                    category: "laptops",
-                    brand: "apple",
-                    rating: 4.8,
-                    ratingCount: 517,
-                    image: "../assets/images/products-images/product-3.svg",
-                    isSale: false,
-                    isNew: true
-                },
-                {
-                    id: 9,
-                    name: "Sony WF-1000XM5",
-                    description: "True wireless earbuds with exceptional noise cancellation and high-resolution audio.",
-                    price: 249.99,
-                    originalPrice: 279.99,
-                    category: "headphones",
-                    brand: "sony",
-                    rating: 4.7,
-                    ratingCount: 629,
-                    image: "../assets/images/products-images/product-1.svg",
-                    isSale: true,
-                    isNew: false
-                },
-                {
-                    id: 10,
-                    name: "Lenovo ThinkPad X1 Carbon",
-                    description: "Premium business laptop with Intel Core i7, 14\" display and legendary durability.",
-                    price: 1799.99,
-                    originalPrice: 1999.99,
-                    category: "laptops",
-                    brand: "lenovo",
-                    rating: 4.6,
-                    ratingCount: 384,
-                    image: "../assets/images/products-images/product-3.svg",
-                    isSale: true,
-                    isNew: false
-                },
-                {
-                    id: 11,
-                    name: "Samsung Galaxy Tab S9 Ultra",
-                    description: "Large 14.6\" AMOLED display tablet with S Pen included and powerful Snapdragon processor.",
-                    price: 1199.99,
-                    originalPrice: null,
-                    category: "tablets",
-                    brand: "samsung",
-                    rating: 4.5,
-                    ratingCount: 297,
-                    image: "../assets/images/products-images/product-4.svg",
-                    isSale: false,
-                    isNew: true
-                },
-                {
-                    id: 12,
-                    name: "Canon EOS R6 Mark II",
-                    description: "Advanced mirrorless camera with 24MP sensor, 6K video and enhanced subject tracking.",
-                    price: 2499.99,
-                    originalPrice: 2699.99,
-                    category: "cameras",
-                    brand: "canon",
-                    rating: 4.7,
-                    ratingCount: 213,
-                    image: "../assets/images/products-images/product-5.svg",
-                    isSale: true,
-                    isNew: false
-                }
-            ];
+            const response = await fetch('/backend/api/get_listings.php');
+            const data = await response.json();
 
-            // Calculate exact number of products to generate 10 pages
-            const totalProductsNeeded = this.itemsPerPage * 10;
-
-            // Generate additional products based on our defined items
-            this.products = [];
-            for (let i = 0; i < totalProductsNeeded; i++) {
-                // Use modulo to cycle through our defined products
-                const sourceProduct = productData[i % productData.length];
-
-                // Create a copy with a unique ID
-                const product = {
-                    ...sourceProduct,
-                    id: i + 1,
-                    dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+            if (data.success) {
+                this.products = data.data.listings.map(listing => ({
+                    id: listing.id,
+                    name: listing.name,
+                    description: listing.description,
+                    price: parseFloat(listing.price),
+                    category: listing.category,
+                    brand: listing.brand,
+                    image: listing.image_url,
+                    condition: listing.condition_status,
+                    seller: listing.seller_name,
+                    dateAdded: new Date(listing.created_at),
+                    rating: 0, // You can add rating system later
+                    ratingCount: 0,
                     isSaved: false
-                };
+                }));
 
-                this.products.push(product);
+                this.filteredProducts = [...this.products];
+                this.sortProducts('newest');
             }
-
-            // IMPORTANT: Initialize filteredProducts with all products
-            this.filteredProducts = [...this.products];
-
-            // Then sort by newest
-            this.sortProducts('newest');
         } catch (error) {
             console.error('Error fetching products:', error);
         }

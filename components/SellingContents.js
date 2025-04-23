@@ -154,7 +154,7 @@ export default class SellingContents {
     renderCreateTab() {
         const isEditing = this.editingListingId !== null;
         let editingListing = null;
-        
+
         if (isEditing) {
             editingListing = this.listings.find(listing => listing.id === this.editingListingId);
             if (!editingListing) {
@@ -368,8 +368,8 @@ export default class SellingContents {
                                 <input type="file" id="image-upload" multiple accept="image/*" style="display: none;">
                             </div>
                             <div class="image-preview-container" id="image-preview-container">
-                                ${isEditing && editingListing && editingListing.images ? 
-                                    editingListing.images.map(img => `
+                                ${isEditing && editingListing && editingListing.images ?
+                editingListing.images.map(img => `
                                         <div class="image-preview">
                                             <img src="${img}" alt="Product image">
                                             <button type="button" class="remove-image-btn">
@@ -377,7 +377,7 @@ export default class SellingContents {
                                             </button>
                                         </div>
                                     `).join('')
-                                : ''}
+                : ''}
                             </div>
                         </div>
                         
@@ -437,18 +437,18 @@ export default class SellingContents {
         return `
             <div class="listings-grid">
                 ${this.listings.map(listing => {
-                    const dateAdded = new Date(listing.dateAdded);
-                    const formattedDate = dateAdded.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    });
+            const dateAdded = new Date(listing.dateAdded);
+            const formattedDate = dateAdded.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
 
-                    const statusBadge = listing.status === 'draft'
-                        ? `<div class="listing-status draft">Draft</div>`
-                        : `<div class="listing-status active">Active</div>`;
+            const statusBadge = listing.status === 'draft'
+                ? `<div class="listing-status draft">Draft</div>`
+                : `<div class="listing-status active">Active</div>`;
 
-                    return `
+            return `
                         <div class="listing-card" data-id="${listing.id}">
                             <div class="listing-image">
                                 <img src="${listing.images[0]}" alt="${listing.title}">
@@ -461,8 +461,8 @@ export default class SellingContents {
                             <div class="listing-info">
                                 <h3 class="listing-title">${listing.title}</h3>
                                 <p class="listing-description">${listing.description.length > 52
-                                    ? listing.description.substring(0, 52) + '...'
-                                    : listing.description}</p>
+                    ? listing.description.substring(0, 52) + '...'
+                    : listing.description}</p>
                                 <div class="listing-price">$${listing.price.toFixed(2)}</div>
                                 <div class="listing-date">
                                     <i class='bx bx-calendar'></i>
@@ -481,7 +481,7 @@ export default class SellingContents {
                             </div>
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
     }
@@ -502,14 +502,14 @@ export default class SellingContents {
         return `
             <div class="listings-grid">
                 ${this.soldItems.map(item => {
-                    const dateSold = new Date(item.dateSold);
-                    const formattedDate = dateSold.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    });
+            const dateSold = new Date(item.dateSold);
+            const formattedDate = dateSold.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
 
-                    return `
+            return `
                         <div class="listing-card sold" data-id="${item.id}">
                             <div class="listing-image">
                                 <img src="${item.images[0]}" alt="${item.title}">
@@ -518,8 +518,8 @@ export default class SellingContents {
                             <div class="listing-info">
                                 <h3 class="listing-title">${item.title}</h3>
                                 <p class="listing-description">${item.description.length > 52
-                                    ? item.description.substring(0, 52) + '...'
-                                    : item.description}</p>
+                    ? item.description.substring(0, 52) + '...'
+                    : item.description}</p>
                                 <div class="listing-price">$${item.price.toFixed(2)}</div>
                                 <div class="listing-date">
                                     <i class='bx bx-check-circle'></i>
@@ -534,7 +534,7 @@ export default class SellingContents {
                             </div>
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
     }
@@ -793,89 +793,55 @@ export default class SellingContents {
         inputElement.value = '';
     }
 
-    saveListing(type) {
-        // Get form values
-        const title = document.getElementById('product-title').value;
+    async saveListing(type) {
+        const formData = new FormData();
         
-        // Get category from fancy select
-        const categoryOption = document.querySelector('#category-options .fancy-option.selected');
-        let category = categoryOption ? categoryOption.dataset.value : '';
-        if (category === 'other') {
-            category = document.getElementById('other-category').value;
-        }
-        
-        // Get condition from fancy select
-        const conditionOption = document.querySelector('#condition-options .fancy-option.selected');
-        const condition = conditionOption ? conditionOption.dataset.value : '';
-        
-        const description = document.getElementById('product-description').value;
-        const price = parseFloat(document.getElementById('product-price').value);
-        
-        // Get brand from fancy select
-        const brandOption = document.querySelector('#brand-options .fancy-option.selected');
-        let brand = brandOption ? brandOption.dataset.value : '';
-        if (brand === 'other') {
-            brand = document.getElementById('other-brand').value;
-        }
-        
-        const model = document.getElementById('product-model').value;
+        // Add text data
+        formData.append('title', document.getElementById('product-title').value);
+        formData.append('description', document.getElementById('product-description').value);
+        formData.append('price', document.getElementById('product-price').value);
+        formData.append('category', document.querySelector('#selected-category').textContent);
+        formData.append('brand', document.querySelector('#selected-brand').textContent);
+        formData.append('condition', document.querySelector('#selected-condition').textContent);
+        formData.append('model', document.getElementById('product-model').value);
         
         // Get listing option
         const selectedListingOption = document.querySelector('.listing-option.selected');
         const listingOption = selectedListingOption ? selectedListingOption.dataset.option : 'shipping';
         
-        // Determine shipping and local pickup based on listing option
-        const shipping = listingOption === 'shipping' || listingOption === 'both';
-        const localPickup = listingOption === 'pickup' || listingOption === 'both';
+        formData.append('shipping', listingOption === 'shipping' || listingOption === 'both');
+        formData.append('localPickup', listingOption === 'pickup' || listingOption === 'both');
         
-        // Validate form (basic validation)
-        if (!title || !category || !condition ||
-            !description || isNaN(price) || price <= 0 || !brand || !model) {
-            alert('Please fill in all required fields');
-            return;
+        // Add images
+        const imagePreviews = document.querySelectorAll('#image-preview-container img');
+        for (let i = 0; i < imagePreviews.length; i++) {
+            const img = imagePreviews[i];
+            if (img.src.startsWith('data:')) {
+                // Convert base64 to blob
+                const blob = await fetch(img.src).then(r => r.blob());
+                formData.append('image[]', blob, `image${i}.jpg`);
+            }
         }
-        
-        // Get uploaded image previews
-        const imagePreviews = document.querySelectorAll('#image-preview-container .image-preview img');
-        if (imagePreviews.length === 0) {
-            alert('Please upload at least one image');
-            return;
+
+        try {
+            const response = await fetch('../backend/api/create_listing.php', {
+                method: 'POST',
+                body: formData // Don't set Content-Type header, let browser set it with boundary
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert('Listing created successfully!');
+                this.activeTab = 'active';
+                await this.loadListings();
+                this.render();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error creating listing:', error);
+            alert('Error creating listing. Please try again.');
         }
-        
-        // Use the actual uploaded images instead of placeholders
-        const images = [];
-        imagePreviews.forEach(img => {
-            images.push(img.src); // Store the data URL of the uploaded image
-        });
-        
-        // Create a new listing object
-        const newListing = {
-            id: Date.now(), // Use timestamp as ID
-            title,
-            description,
-            price,
-            category,
-            condition,
-            brand,
-            model,
-            images,
-            shipping,
-            localPickup,
-            dateAdded: new Date().toISOString(),
-            views: 0, // Start with 0 views
-            status: type === 'publish' ? 'active' : 'draft'
-        };
-        
-        // Add to listings and save to localStorage
-        this.listings.push(newListing);
-        localStorage.setItem('activeListings', JSON.stringify(this.listings));
-        
-        // Show confirmation and reset form
-        alert(type === 'publish' ? 'Listing published successfully!' : 'Listing saved as draft');
-        
-        // Switch to active listings tab
-        this.activeTab = 'active';
-        this.render();
     }
 
     editListing(listingId) {
@@ -888,52 +854,52 @@ export default class SellingContents {
         // Find the listing index
         const index = this.listings.findIndex(item => item.id === listingId);
         if (index === -1) return;
-        
+
         // Get form values (similar to saveListing)
         const title = document.getElementById('product-title').value;
-        
+
         // Get category from fancy select
         const categoryOption = document.querySelector('#category-options .fancy-option.selected');
         let category = categoryOption ? categoryOption.dataset.value : '';
         if (category === 'other') {
             category = document.getElementById('other-category').value;
         }
-        
+
         // Get condition from fancy select
         const conditionOption = document.querySelector('#condition-options .fancy-option.selected');
         const condition = conditionOption ? conditionOption.dataset.value : '';
-        
+
         const description = document.getElementById('product-description').value;
         const price = parseFloat(document.getElementById('product-price').value);
-        
+
         // Get brand from fancy select
         const brandOption = document.querySelector('#brand-options .fancy-option.selected');
         let brand = brandOption ? brandOption.dataset.value : '';
         if (brand === 'other') {
             brand = document.getElementById('other-brand').value;
         }
-        
+
         const model = document.getElementById('product-model').value;
-        
+
         // Get listing option
         const selectedListingOption = document.querySelector('.listing-option.selected');
         const listingOption = selectedListingOption ? selectedListingOption.dataset.option : 'shipping';
-        
+
         // Determine shipping and local pickup based on listing option
         const shipping = listingOption === 'shipping' || listingOption === 'both';
         const localPickup = listingOption === 'pickup' || listingOption === 'both';
-        
+
         // Basic validation
         if (!title || !category || !condition ||
             !description || isNaN(price) || price <= 0 || !brand || !model) {
             alert('Please fill in all required fields');
             return;
         }
-        
+
         // Get the current images from the preview container
         const imagePreviews = document.querySelectorAll('#image-preview-container .image-preview img');
         const images = Array.from(imagePreviews).map(img => img.src);
-        
+
         // Update the listing (keep ID and view count)
         this.listings[index] = {
             ...this.listings[index], // Keep original properties
@@ -949,13 +915,13 @@ export default class SellingContents {
             images, // Use the updated images
             status: asDraft ? 'draft' : 'active'
         };
-        
+
         // Save to localStorage
         localStorage.setItem('activeListings', JSON.stringify(this.listings));
-        
+
         // Show confirmation
         alert('Listing updated successfully!');
-        
+
         // Reset editing state and switch back to active listings tab
         this.editingListingId = null;
         this.activeTab = 'active';
@@ -969,13 +935,13 @@ export default class SellingContents {
             if (index !== -1) {
                 // Remove from listings array
                 this.listings.splice(index, 1);
-                
+
                 // Update localStorage
                 localStorage.setItem('activeListings', JSON.stringify(this.listings));
-                
+
                 // Re-render the active listings tab
                 this.render();
-                
+
                 // Show confirmation
                 this.showNotification({
                     id: listingId,
@@ -993,12 +959,12 @@ export default class SellingContents {
             container.className = 'notification-container';
             document.body.appendChild(container);
         }
-        
+
         // Create notification element
         const notification = document.createElement('div');
         notification.className = 'notification fade-in';
         notification.dataset.id = listing.id;
-        
+
         notification.innerHTML = `
             <div class="notification-content">
                 <i class='bx bx-check-circle notification-icon'></i>
@@ -1011,15 +977,15 @@ export default class SellingContents {
             </div>
             <div class="notification-progress"></div>
         `;
-        
+
         // Add to container
         container.appendChild(notification);
-        
+
         // Set up auto-dismiss timer
         setTimeout(() => {
             this.removeNotification(listing.id);
         }, 3000);
-        
+
         // Add event listener for close button
         const closeBtn = notification.querySelector('.close-notification-btn');
         if (closeBtn) {
@@ -1034,7 +1000,7 @@ export default class SellingContents {
         if (notification) {
             notification.classList.remove('fade-in');
             notification.classList.add('fade-out');
-            
+
             setTimeout(() => {
                 notification.remove();
             }, 300);
@@ -1063,7 +1029,7 @@ export default class SellingContents {
             'cameras': 'Cameras',
             'accessories': 'Accessories'
         };
-        
+
         return categories[value] || value;
     }
 
@@ -1077,7 +1043,7 @@ export default class SellingContents {
             'jbl': 'JBL',
             'canon': 'Canon'
         };
-        
+
         return brands[value] || value;
     }
 }

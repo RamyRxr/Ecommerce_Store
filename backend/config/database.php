@@ -1,17 +1,23 @@
-
 <?php
-// Database connection configuration
-$host = 'localhost';
-$dbname = 'ecommerce_store'; // Change this to your actual database name
-$username = 'Ramy';       // Change if needed
-$password = 'Ramy2024';           // Change if needed
+class Database {
+    private $host = "localhost";
+    private $db_name = "ecommerce_store";
+    private $username = "Ramy";
+    private $password = "Ramy2024";
+    private $conn = null;
 
-try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $conn->exec("SET NAMES utf8");
-} catch(PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
-    die();
+    public function getConnection() {
+        try {
+            $this->conn = new PDO(
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                $this->username,
+                $this->password
+            );
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch(PDOException $e) {
+            echo "Connection error: " . $e->getMessage();
+        }
+
+        return $this->conn;
+    }
 }
-?>
