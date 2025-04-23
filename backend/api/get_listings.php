@@ -1,46 +1,45 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET");
-header("Content-Type: application/json");
+header('Content-Type: application/json');
+session_start();
 
 require_once '../config/database.php';
-require_once '../utils/functions.php';
-
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    json_response(false, 'Invalid request method');
-}
 
 try {
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 35;
-    $offset = ($page - 1) * $limit;
-    
-    // Get total count
-    $stmt = $conn->query("SELECT COUNT(*) FROM product_listings");
-    $total = $stmt->fetchColumn();
-    
-    // Get listings with user info
-    $stmt = $conn->prepare("
-        SELECT p.*, u.username as seller_name 
-        FROM product_listings p
-        JOIN users u ON p.user_id = u.id
-        ORDER BY p.created_at DESC
-        LIMIT ? OFFSET ?
-    ");
-    
-    $stmt->execute([$limit, $offset]);
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    // Get user ID from session
+    $userId = $_SESSION['user_id'] ?? 1;
+
+    // Fetch active listings with their images
+    $sql = "SELECT p.*, GROUP_CONCAT(pi.image_url) as image_urls 
+            FROM products p 
+            LEFT JOIN product_images pi ON p.id = pi.product_id 
+            WHERE p.seller_id = :seller_id 
+            GROUP BY p.id 
+            ORDER BY p.created_at DESC";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':seller_id', $userId);
+    $stmt->execute();
+
     $listings = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    json_response(true, 'Listings retrieved successfully', [
-        'listings' => $listings,
-        'total' => $total,
-        'page' => $page,
-        'pages' => ceil($total / $limit)
+
+    // Format the data
+    foreach ($listings as &$listing) {
+        $listing['images'] = $listing['image_urls'] ? explode(',', $listing['image_urls']) : [];
+        unset($listing['image_urls']);
+    }
+
+    echo json_encode([
+        'success' => true,
+        'listings' => $listings
     ]);
 
-} catch(PDOException $e) {
-    json_response(false, 'Database error: ' . $e->getMessage());
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 }

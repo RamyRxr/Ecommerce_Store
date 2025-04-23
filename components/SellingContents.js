@@ -16,77 +16,34 @@ export default class SellingContents {
 
     async loadListings() {
         try {
-            // Load active listings from localStorage
-            const activeListingsJson = localStorage.getItem('activeListings');
-            if (activeListingsJson) {
-                this.listings = JSON.parse(activeListingsJson);
+            // Fetch active listings from database
+            const response = await fetch('../backend/api/get_listings.php');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.listings = data.listings.map(listing => ({
+                    id: listing.id,
+                    title: listing.title,
+                    description: listing.description,
+                    price: parseFloat(listing.price),
+                    category: listing.category,
+                    condition: listing.condition,
+                    brand: listing.brand,
+                    model: listing.model,
+                    images: listing.images,
+                    shipping: Boolean(listing.shipping),
+                    localPickup: Boolean(listing.local_pickup),
+                    dateAdded: listing.created_at,
+                    views: parseInt(listing.views) || 0,
+                    status: listing.status
+                }));
             } else {
-                // Demo data if no listings exist
-                this.listings = [
-                    {
-                        id: 1,
-                        title: "iPhone 13 Pro",
-                        description: "Excellent condition iPhone 13 Pro, 256GB storage, graphite color, with original box and accessories.",
-                        price: 799.99,
-                        category: "smartphones",
-                        condition: "Excellent",
-                        brand: "apple",
-                        model: "iPhone 13 Pro",
-                        images: ["../assets/images/products-images/product-2.svg"],
-                        shipping: true,
-                        localPickup: false,
-                        dateAdded: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-                        views: 48,
-                        status: 'active'
-                    },
-                    {
-                        id: 2,
-                        title: "MacBook Pro 16\" 2021",
-                        description: "Like new MacBook Pro 16\" with M1 Pro chip, 16GB RAM, 512GB SSD. Space gray with AppleCare+ until 2024.",
-                        price: 2199.99,
-                        category: "laptops",
-                        condition: "Like New",
-                        brand: "apple",
-                        model: "MacBook Pro 16\" 2021",
-                        images: ["../assets/images/products-images/product-3.svg"],
-                        shipping: true,
-                        localPickup: true,
-                        dateAdded: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-                        views: 76,
-                        status: 'active'
-                    }
-                ];
-                localStorage.setItem('activeListings', JSON.stringify(this.listings));
+                throw new Error(data.message);
             }
 
-            // Load sold items from localStorage
-            const soldItemsJson = localStorage.getItem('soldListings');
-            if (soldItemsJson) {
-                this.soldItems = JSON.parse(soldItemsJson);
-            } else {
-                // Demo data if no sold items exist
-                this.soldItems = [
-                    {
-                        id: 3,
-                        title: "Sony WH-1000XM4",
-                        description: "Noise-cancelling headphones in perfect condition with case and all accessories.",
-                        price: 249.99,
-                        category: "headphones",
-                        condition: "Excellent",
-                        brand: "sony",
-                        model: "WH-1000XM4",
-                        images: ["../assets/images/products-images/product-1.svg"],
-                        shipping: true,
-                        localPickup: false,
-                        dateSold: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-                    }
-                ];
-                localStorage.setItem('soldListings', JSON.stringify(this.soldItems));
-            }
         } catch (error) {
             console.error('Error loading listings:', error);
             this.listings = [];
-            this.soldItems = [];
         }
     }
 
@@ -437,21 +394,25 @@ export default class SellingContents {
         return `
             <div class="listings-grid">
                 ${this.listings.map(listing => {
-            const dateAdded = new Date(listing.dateAdded);
-            const formattedDate = dateAdded.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
+                    const dateAdded = new Date(listing.dateAdded);
+                    const formattedDate = dateAdded.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
 
-            const statusBadge = listing.status === 'draft'
-                ? `<div class="listing-status draft">Draft</div>`
-                : `<div class="listing-status active">Active</div>`;
+                    const statusBadge = listing.status === 'draft'
+                        ? `<div class="listing-status draft">Draft</div>`
+                        : `<div class="listing-status active">Active</div>`;
 
-            return `
+                    const imageUrl = listing.images.length > 0 
+                        ? listing.images[0] 
+                        : '../assets/images/products-images/placeholder.svg';
+
+                    return `
                         <div class="listing-card" data-id="${listing.id}">
                             <div class="listing-image">
-                                <img src="${listing.images[0]}" alt="${listing.title}">
+                                <img src="${imageUrl}" alt="${listing.title}">
                                 ${statusBadge}
                                 <span class="views-count">
                                     <i class='bx bx-show'></i>
@@ -461,9 +422,9 @@ export default class SellingContents {
                             <div class="listing-info">
                                 <h3 class="listing-title">${listing.title}</h3>
                                 <p class="listing-description">${listing.description.length > 52
-                    ? listing.description.substring(0, 52) + '...'
-                    : listing.description}</p>
-                                <div class="listing-price">$${listing.price.toFixed(2)}</div>
+                                    ? listing.description.substring(0, 52) + '...'
+                                    : listing.description}</p>
+                                <div class="listing-price">$${parseFloat(listing.price).toFixed(2)}</div>
                                 <div class="listing-date">
                                     <i class='bx bx-calendar'></i>
                                     Listed on ${formattedDate}
@@ -481,7 +442,7 @@ export default class SellingContents {
                             </div>
                         </div>
                     `;
-        }).join('')}
+                }).join('')}
             </div>
         `;
     }
@@ -502,14 +463,14 @@ export default class SellingContents {
         return `
             <div class="listings-grid">
                 ${this.soldItems.map(item => {
-            const dateSold = new Date(item.dateSold);
-            const formattedDate = dateSold.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
+                    const dateSold = new Date(item.dateSold);
+                    const formattedDate = dateSold.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
 
-            return `
+                    return `
                         <div class="listing-card sold" data-id="${item.id}">
                             <div class="listing-image">
                                 <img src="${item.images[0]}" alt="${item.title}">
@@ -534,7 +495,7 @@ export default class SellingContents {
                             </div>
                         </div>
                     `;
-        }).join('')}
+                }).join('')}
             </div>
         `;
     }

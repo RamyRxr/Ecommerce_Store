@@ -21,9 +21,9 @@ try {
     $model = $_POST['model'] ?? '';
     $shipping = isset($_POST['shipping']) ? filter_var($_POST['shipping'], FILTER_VALIDATE_BOOLEAN) : true;
     $localPickup = isset($_POST['localPickup']) ? filter_var($_POST['localPickup'], FILTER_VALIDATE_BOOLEAN) : false;
-    
+
     // Validate required fields
-    if (empty($title) || empty($description) || $price <= 0 || empty($category) || empty($brand) || empty($condition)) {
+    if (empty($title) || empty($description) || $price <= 0 || empty($category) || empty($brand)) {
         throw new Exception("Missing required fields");
     }
 
@@ -31,23 +31,13 @@ try {
     $imageUrls = [];
     if (isset($_FILES['image'])) {
         $files = $_FILES['image'];
-        
-        // Reorganize files array if multiple files
-        $fileCount = is_array($files['name']) ? count($files['name']) : 1;
-        
-        for ($i = 0; $i < $fileCount; $i++) {
-            $fileName = $files['name'][$i] ?? $files['name'];
-            $fileType = $files['type'][$i] ?? $files['type'];
-            $fileTmp = $files['tmp_name'][$i] ?? $files['tmp_name'];
-            $fileError = $files['error'][$i] ?? $files['error'];
-            
-            if ($fileError === UPLOAD_ERR_OK) {
-                $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-                $newFileName = uniqid() . '.' . $extension;
-                $destination = $uploadDir . $newFileName;
+        foreach ($files['tmp_name'] as $key => $tmp_name) {
+            if ($files['error'][$key] === UPLOAD_ERR_OK) {
+                $filename = uniqid() . '_' . basename($files['name'][$key]);
+                $destination = $uploadDir . $filename;
                 
-                if (move_uploaded_file($fileTmp, $destination)) {
-                    $imageUrls[] = 'backend/uploads/products/' . $newFileName;
+                if (move_uploaded_file($tmp_name, $destination)) {
+                    $imageUrls[] = 'backend/uploads/products/' . $filename;
                 }
             }
         }
@@ -56,7 +46,7 @@ try {
     // Connect to database
     $db = new Database();
     $conn = $db->getConnection();
-
+    
     // Begin transaction
     $conn->beginTransaction();
 
@@ -108,21 +98,17 @@ try {
     // Commit transaction
     $conn->commit();
 
-    // Return success response
     echo json_encode([
         'success' => true,
         'message' => 'Listing created successfully',
-        'productId' => $productId,
-        'imageUrls' => $imageUrls
+        'productId' => $productId
     ]);
 
 } catch (Exception $e) {
-    // Rollback transaction on error
     if (isset($conn)) {
         $conn->rollBack();
     }
     
-    // Return error response
     http_response_code(500);
     echo json_encode([
         'success' => false,
