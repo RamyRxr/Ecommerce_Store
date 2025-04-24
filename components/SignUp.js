@@ -461,31 +461,31 @@ export default class SignUp {
         formData.append('last_name', document.getElementById('lastName').value);
         formData.append('phone', document.getElementById('phoneNumber').value);
 
-        // Fix the API endpoint path - removing auth/ subfolder if it doesn't exist
-        fetch('http://localhost/Project-Web/backend/api/register.php', {
+        fetch('../backend/api/register.php', {
             method: 'POST',
             body: formData
         })
         .then(response => {
-            // Check if the response is successful before parsing as JSON
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Registration failed');
+                });
             }
             return response.json();
         })
         .then(data => {
             if (data.success) {
-                // Show success message or redirect
+                // Show success message
+                alert('Registration successful! Please log in.');
+                // Redirect to login page
                 window.location.href = './login.html?registered=true';
             } else {
-                this.showError(data.message || 'Registration failed');
-                signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
-                signupBtn.disabled = false;
+                throw new Error(data.message || 'Registration failed');
             }
         })
         .catch(error => {
             console.error('Registration error:', error);
-            this.showError('Connection error. Please try again.');
+            this.showError(error.message || 'Registration failed. Please try again.');
             signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
             signupBtn.disabled = false;
         });
