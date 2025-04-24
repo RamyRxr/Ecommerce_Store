@@ -16,8 +16,18 @@ export default class SellingContents {
 
     async loadListings() {
         try {
+            // Check if user is logged in
+            const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+            if (!userData) {
+                throw new Error('User not logged in');
+            }
+
             // Fetch active listings from database
             const response = await fetch('../backend/api/get_listings.php');
+            if (!response.ok) {
+                throw new Error('Failed to fetch listings');
+            }
+
             const data = await response.json();
             
             if (data.success) {
@@ -44,6 +54,11 @@ export default class SellingContents {
         } catch (error) {
             console.error('Error loading listings:', error);
             this.listings = [];
+            
+            // If user is not logged in, redirect to login page
+            if (error.message === 'User not logged in') {
+                window.location.href = './login.html';
+            }
         }
     }
 

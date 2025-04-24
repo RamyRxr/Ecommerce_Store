@@ -70,13 +70,20 @@ try {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (password_verify($password, $user['password'])) {
-        unset($user['password']);
-        $_SESSION['user'] = $user;
+        // Set up session data
+        $_SESSION['user'] = [
+            'id' => $user['id'],
+            'username' => $user['username'],
+            'email' => $user['email'],
+            'first_name' => $user['first_name'],
+            'last_name' => $user['last_name']
+        ];
         
+        // Return success response
         echo json_encode([
             'success' => true,
             'message' => 'Login successful',
-            'data' => $user
+            'data' => $_SESSION['user']
         ]);
     } else {
         echo json_encode([

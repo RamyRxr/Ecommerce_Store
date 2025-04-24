@@ -5,35 +5,37 @@ session_start();
 require_once '../config/database.php';
 
 try {
-    if (!isset($_POST['listing_id'])) {
+    // Check if user is logged in
+    if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
+        throw new Exception('User not logged in');
+    }
+
+    $userId = $_SESSION['user']['id'];
+    $listingId = $_POST['listing_id'] ?? null;
+
+    if (!$listingId) {
         throw new Exception('Listing ID is required');
     }
 
     $db = new Database();
     $conn = $db->getConnection();
-    
-    // Get user ID from session
-    $userId = $_SESSION['user_id'] ?? 1;
-    $listingId = $_POST['listing_id'];
 
-    // Start transaction
-    $conn->beginTransaction();
+    // First check if the listing belongs to the user
+    $checkSql = "SELECT id FROM products WHERE id = :listing_id AND seller_id = :seller_id";
+    $checkStmt = $conn->prepare($checkSql);
+    $checkStmt->bindParam(':listing_id', $listingId);
+    $checkStmt->bindParam(':seller_id', $userId);
+    $checkStmt->execute();
 
-    // Delete images first
-    $sql = "DELETE FROM product_images WHERE product_id = :listing_id";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':listing_id', $listingId);
-    $stmt->execute();
+    if ($checkStmt->rowCount() === 0) {
+        throw new Exception('Unauthorized access to listing');
+    }
 
     // Delete the listing
-    $sql = "DELETE FROM products WHERE id = :listing_id AND seller_id = :seller_id";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':listing_id', $listingId);
-    $stmt->bindParam(':seller_id', $userId);
-    $stmt->execute();
-
-    // Commit transaction
-    $conn->commit();
+    $deleteSql = "DELETE FROM products WHERE id = :listing_id";
+    $deleteStmt = $conn->prepare($deleteSql);
+    $deleteStmt->bindParam(':listing_id', $listingId);
+    $deleteStmt->execute();
 
     echo json_encode([
         'success' => true,
@@ -41,10 +43,6 @@ try {
     ]);
 
 } catch (Exception $e) {
-    if (isset($conn)) {
-        $conn->rollBack();
-    }
-    
     http_response_code(500);
     echo json_encode([
         'success' => false,

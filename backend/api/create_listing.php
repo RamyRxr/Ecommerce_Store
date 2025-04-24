@@ -5,6 +5,13 @@ session_start();
 require_once '../config/database.php';
 
 try {
+    // Check if user is logged in
+    if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
+        throw new Exception('User not logged in');
+    }
+
+    $userId = $_SESSION['user']['id'];
+
     // Create upload directory if it doesn't exist
     $uploadDir = '../uploads/products/';
     if (!file_exists($uploadDir)) {
@@ -64,7 +71,6 @@ try {
     $stmt = $conn->prepare($sql);
     
     $status = 'active';
-    $sellerId = $_SESSION['user_id'] ?? 1; // Replace with actual user ID from session
 
     $stmt->bindParam(':title', $title);
     $stmt->bindParam(':description', $description);
@@ -76,7 +82,7 @@ try {
     $stmt->bindParam(':shipping', $shipping, PDO::PARAM_BOOL);
     $stmt->bindParam(':local_pickup', $localPickup, PDO::PARAM_BOOL);
     $stmt->bindParam(':status', $status);
-    $stmt->bindParam(':seller_id', $sellerId);
+    $stmt->bindParam(':seller_id', $userId);
 
     $stmt->execute();
     $productId = $conn->lastInsertId();
