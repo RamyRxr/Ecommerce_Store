@@ -6,6 +6,10 @@ function sanitize_input($data) {
     return $data;
 }
 
+function is_valid_email($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
 function json_response($success, $message, $data = null) {
     header('Content-Type: application/json');
     echo json_encode([
@@ -14,8 +18,4 @@ function json_response($success, $message, $data = null) {
         'data' => $data
     ]);
     exit;
-}
-
-function is_valid_email($email) {
-    return filter_var($email, FILTER_VALIDATE_EMAIL);
 }

@@ -1,9 +1,9 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "ecommerce_store";
-    private $username = "Ramy";
-    private $password = "Ramy2024";
+    private $db_name = "ecommerce_store";  // Make sure this matches your database name
+    private $username = "Ramy";            // Default XAMPP username
+    private $password = "Ramy2024";                // Default XAMPP password (empty)
     private $conn = null;
 
     public function getConnection() {
@@ -14,10 +14,10 @@ class Database {
                 $this->password
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            return $this->conn;
         } catch(PDOException $e) {
             echo "Connection error: " . $e->getMessage();
+            return null;
         }
-
-        return $this->conn;
     }
 }

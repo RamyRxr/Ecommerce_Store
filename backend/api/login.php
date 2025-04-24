@@ -1,60 +1,94 @@
 <?php
-// Enable error reporting for debugging (remove in production)
+session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Allow cross-origin requests (important for local development)
+header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// Include database connection and utilities
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 require_once '../config/database.php';
 require_once '../utils/functions.php';
 
-// Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    json_response(false, 'Invalid request method');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid request method'
+    ]);
+    exit();
 }
 
-// Get and sanitize POST data
-$username = isset($_POST['username']) ? sanitize_input($_POST['username']) : '';
-$password = isset($_POST['password']) ? $_POST['password'] : ''; // Don't sanitize password before verification
+// Get raw POST data
+$postData = file_get_contents('php://input');
+$data = json_decode($postData, true);
 
-// Validate input
+if (!$data) {
+    // Try regular POST data
+    $data = $_POST;
+}
+
+$username = isset($data['username']) ? sanitize_input($data['username']) : '';
+$password = isset($data['password']) ? $data['password'] : '';
+
 if (empty($username) || empty($password)) {
-    json_response(false, 'Username and password are required');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Username and password are required'
+    ]);
+    exit();
 }
 
 try {
-    // Check if input is email or username
-    $isEmail = is_valid_email($username);
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    if (!$conn) {
+        throw new Exception('Database connection failed');
+    }
+
+    $isEmail = filter_var($username, FILTER_VALIDATE_EMAIL);
     $field = $isEmail ? 'email' : 'username';
     
-    // Prepare SQL statement
-    $stmt = $conn->prepare("SELECT id, username, email, password, first_name, last_name FROM users WHERE $field = ?");
+    $stmt = $conn->prepare("SELECT * FROM users WHERE {$field} = ?");
     $stmt->execute([$username]);
     
-    // Check if user exists
     if ($stmt->rowCount() === 0) {
-        json_response(false, 'Invalid username or password');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid username or password'
+        ]);
+        exit();
     }
     
-    // Fetch user data
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    // Verify password
     if (password_verify($password, $user['password'])) {
-        // Remove password from user data before sending
         unset($user['password']);
+        $_SESSION['user'] = $user;
         
-        // Return success response with user data
-        json_response(true, 'Login successful', $user);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Login successful',
+            'data' => $user
+        ]);
     } else {
-        json_response(false, 'Invalid username or password');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid username or password'
+        ]);
     }
     
-} catch(PDOException $e) {
-    json_response(false, 'Database error: ' . $e->getMessage());
+} catch(Exception $e) {
+    error_log($e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error occurred'
+    ]);
 }
-?>
