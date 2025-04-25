@@ -40,7 +40,10 @@ export default class SellingContents {
                     condition: listing.condition,
                     brand: listing.brand,
                     model: listing.model,
-                    images: listing.images,
+                    image: listing.images[0] ? `${listing.images[0].includes('uploads/') ? '../' + listing.images[0] : '../backend/uploads/products/' + listing.images[0]}` : '/Project-Web/assets/images/products-images/placeholder.svg',
+                    images: listing.images.map(img =>
+                        `${img.includes('uploads/') ? '../' + img : '../backend/uploads/products/' + img}`
+                    ),
                     shipping: Boolean(listing.shipping),
                     localPickup: Boolean(listing.local_pickup),
                     dateAdded: listing.created_at,
