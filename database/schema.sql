@@ -143,6 +143,22 @@ CREATE TABLE payment_methods (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Create user settings table
+CREATE TABLE user_settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    order_updates BOOLEAN DEFAULT TRUE,
+    promotions BOOLEAN DEFAULT TRUE,
+    newsletter BOOLEAN DEFAULT FALSE,
+    product_updates BOOLEAN DEFAULT TRUE,
+    language VARCHAR(10) DEFAULT 'en',
+    currency VARCHAR(10) DEFAULT 'usd',
+    timezone VARCHAR(50) DEFAULT 'utc',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 
 -- Add indexes for performance
 CREATE INDEX idx_products_category ON products(category);
@@ -154,6 +170,7 @@ CREATE INDEX idx_cart_items_user ON cart_items(user_id);
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_payment_methods_user ON payment_methods(user_id);
+CREATE INDEX idx_user_settings_user ON user_settings(user_id);
 
 
 -- Insert sample user for testing

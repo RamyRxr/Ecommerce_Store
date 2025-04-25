@@ -8,15 +8,38 @@ export default class Settings {
         };
         this.userData = null;
         this.paymentMethods = [];
+        this.generalSettings = null; // Add this
         this.init();
     }
 
     async init() {
         await this.loadUserData();
         await this.loadPaymentMethods();
+        await this.loadGeneralSettings(); // Add this
         this.render();
         this.setupEventListeners();
         this.setupNotificationContainer();
+    }
+
+    // Add this new method
+    async loadGeneralSettings() {
+        try {
+            const response = await fetch('../backend/api/get_general_settings.php');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.generalSettings = data.data;
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error('Error loading general settings:', error);
+            this.showNotification({
+                title: 'Error',
+                message: 'Failed to load settings',
+                type: 'error'
+            });
+        }
     }
 
     async loadUserData() {
@@ -376,6 +399,8 @@ export default class Settings {
     }
 
     renderNotificationsTab() {
+        if (!this.generalSettings) return '<div>Loading...</div>';
+
         return `
             <div class="notification-settings">
                 <div class="settings-section">
@@ -390,8 +415,9 @@ export default class Settings {
                                     <div class="option-description">Receive updates about your orders.</div>
                                 </div>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" id="order-updates" class="toggle-input" checked>
-                                    <label for="order-updates" class="toggle-label"></label>
+                                    <input type="checkbox" id="order_updates" class="toggle-input" 
+                                        ${this.generalSettings.order_updates ? 'checked' : ''}>
+                                    <label for="order_updates" class="toggle-label"></label>
                                 </div>
                             </div>
                             
@@ -401,7 +427,8 @@ export default class Settings {
                                     <div class="option-description">Receive emails about new promotions and deals.</div>
                                 </div>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" id="promotions" class="toggle-input" checked>
+                                    <input type="checkbox" id="promotions" class="toggle-input" 
+                                        ${this.generalSettings.promotions ? 'checked' : ''}>
                                     <label for="promotions" class="toggle-label"></label>
                                 </div>
                             </div>
@@ -412,7 +439,8 @@ export default class Settings {
                                     <div class="option-description">Subscribe to our monthly newsletter.</div>
                                 </div>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" id="newsletter" class="toggle-input">
+                                    <input type="checkbox" id="newsletter" class="toggle-input" 
+                                        ${this.generalSettings.newsletter ? 'checked' : ''}>
                                     <label for="newsletter" class="toggle-label"></label>
                                 </div>
                             </div>
@@ -423,8 +451,9 @@ export default class Settings {
                                     <div class="option-description">Get notified when products you've viewed are on sale.</div>
                                 </div>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" id="product-updates" class="toggle-input" checked>
-                                    <label for="product-updates" class="toggle-label"></label>
+                                    <input type="checkbox" id="product_updates" class="toggle-input" 
+                                        ${this.generalSettings.product_updates ? 'checked' : ''}>
+                                    <label for="product_updates" class="toggle-label"></label>
                                 </div>
                             </div>
                         </div>
@@ -517,6 +546,8 @@ export default class Settings {
     }
 
     renderLanguageTab() {
+        if (!this.generalSettings) return '<div>Loading...</div>';
+
         return `
             <div class="language-settings">
                 <div class="settings-section">
@@ -527,7 +558,7 @@ export default class Settings {
                         <div class="form-group">
                             <label for="language">Language</label>
                             <select id="language" required>
-                                <option value="en" selected>English</option>
+                                <option value="en" ${this.generalSettings.language === 'en' ? 'selected' : ''}>English</option>
                                 <option value="es">Español (Spanish)</option>
                                 <option value="fr">Français (French)</option>
                                 <option value="de">Deutsch (German)</option>
@@ -654,10 +685,22 @@ export default class Settings {
         this.setupFormSubmitHandler('shipping-address-form', 'Shipping address updated');
 
         // Notification preferences form
-        this.setupFormSubmitHandler('notifications-form', 'Notification preferences updated');
+        const notificationsForm = document.getElementById('notifications-form');
+        if (notificationsForm) {
+            notificationsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.saveNotificationSettings(notificationsForm);
+            });
+        }
 
         // Language form
-        this.setupFormSubmitHandler('language-form', 'Language preferences updated');
+        const languageForm = document.getElementById('language-form');
+        if (languageForm) {
+            languageForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.saveLanguageSettings(languageForm);
+            });
+        }
 
         // Password form validation
         const passwordForm = document.getElementById('password-form');
@@ -1693,6 +1736,91 @@ export default class Settings {
             setTimeout(() => {
                 notification.remove();
             }, 300);
+        }
+    }
+
+    async saveNotificationSettings(form) {
+        const formData = new FormData();
+        formData.append('type', 'notifications');
+        
+        // Add checkbox states - check if they're checked
+        const checkboxes = ['order_updates', 'promotions', 'newsletter', 'product_updates'];
+        checkboxes.forEach(id => {
+            const checkbox = form.querySelector(`#${id}`);
+            formData.append(id, checkbox.checked ? '1' : '0');
+        });
+
+        try {
+            const response = await fetch('../backend/api/update_general_settings.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showSuccessAnimation();
+                
+                setTimeout(() => {
+                    this.showNotification({
+                        title: 'Settings updated',
+                        message: 'Notification preferences have been saved',
+                        type: 'success'
+                    });
+                }, 1000);
+
+                await this.loadGeneralSettings(); // Reload settings
+                this.render(); // Update the UI
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.showNotification({
+                title: 'Error',
+                message: error.message || 'Failed to update notification settings',
+                type: 'error'
+            });
+        }
+    }
+
+    async saveLanguageSettings(form) {
+        const formData = new FormData();
+        formData.append('type', 'language');
+        formData.append('language', form.querySelector('#language').value);
+        formData.append('currency', form.querySelector('#currency').value);
+        formData.append('timezone', form.querySelector('#timezone').value);
+
+        try {
+            const response = await fetch('../backend/api/update_general_settings.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showSuccessAnimation();
+                
+                setTimeout(() => {
+                    this.showNotification({
+                        title: 'Settings updated',
+                        message: 'Language and regional preferences have been saved',
+                        type: 'success'
+                    });
+                }, 1000);
+
+                // Reload the settings after successful update
+                await this.loadGeneralSettings();
+                this.render();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.showNotification({
+                title: 'Error',
+                message: error.message || 'Failed to update language settings',
+                type: 'error'
+            });
         }
     }
 }
