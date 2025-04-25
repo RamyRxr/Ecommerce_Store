@@ -13,7 +13,7 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Get user information including shipping address
+    // Get user information from database
     $stmt = $conn->prepare("
         SELECT 
             id,

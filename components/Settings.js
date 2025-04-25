@@ -114,14 +114,23 @@ export default class Settings {
                 <div class="settings-section">
                     <div class="section-header">
                         <h2>Personal Information</h2>
-                        <button type="button" class="edit-button btn-animate" ${this.editMode ? 'style="display: none;"' : ''}>
-                            <i class='bx bx-edit'></i>
-                            Edit
-                        </button>
                     </div>
                     <p>Update your personal details here.</p>
                     
                     <form class="settings-form" id="personal-info-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" 
+                                    id="username" 
+                                    value="${this.userData.username || ''}"
+                                    placeholder="Enter username" 
+                                    required
+                                    ${!this.editMode ? 'disabled' : ''}>
+                                <div class="error-message hidden">This field is required</div>
+                            </div>
+                        </div>
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="first-name">First Name</label>
@@ -168,15 +177,22 @@ export default class Settings {
                             </div>
                         </div>
                         
-                        <div class="form-actions" ${!this.editMode ? 'style="display: none;"' : ''}>
-                            <button type="button" class="cancel-button btn-animate">
-                                <i class='bx bx-x'></i>
-                                Cancel
-                            </button>
-                            <button type="submit" class="save-button btn-animate">
-                                <i class='bx bx-save'></i>
-                                Save Changes
-                            </button>
+                        <div class="form-actions">
+                            ${this.editMode ? `
+                                <button type="button" class="cancel-button btn-animate">
+                                    <i class='bx bx-x'></i>
+                                    Cancel
+                                </button>
+                                <button type="submit" class="save-button btn-animate">
+                                    <i class='bx bx-save'></i>
+                                    Save Changes
+                                </button>
+                            ` : `
+                                <button type="button" class="edit-button btn-animate">
+                                    <i class='bx bx-edit'></i>
+                                    Edit
+                                </button>
+                            `}
                         </div>
                     </form>
                 </div>
@@ -617,7 +633,13 @@ export default class Settings {
     }
 
     async savePersonalInfo() {
+        // Show confirmation dialog
+        if (!confirm('Are you sure you want to save these changes?')) {
+            return;
+        }
+
         const formData = new FormData();
+        formData.append('username', document.getElementById('username').value);
         formData.append('first_name', document.getElementById('first-name').value);
         formData.append('last_name', document.getElementById('last-name').value);
         formData.append('email', document.getElementById('email').value);
@@ -632,11 +654,18 @@ export default class Settings {
             const data = await response.json();
 
             if (data.success) {
-                this.showNotification({
-                    title: 'Success',
-                    message: 'Personal information updated successfully',
-                    type: 'success'
-                });
+                // Show success animation
+                this.showSuccessAnimation();
+                
+                // After animation, show notification
+                setTimeout(() => {
+                    this.showNotification({
+                        title: 'Success',
+                        message: 'Personal information updated successfully',
+                        type: 'success'
+                    });
+                }, 1500);
+
                 this.editMode = false;
                 await this.loadUserData();
                 this.render();
