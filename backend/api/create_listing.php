@@ -44,7 +44,10 @@ try {
                 $destination = $uploadDir . $filename;
                 
                 if (move_uploaded_file($tmp_name, $destination)) {
-                    $imageUrls[] = 'backend/uploads/products/' . $filename;
+                    // Change this line to use the correct path relative to your web root
+                    $imageUrls[] = '../uploads/products/' . $filename;
+                    // or better use absolute path from web root
+                    // $imageUrls[] = '/Project-Web/backend/uploads/products/' . $filename;
                 }
             }
         }

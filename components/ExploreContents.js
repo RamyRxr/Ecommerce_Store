@@ -19,31 +19,49 @@ export default class ExploreContents {
 
     async fetchProducts() {
         try {
-            const response = await fetch('/backend/api/get_listings.php');
+            const response = await fetch('../backend/api/get_all_products.php');
+            if (!response.ok) {
+                throw new Error('Failed to fetch products');
+            }
+
             const data = await response.json();
 
             if (data.success) {
                 this.products = data.data.listings.map(listing => ({
                     id: listing.id,
-                    name: listing.name,
+                    name: listing.title,
                     description: listing.description,
                     price: parseFloat(listing.price),
+                    originalPrice: listing.original_price ? parseFloat(listing.original_price) : null,
                     category: listing.category,
                     brand: listing.brand,
-                    image: listing.image_url,
-                    condition: listing.condition_status,
+                    image: listing.images[0] || '../assets/images/products-images/placeholder.svg',
+                    images: listing.images,
+                    condition: listing.condition,
                     seller: listing.seller_name,
                     dateAdded: new Date(listing.created_at),
-                    rating: 0, // You can add rating system later
-                    ratingCount: 0,
+                    rating: parseFloat(listing.rating) || 0,
+                    ratingCount: parseInt(listing.rating_count) || 0,
                     isSaved: false
                 }));
 
                 this.filteredProducts = [...this.products];
                 this.sortProducts('newest');
+            } else {
+                throw new Error(data.message || 'Failed to load products');
             }
         } catch (error) {
             console.error('Error fetching products:', error);
+            // Show error message to user
+            const productsGrid = document.querySelector('.products-grid');
+            if (productsGrid) {
+                productsGrid.innerHTML = `
+                    <div class="error-message">
+                        <i class='bx bx-error-circle'></i>
+                        <p>Failed to load products. Please try again later.</p>
+                    </div>
+                `;
+            }
         }
     }
 

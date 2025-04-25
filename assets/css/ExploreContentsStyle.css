@@ -1000,3 +1000,43 @@ body.dark-mode .pagination-btn:disabled {
 body.dark-mode .product-card:hover {
     box-shadow: inset 4px 4px 8px 4px rgba(0, 0, 0, 0.2);
 }
+
+.product-condition {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: var(--accent);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.product-seller {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.product-seller i {
+    font-size: 16px;
+}
+
+.error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.error-message i {
+    font-size: 48px;
+    color: var(--accent);
+}
