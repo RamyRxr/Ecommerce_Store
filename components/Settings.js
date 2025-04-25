@@ -810,7 +810,6 @@ export default class Settings {
             const data = await response.json();
 
             if (data.success) {
-                await this.loadPaymentMethods();
                 this.showNotification({
                     title: isEditing ? 'Card updated' : 'Card added',
                     message: data.message,
@@ -823,7 +822,7 @@ export default class Settings {
         } catch (error) {
             this.showNotification({
                 title: 'Error',
-                message: error.message,
+                message: error.message || 'Failed to save payment method',
                 type: 'error'
             });
             return false;
@@ -1104,71 +1103,37 @@ export default class Settings {
             if (e.target === modal) closeModal();
         });
         
-        // Save/update payment method
-        modal.querySelector('.save-payment-btn').addEventListener('click', e => {
+        // Update the save button click handler
+        modal.querySelector('.save-payment-btn').addEventListener('click', async (e) => {
             const form = modal.querySelector('#payment-form');
             if (this.validateForm(form)) {
-                const cardType = form.querySelector('#card-type').value;
-                const cardNumber = form.querySelector('#card-number').value;
-                const expiryMonth = form.querySelector('#expiry-month').value;
-                const expiryYear = form.querySelector('#expiry-year').value;
-                const cardHolder = form.querySelector('#card-holder').value;
+                const formData = new FormData();
+                formData.append('action', isEditing ? 'update' : 'add');
+                formData.append('card_type', form.querySelector('#card-type').value);
+                formData.append('card_number', form.querySelector('#card-number').value);
+                formData.append('expiry_month', form.querySelector('#expiry-month').value);
+                formData.append('expiry_year', form.querySelector('#expiry-year').value);
+                formData.append('card_holder', form.querySelector('#card-holder').value);
                 
-                // Extract last 4 digits of card number or use existing
-                const last4 = isEditing ? cardData.last4 : cardNumber.replace(/\D/g, '').slice(-4);
-                
+                if (isEditing) {
+                    formData.append('payment_id', cardData.id);
+                }
+
                 this.animateSaveButton(e.target);
-                this.showSuccessAnimation();
                 
-                setTimeout(() => {
-                    if (isEditing) {
-                        // Update existing card
-                        const index = this.paymentMethods.findIndex(method => method.id === cardData.id);
-                        if (index !== -1) {
-                            this.paymentMethods[index] = {
-                                ...cardData,
-                                type: cardType,
-                                expiryMonth,
-                                expiryYear,
-                                cardHolder
-                            };
-                        }
-                        
-                        this.showNotification({
-                            title: 'Card updated',
-                            message: 'Your payment method has been updated successfully.',
-                            type: 'success'
-                        });
-                    } else {
-                        // Add new card
-                        const newId = this.paymentMethods.length > 0 
-                            ? Math.max(...this.paymentMethods.map(m => m.id)) + 1 
-                            : 1;
-                            
-                        this.paymentMethods.push({
-                            id: newId,
-                            type: cardType,
-                            last4,
-                            expiryMonth,
-                            expiryYear,
-                            cardHolder
-                        });
-                        
-                        this.showNotification({
-                            title: 'Card added',
-                            message: 'Your payment method has been added successfully.',
-                            type: 'success'
-                        });
-                    }
-                    
+                const success = await this.savePaymentMethod(formData, isEditing);
+                
+                if (success) {
+                    this.showSuccessAnimation();
                     closeModal();
+                    await this.loadPaymentMethods(); // Reload payment methods
                     this.render();
                     this.setupTabSpecificEventListeners();
-                }, 1000);
+                }
             }
         });
     }
-
+    
     showPasswordResetContainer() {
         // Create container for reset password interface
         const modal = document.createElement('div');

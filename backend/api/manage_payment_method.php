@@ -16,6 +16,18 @@ try {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
+        // Validate required fields
+        if (empty($_POST['card_type']) || empty($_POST['card_number']) || 
+            empty($_POST['expiry_month']) || empty($_POST['expiry_year']) || 
+            empty($_POST['card_holder'])) {
+            throw new Exception('All fields are required');
+        }
+
+        // Get last 4 digits of card number
+        $cardNumber = preg_replace('/\D/', '', $_POST['card_number']);
+        $last_four = substr($cardNumber, -4);
+
+        // Insert new payment method
         $stmt = $conn->prepare("
             INSERT INTO payment_methods (
                 user_id, card_type, last_four, 
@@ -26,7 +38,7 @@ try {
         $stmt->execute([
             $userId,
             $_POST['card_type'],
-            $_POST['last_four'],
+            $last_four,
             $_POST['expiry_month'],
             $_POST['expiry_year'],
             $_POST['card_holder']
@@ -40,20 +52,11 @@ try {
             'data' => ['id' => $newId]
         ]);
 
-    } elseif ($action === 'delete') {
-        $stmt = $conn->prepare("
-            DELETE FROM payment_methods 
-            WHERE id = ? AND user_id = ?
-        ");
-
-        $stmt->execute([$_POST['payment_id'], $userId]);
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Payment method deleted successfully'
-        ]);
-
     } elseif ($action === 'update') {
+        if (!isset($_POST['payment_id'])) {
+            throw new Exception('Payment method ID is required');
+        }
+
         $stmt = $conn->prepare("
             UPDATE payment_methods 
             SET card_type = ?,
@@ -75,6 +78,23 @@ try {
         echo json_encode([
             'success' => true,
             'message' => 'Payment method updated successfully'
+        ]);
+
+    } elseif ($action === 'delete') {
+        if (!isset($_POST['payment_id'])) {
+            throw new Exception('Payment method ID is required');
+        }
+
+        $stmt = $conn->prepare("
+            DELETE FROM payment_methods 
+            WHERE id = ? AND user_id = ?
+        ");
+
+        $stmt->execute([$_POST['payment_id'], $userId]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Payment method deleted successfully'
         ]);
 
     } else {
