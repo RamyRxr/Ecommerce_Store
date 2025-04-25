@@ -35,8 +35,10 @@ export default class ExploreContents {
                     originalPrice: listing.original_price ? parseFloat(listing.original_price) : null,
                     category: listing.category,
                     brand: listing.brand,
-                    image: listing.images[0] || '../assets/images/products-images/placeholder.svg',
-                    images: listing.images,
+                    image: listing.images[0] ? `${listing.images[0].includes('uploads/') ? '../' + listing.images[0] : '../backend/uploads/products/' + listing.images[0]}` : '/Project-Web/assets/images/products-images/placeholder.svg',
+                    images: listing.images.map(img =>
+                        `${img.includes('uploads/') ? '../' + img : '../backend/uploads/products/' + img}`
+                    ),
                     condition: listing.condition,
                     seller: listing.seller_name,
                     dateAdded: new Date(listing.created_at),
@@ -44,6 +46,9 @@ export default class ExploreContents {
                     ratingCount: parseInt(listing.rating_count) || 0,
                     isSaved: false
                 }));
+
+                // Add debug logging
+                console.log('Sample image path:', this.products[0]?.image);
 
                 this.filteredProducts = [...this.products];
                 this.sortProducts('newest');
