@@ -10,72 +10,75 @@ try {
     }
 
     $userId = $_SESSION['user']['id'];
-    
-    // Get POST data
-    $firstName = $_POST['first_name'] ?? '';
-    $lastName = $_POST['last_name'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $phone = $_POST['phone'] ?? '';
-    $address = $_POST['address'] ?? '';
-    $city = $_POST['city'] ?? '';
-    $state = $_POST['state'] ?? '';
-    $zipCode = $_POST['zip_code'] ?? '';
-    $country = $_POST['country'] ?? '';
-
-    // Validate required fields
-    if (empty($firstName) || empty($lastName) || empty($email)) {
-        throw new Exception('Required fields are missing');
-    }
-
-    // Validate email format
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        throw new Exception('Invalid email format');
-    }
-
     $db = new Database();
     $conn = $db->getConnection();
+    
+    $action = $_POST['action'] ?? '';
 
-    // Check if email is already used by another user
-    $stmt = $conn->prepare("
-        SELECT id FROM users 
-        WHERE email = ? AND id != ?
-    ");
-    $stmt->execute([$email, $userId]);
-    if ($stmt->rowCount() > 0) {
-        throw new Exception('Email already in use');
+    if ($action === 'update_personal') {
+        // Validate required fields
+        if (empty($_POST['username']) || empty($_POST['first_name']) || 
+            empty($_POST['last_name']) || empty($_POST['email'])) {
+            throw new Exception('Required fields are missing');
+        }
+
+        // Check if email is already used by another user
+        $stmt = $conn->prepare("
+            SELECT id FROM users 
+            WHERE email = ? AND id != ?
+        ");
+        $stmt->execute([$_POST['email'], $userId]);
+        if ($stmt->rowCount() > 0) {
+            throw new Exception('Email already in use');
+        }
+
+        // Update personal information
+        $stmt = $conn->prepare("
+            UPDATE users 
+            SET username = ?,
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                phone = ?
+            WHERE id = ?
+        ");
+
+        $stmt->execute([
+            $_POST['username'],
+            $_POST['first_name'],
+            $_POST['last_name'],
+            $_POST['email'],
+            $_POST['phone'] ?? '',
+            $userId
+        ]);
+
+    } elseif ($action === 'update_shipping') {
+        // Update shipping address
+        $stmt = $conn->prepare("
+            UPDATE users 
+            SET address = ?,
+                city = ?,
+                state = ?,
+                zip_code = ?,
+                country = ?
+            WHERE id = ?
+        ");
+
+        $stmt->execute([
+            $_POST['address'] ?? '',
+            $_POST['city'] ?? '',
+            $_POST['state'] ?? '',
+            $_POST['zip_code'] ?? '',
+            $_POST['country'] ?? '',
+            $userId
+        ]);
+    } else {
+        throw new Exception('Invalid action');
     }
-
-    // Update user information
-    $stmt = $conn->prepare("
-        UPDATE users SET 
-            first_name = ?,
-            last_name = ?,
-            email = ?,
-            phone = ?,
-            address = ?,
-            city = ?,
-            state = ?,
-            zip_code = ?,
-            country = ?
-        WHERE id = ?
-    ");
-
-    $stmt->execute([
-        $firstName,
-        $lastName,
-        $email,
-        $phone,
-        $address,
-        $city,
-        $state,
-        $zipCode,
-        $country,
-        $userId
-    ]);
 
     echo json_encode([
         'success' => true,
-        'message' => 'Account updated successfully'
+        'message' => 'Update successful'
     ]);
 
 } catch (Exception $e) {

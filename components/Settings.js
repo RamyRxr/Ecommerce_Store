@@ -2,6 +2,10 @@ export default class Settings {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.activeTab = 'account';
+        this.editModes = {
+            personalInfo: false,
+            shippingAddress: false
+        };
         this.editMode = false;
         this.userData = null;
         this.paymentMethods = [
@@ -112,6 +116,7 @@ export default class Settings {
         return `
             <div class="account-settings">
                 <div class="settings-section">
+                    <!-- Personal Information Section -->
                     <div class="section-header">
                         <h2>Personal Information</h2>
                     </div>
@@ -126,7 +131,7 @@ export default class Settings {
                                     value="${this.userData.username || ''}"
                                     placeholder="Enter username" 
                                     required
-                                    ${!this.editMode ? 'disabled' : ''}>
+                                    ${!this.editModes.personalInfo ? 'disabled' : ''}>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                         </div>
@@ -139,7 +144,7 @@ export default class Settings {
                                     value="${this.userData.first_name || ''}"
                                     placeholder="Enter first name" 
                                     required
-                                    ${!this.editMode ? 'disabled' : ''}>
+                                    ${!this.editModes.personalInfo ? 'disabled' : ''}>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">
@@ -149,7 +154,7 @@ export default class Settings {
                                     value="${this.userData.last_name || ''}"
                                     placeholder="Enter last name" 
                                     required
-                                    ${!this.editMode ? 'disabled' : ''}>
+                                    ${!this.editModes.personalInfo ? 'disabled' : ''}>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                         </div>
@@ -162,7 +167,7 @@ export default class Settings {
                                     value="${this.userData.email || ''}"
                                     placeholder="Enter email address" 
                                     required
-                                    ${!this.editMode ? 'disabled' : ''}>
+                                    ${!this.editModes.personalInfo ? 'disabled' : ''}>
                                 <div class="error-message hidden">Please enter a valid email address</div>
                             </div>
                             <div class="form-group">
@@ -172,13 +177,13 @@ export default class Settings {
                                     value="${this.userData.phone || ''}"
                                     placeholder="Enter phone number" 
                                     required
-                                    ${!this.editMode ? 'disabled' : ''}>
+                                    ${!this.editModes.personalInfo ? 'disabled' : ''}>
                                 <div class="error-message hidden">Please enter a valid phone number</div>
                             </div>
                         </div>
                         
                         <div class="form-actions">
-                            ${this.editMode ? `
+                            ${this.editModes.personalInfo ? `
                                 <button type="button" class="cancel-button btn-animate">
                                     <i class='bx bx-x'></i>
                                     Cancel
@@ -198,12 +203,9 @@ export default class Settings {
                 </div>
 
                 <div class="settings-section">
+                    <!-- Shipping Address Section -->
                     <div class="section-header">
                         <h2>Shipping Address</h2>
-                        <button type="button" class="edit-button btn-animate" ${this.editMode ? 'style="display: none;"' : ''}>
-                            <i class='bx bx-edit'></i>
-                            Edit
-                        </button>
                     </div>
                     <p>Update your shipping information.</p>
                     
@@ -215,7 +217,7 @@ export default class Settings {
                                 value="${this.userData.address || ''}"
                                 placeholder="Enter street address" 
                                 required
-                                ${!this.editMode ? 'disabled' : ''}>
+                                ${!this.editModes.shippingAddress ? 'disabled' : ''}>
                             <div class="error-message hidden">This field is required</div>
                         </div>
                         
@@ -227,7 +229,7 @@ export default class Settings {
                                     value="${this.userData.city || ''}"
                                     placeholder="Enter city" 
                                     required
-                                    ${!this.editMode ? 'disabled' : ''}>
+                                    ${!this.editModes.shippingAddress ? 'disabled' : ''}>
                             <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">
@@ -237,7 +239,7 @@ export default class Settings {
                                     value="${this.userData.state || ''}"
                                     placeholder="Enter state/province" 
                                     required
-                                    ${!this.editMode ? 'disabled' : ''}>
+                                    ${!this.editModes.shippingAddress ? 'disabled' : ''}>
                             <div class="error-message hidden">This field is required</div>
                             </div>
                         </div>
@@ -250,12 +252,12 @@ export default class Settings {
                                     value="${this.userData.zip_code || ''}"
                                     placeholder="Enter ZIP/Postal code" 
                                     required
-                                    ${!this.editMode ? 'disabled' : ''}>
+                                    ${!this.editModes.shippingAddress ? 'disabled' : ''}>
                             <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">
                                 <label for="country">Country</label>
-                                <select id="country" required ${!this.editMode ? 'disabled' : ''}>
+                                <select id="country" required ${!this.editModes.shippingAddress ? 'disabled' : ''}>
                                     <option value="us" ${this.userData.country === 'us' ? 'selected' : ''}>United States</option>
                                     <option value="ca" ${this.userData.country === 'ca' ? 'selected' : ''}>Canada</option>
                                     <option value="uk" ${this.userData.country === 'uk' ? 'selected' : ''}>United Kingdom</option>
@@ -266,15 +268,22 @@ export default class Settings {
                             </div>
                         </div>
                         
-                        <div class="form-actions" ${!this.editMode ? 'style="display: none;"' : ''}>
-                            <button type="button" class="cancel-button btn-animate">
-                                <i class='bx bx-x'></i>
-                                Cancel
-                            </button>
-                            <button type="submit" class="save-button btn-animate">
-                                <i class='bx bx-save'></i>
-                                Save Changes
-                            </button>
+                        <div class="form-actions">
+                            ${this.editModes.shippingAddress ? `
+                                <button type="button" class="cancel-button btn-animate">
+                                    <i class='bx bx-x'></i>
+                                    Cancel
+                                </button>
+                                <button type="submit" class="save-button btn-animate">
+                                    <i class='bx bx-save'></i>
+                                    Save Changes
+                                </button>
+                            ` : `
+                                <button type="button" class="edit-button btn-animate">
+                                    <i class='bx bx-edit'></i>
+                                    Edit
+                                </button>
+                            `}
                         </div>
                     </form>
                 </div>
@@ -542,19 +551,37 @@ export default class Settings {
 
     setupTabSpecificEventListeners() {
         if (this.activeTab === 'account') {
-            // Edit buttons
-            document.querySelectorAll('.edit-button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    this.editMode = true;
+            // Personal Info Edit Button
+            const personalInfoEditBtn = document.querySelector('#personal-info-form .edit-button');
+            if (personalInfoEditBtn) {
+                personalInfoEditBtn.addEventListener('click', () => {
+                    this.editModes.personalInfo = true;
                     this.render();
+                    this.setupTabSpecificEventListeners();
                 });
-            });
+            }
 
-            // Cancel buttons
+            // Shipping Address Edit Button
+            const shippingEditBtn = document.querySelector('#shipping-address-form .edit-button');
+            if (shippingEditBtn) {
+                shippingEditBtn.addEventListener('click', () => {
+                    this.editModes.shippingAddress = true;
+                    this.render();
+                    this.setupTabSpecificEventListeners();
+                });
+            }
+
+            // Cancel Buttons
             document.querySelectorAll('.cancel-button').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    this.editMode = false;
+                    const form = btn.closest('form');
+                    if (form.id === 'personal-info-form') {
+                        this.editModes.personalInfo = false;
+                    } else if (form.id === 'shipping-address-form') {
+                        this.editModes.shippingAddress = false;
+                    }
                     this.render();
+                    this.setupTabSpecificEventListeners();
                 });
             });
 
@@ -633,7 +660,6 @@ export default class Settings {
     }
 
     async savePersonalInfo() {
-        // Show confirmation dialog
         if (!confirm('Are you sure you want to save these changes?')) {
             return;
         }
@@ -644,6 +670,7 @@ export default class Settings {
         formData.append('last_name', document.getElementById('last-name').value);
         formData.append('email', document.getElementById('email').value);
         formData.append('phone', document.getElementById('phone').value);
+        formData.append('action', 'update_personal');
 
         try {
             const response = await fetch('../backend/api/update_account.php', {
@@ -657,7 +684,7 @@ export default class Settings {
                 // Show success animation
                 this.showSuccessAnimation();
                 
-                // After animation, show notification
+                // Show notification
                 setTimeout(() => {
                     this.showNotification({
                         title: 'Success',
@@ -666,9 +693,11 @@ export default class Settings {
                     });
                 }, 1500);
 
-                this.editMode = false;
+                // Reset edit mode and reload data
+                this.editModes.personalInfo = false;
                 await this.loadUserData();
                 this.render();
+                this.setupTabSpecificEventListeners();
             } else {
                 throw new Error(data.message);
             }
@@ -682,12 +711,17 @@ export default class Settings {
     }
 
     async saveShippingAddress() {
+        if (!confirm('Are you sure you want to save these changes?')) {
+            return;
+        }
+
         const formData = new FormData();
         formData.append('address', document.getElementById('street-address').value);
         formData.append('city', document.getElementById('city').value);
         formData.append('state', document.getElementById('state').value);
         formData.append('zip_code', document.getElementById('zip').value);
         formData.append('country', document.getElementById('country').value);
+        formData.append('action', 'update_shipping');
 
         try {
             const response = await fetch('../backend/api/update_account.php', {
@@ -698,14 +732,23 @@ export default class Settings {
             const data = await response.json();
 
             if (data.success) {
-                this.showNotification({
-                    title: 'Success',
-                    message: 'Shipping address updated successfully',
-                    type: 'success'
-                });
-                this.editMode = false;
+                // Show success animation
+                this.showSuccessAnimation();
+                
+                // Show notification
+                setTimeout(() => {
+                    this.showNotification({
+                        title: 'Success',
+                        message: 'Shipping address updated successfully',
+                        type: 'success'
+                    });
+                }, 1500);
+
+                // Reset edit mode and reload data
+                this.editModes.shippingAddress = false;
                 await this.loadUserData();
                 this.render();
+                this.setupTabSpecificEventListeners();
             } else {
                 throw new Error(data.message);
             }
