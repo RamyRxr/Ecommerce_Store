@@ -130,6 +130,18 @@ CREATE TABLE product_listings (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- Create payment methods table
+CREATE TABLE payment_methods (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    card_type VARCHAR(50) NOT NULL,
+    last_four VARCHAR(4) NOT NULL,
+    expiry_month VARCHAR(2) NOT NULL,
+    expiry_year VARCHAR(2) NOT NULL,
+    card_holder VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
 
 -- Add indexes for performance
@@ -141,7 +153,7 @@ CREATE INDEX idx_saved_items_user ON saved_items(user_id);
 CREATE INDEX idx_cart_items_user ON cart_items(user_id);
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
-
+CREATE INDEX idx_payment_methods_user ON payment_methods(user_id);
 
 
 -- Insert sample user for testing

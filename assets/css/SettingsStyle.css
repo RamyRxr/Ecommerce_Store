@@ -1121,6 +1121,41 @@
     100% { transform: scale(1); }
 }
 
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--light-bg);
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: var(--accent);
+    margin-bottom: 15px;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    color: var(--dark-text);
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: var(--muted-text);
+    font-size: 15px;
+    margin-bottom: 20px;
+}
+
+/* Dark mode support */
+body.dark-mode .empty-state {
+    background: var(--dark-bg);
+}
+
+body.dark-mode .empty-state h3 {
+    color: var(--light-text);
+}
+
 /* Update dark mode styles in SettingsStyle.css */
 
 /* Main content container */

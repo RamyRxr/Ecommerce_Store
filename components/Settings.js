@@ -6,17 +6,14 @@ export default class Settings {
             personalInfo: false,
             shippingAddress: false
         };
-        this.editMode = false;
         this.userData = null;
-        this.paymentMethods = [
-            { id: 1, type: 'visa', last4: '4224', expiryMonth: '04', expiryYear: '25', cardHolder: 'John Doe' },
-            { id: 2, type: 'mastercard', last4: '8821', expiryMonth: '12', expiryYear: '24', cardHolder: 'John Doe' }
-        ];
+        this.paymentMethods = [];
         this.init();
     }
 
     async init() {
         await this.loadUserData();
+        await this.loadPaymentMethods();
         this.render();
         this.setupEventListeners();
         this.setupNotificationContainer();
@@ -37,6 +34,26 @@ export default class Settings {
             this.showNotification({
                 title: 'Error',
                 message: 'Failed to load user data',
+                type: 'error'
+            });
+        }
+    }
+
+    async loadPaymentMethods() {
+        try {
+            const response = await fetch('../backend/api/get_payment_methods.php');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.paymentMethods = data.data;
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error('Error loading payment methods:', error);
+            this.showNotification({
+                title: 'Error',
+                message: 'Failed to load payment methods',
                 type: 'error'
             });
         }
@@ -292,6 +309,28 @@ export default class Settings {
     }
 
     renderPaymentTab() {
+        if (this.paymentMethods.length === 0) {
+            return `
+                <div class="payment-settings">
+                    <div class="settings-section">
+                        <h2>Payment Methods</h2>
+                        <p>Manage your payment methods.</p>
+                        
+                        <div class="empty-state">
+                            <i class='bx bx-credit-card-alt'></i>
+                            <h3>No Payment Methods Added</h3>
+                            <p>You haven't added any payment methods yet.</p>
+                        </div>
+                        
+                        <button class="add-payment-method btn-animate">
+                            <i class='bx bx-plus'></i>
+                            Add Payment Method
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
         const paymentCards = this.paymentMethods.map(card => {
             const cardType = card.type;
             const iconClass = cardType === 'visa' ? 'bxl-visa' : 'bxl-mastercard';
@@ -758,6 +797,70 @@ export default class Settings {
                 message: error.message || 'Failed to update shipping address',
                 type: 'error'
             });
+        }
+    }
+
+    async savePaymentMethod(formData, isEditing = false) {
+        try {
+            const response = await fetch('../backend/api/manage_payment_method.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                await this.loadPaymentMethods();
+                this.showNotification({
+                    title: isEditing ? 'Card updated' : 'Card added',
+                    message: data.message,
+                    type: 'success'
+                });
+                return true;
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.showNotification({
+                title: 'Error',
+                message: error.message,
+                type: 'error'
+            });
+            return false;
+        }
+    }
+
+    async deletePaymentMethod(paymentId) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('payment_id', paymentId);
+
+        try {
+            const response = await fetch('../backend/api/manage_payment_method.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                await this.loadPaymentMethods();
+                this.showNotification({
+                    title: 'Payment method removed',
+                    message: data.message,
+                    type: 'success'
+                });
+                return true;
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.showNotification({
+                title: 'Error',
+                message: error.message,
+                type: 'error'
+            });
+            return false;
         }
     }
 
