@@ -12,14 +12,14 @@ try {
     $userId = $_SESSION['user']['id'];
     
     // Get POST data
-    $firstName = $_POST['firstName'] ?? '';
-    $lastName = $_POST['lastName'] ?? '';
+    $firstName = $_POST['first_name'] ?? '';
+    $lastName = $_POST['last_name'] ?? '';
     $email = $_POST['email'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $address = $_POST['address'] ?? '';
     $city = $_POST['city'] ?? '';
     $state = $_POST['state'] ?? '';
-    $zipCode = $_POST['zipCode'] ?? '';
+    $zipCode = $_POST['zip_code'] ?? '';
     $country = $_POST['country'] ?? '';
 
     // Validate required fields
@@ -56,8 +56,7 @@ try {
             city = ?,
             state = ?,
             zip_code = ?,
-            country = ?,
-            updated_at = CURRENT_TIMESTAMP
+            country = ?
         WHERE id = ?
     ");
 

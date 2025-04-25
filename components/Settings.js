@@ -1,19 +1,41 @@
 export default class Settings {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.activeTab = 'account'; // Default tab
+        this.activeTab = 'account';
+        this.editMode = false;
+        this.userData = null;
         this.paymentMethods = [
             { id: 1, type: 'visa', last4: '4224', expiryMonth: '04', expiryYear: '25', cardHolder: 'John Doe' },
             { id: 2, type: 'mastercard', last4: '8821', expiryMonth: '12', expiryYear: '24', cardHolder: 'John Doe' }
         ];
-        this.deletedPaymentMethods = []; // Store deleted methods for undo
         this.init();
     }
 
-    init() {
+    async init() {
+        await this.loadUserData();
         this.render();
         this.setupEventListeners();
         this.setupNotificationContainer();
+    }
+
+    async loadUserData() {
+        try {
+            const response = await fetch('../backend/api/get_user_settings.php');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.userData = data.data.user;
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+            this.showNotification({
+                title: 'Error',
+                message: 'Failed to load user data',
+                type: 'error'
+            });
+        }
     }
 
     setupNotificationContainer() {
@@ -85,22 +107,40 @@ export default class Settings {
     }
 
     renderAccountTab() {
+        if (!this.userData) return '<div>Loading...</div>';
+
         return `
             <div class="account-settings">
                 <div class="settings-section">
-                    <h2>Personal Information</h2>
+                    <div class="section-header">
+                        <h2>Personal Information</h2>
+                        <button type="button" class="edit-button btn-animate" ${this.editMode ? 'style="display: none;"' : ''}>
+                            <i class='bx bx-edit'></i>
+                            Edit
+                        </button>
+                    </div>
                     <p>Update your personal details here.</p>
                     
-                    <form class="settings-form personal-info-form" id="personal-info-form">
+                    <form class="settings-form" id="personal-info-form">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="first-name">First Name</label>
-                                <input type="text" id="first-name" placeholder="Enter first name" required>
+                                <input type="text" 
+                                    id="first-name" 
+                                    value="${this.userData.first_name || ''}"
+                                    placeholder="Enter first name" 
+                                    required
+                                    ${!this.editMode ? 'disabled' : ''}>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">
                                 <label for="last-name">Last Name</label>
-                                <input type="text" id="last-name"  placeholder="Enter last name" required>
+                                <input type="text" 
+                                    id="last-name"  
+                                    value="${this.userData.last_name || ''}"
+                                    placeholder="Enter last name" 
+                                    required
+                                    ${!this.editMode ? 'disabled' : ''}>
                                 <div class="error-message hidden">This field is required</div>
                             </div>
                         </div>
@@ -108,17 +148,31 @@ export default class Settings {
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="email">Email Address</label>
-                                <input type="email" id="email" placeholder="Enter email address" required>
+                                <input type="email" 
+                                    id="email" 
+                                    value="${this.userData.email || ''}"
+                                    placeholder="Enter email address" 
+                                    required
+                                    ${!this.editMode ? 'disabled' : ''}>
                                 <div class="error-message hidden">Please enter a valid email address</div>
                             </div>
                             <div class="form-group">
                                 <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone"  placeholder="Enter phone number" required>
+                                <input type="tel" 
+                                    id="phone"  
+                                    value="${this.userData.phone || ''}"
+                                    placeholder="Enter phone number" 
+                                    required
+                                    ${!this.editMode ? 'disabled' : ''}>
                                 <div class="error-message hidden">Please enter a valid phone number</div>
                             </div>
                         </div>
                         
-                        <div class="form-actions">
+                        <div class="form-actions" ${!this.editMode ? 'style="display: none;"' : ''}>
+                            <button type="button" class="cancel-button btn-animate">
+                                <i class='bx bx-x'></i>
+                                Cancel
+                            </button>
                             <button type="submit" class="save-button btn-animate">
                                 <i class='bx bx-save'></i>
                                 Save Changes
@@ -128,49 +182,79 @@ export default class Settings {
                 </div>
 
                 <div class="settings-section">
-                    <h2>Shipping Address</h2>
+                    <div class="section-header">
+                        <h2>Shipping Address</h2>
+                        <button type="button" class="edit-button btn-animate" ${this.editMode ? 'style="display: none;"' : ''}>
+                            <i class='bx bx-edit'></i>
+                            Edit
+                        </button>
+                    </div>
                     <p>Update your shipping information.</p>
                     
                     <form class="settings-form" id="shipping-address-form">
                         <div class="form-group">
                             <label for="street-address">Street Address</label>
-                            <input type="text" id="street-address" placeholder="Enter street address" required>
+                            <input type="text" 
+                                id="street-address" 
+                                value="${this.userData.address || ''}"
+                                placeholder="Enter street address" 
+                                required
+                                ${!this.editMode ? 'disabled' : ''}>
                             <div class="error-message hidden">This field is required</div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="city">City</label>
-                                <input type="text" id="city" placeholder="Enter city" required>
-                                <div class="error-message hidden">This field is required</div>
+                                <input type="text" 
+                                    id="city" 
+                                    value="${this.userData.city || ''}"
+                                    placeholder="Enter city" 
+                                    required
+                                    ${!this.editMode ? 'disabled' : ''}>
+                            <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">
                                 <label for="state">State/Province</label>
-                                <input type="text" id="state" placeholder="Enter state/province" required>
-                                <div class="error-message hidden">This field is required</div>
+                                <input type="text" 
+                                    id="state" 
+                                    value="${this.userData.state || ''}"
+                                    placeholder="Enter state/province" 
+                                    required
+                                    ${!this.editMode ? 'disabled' : ''}>
+                            <div class="error-message hidden">This field is required</div>
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="zip">ZIP/Postal Code</label>
-                                <input type="text" id="zip" placeholder="Enter ZIP/Postal code" required>
-                                <div class="error-message hidden">This field is required</div>
+                                <input type="text" 
+                                    id="zip" 
+                                    value="${this.userData.zip_code || ''}"
+                                    placeholder="Enter ZIP/Postal code" 
+                                    required
+                                    ${!this.editMode ? 'disabled' : ''}>
+                            <div class="error-message hidden">This field is required</div>
                             </div>
                             <div class="form-group">
                                 <label for="country">Country</label>
-                                <select id="country" required>
-                                    <option value="us" selected>United States</option>
-                                    <option value="ca">Canada</option>
-                                    <option value="uk">United Kingdom</option>
-                                    <option value="au">Australia</option>
-                                    <option value="jp">Japan</option>
+                                <select id="country" required ${!this.editMode ? 'disabled' : ''}>
+                                    <option value="us" ${this.userData.country === 'us' ? 'selected' : ''}>United States</option>
+                                    <option value="ca" ${this.userData.country === 'ca' ? 'selected' : ''}>Canada</option>
+                                    <option value="uk" ${this.userData.country === 'uk' ? 'selected' : ''}>United Kingdom</option>
+                                    <option value="au" ${this.userData.country === 'au' ? 'selected' : ''}>Australia</option>
+                                    <option value="jp" ${this.userData.country === 'jp' ? 'selected' : ''}>Japan</option>
                                 </select>
                                 <div class="error-message hidden">Please select a country</div>
                             </div>
                         </div>
                         
-                        <div class="form-actions">
+                        <div class="form-actions" ${!this.editMode ? 'style="display: none;"' : ''}>
+                            <button type="button" class="cancel-button btn-animate">
+                                <i class='bx bx-x'></i>
+                                Cancel
+                            </button>
                             <button type="submit" class="save-button btn-animate">
                                 <i class='bx bx-save'></i>
                                 Save Changes
@@ -441,6 +525,46 @@ export default class Settings {
     }
 
     setupTabSpecificEventListeners() {
+        if (this.activeTab === 'account') {
+            // Edit buttons
+            document.querySelectorAll('.edit-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    this.editMode = true;
+                    this.render();
+                });
+            });
+
+            // Cancel buttons
+            document.querySelectorAll('.cancel-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    this.editMode = false;
+                    this.render();
+                });
+            });
+
+            // Personal info form submission
+            const personalInfoForm = document.getElementById('personal-info-form');
+            if (personalInfoForm) {
+                personalInfoForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (this.validateForm(personalInfoForm)) {
+                        await this.savePersonalInfo();
+                    }
+                });
+            }
+
+            // Shipping address form submission
+            const shippingForm = document.getElementById('shipping-address-form');
+            if (shippingForm) {
+                shippingForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (this.validateForm(shippingForm)) {
+                        await this.saveShippingAddress();
+                    }
+                });
+            }
+        }
+        
         // Personal information form validation
         this.setupFormSubmitHandler('personal-info-form', 'Personal information updated');
 
@@ -489,6 +613,79 @@ export default class Settings {
         // Payment methods
         if (this.activeTab === 'payment') {
             this.setupPaymentMethodsActions();
+        }
+    }
+
+    async savePersonalInfo() {
+        const formData = new FormData();
+        formData.append('first_name', document.getElementById('first-name').value);
+        formData.append('last_name', document.getElementById('last-name').value);
+        formData.append('email', document.getElementById('email').value);
+        formData.append('phone', document.getElementById('phone').value);
+
+        try {
+            const response = await fetch('../backend/api/update_account.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showNotification({
+                    title: 'Success',
+                    message: 'Personal information updated successfully',
+                    type: 'success'
+                });
+                this.editMode = false;
+                await this.loadUserData();
+                this.render();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.showNotification({
+                title: 'Error',
+                message: error.message || 'Failed to update personal information',
+                type: 'error'
+            });
+        }
+    }
+
+    async saveShippingAddress() {
+        const formData = new FormData();
+        formData.append('address', document.getElementById('street-address').value);
+        formData.append('city', document.getElementById('city').value);
+        formData.append('state', document.getElementById('state').value);
+        formData.append('zip_code', document.getElementById('zip').value);
+        formData.append('country', document.getElementById('country').value);
+
+        try {
+            const response = await fetch('../backend/api/update_account.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showNotification({
+                    title: 'Success',
+                    message: 'Shipping address updated successfully',
+                    type: 'success'
+                });
+                this.editMode = false;
+                await this.loadUserData();
+                this.render();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.showNotification({
+                title: 'Error',
+                message: error.message || 'Failed to update shipping address',
+                type: 'error'
+            });
         }
     }
 

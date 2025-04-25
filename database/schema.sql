@@ -130,34 +130,7 @@ CREATE TABLE product_listings (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Payment Methods table
-CREATE TABLE payment_methods (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    card_type VARCHAR(20) NOT NULL,
-    last_4_digits VARCHAR(4) NOT NULL,
-    expiry_month VARCHAR(2) NOT NULL,
-    expiry_year VARCHAR(2) NOT NULL,
-    card_holder VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
 
--- User Settings table
-CREATE TABLE user_settings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    language VARCHAR(10) DEFAULT 'en',
-    currency VARCHAR(3) DEFAULT 'USD',
-    timezone VARCHAR(50) DEFAULT 'UTC',
-    order_updates BOOLEAN DEFAULT TRUE,
-    promotions BOOLEAN DEFAULT TRUE,
-    newsletter BOOLEAN DEFAULT FALSE,
-    product_updates BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
 
 -- Add indexes for performance
 CREATE INDEX idx_products_category ON products(category);
