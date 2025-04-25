@@ -885,6 +885,7 @@ export default class Settings {
     }
 
     setupPasswordFormHandlers(form) {
+        const currentPassword = form.querySelector('#current-password');
         const newPassword = form.querySelector('#new-password');
         const confirmPassword = form.querySelector('#confirm-password');
         
@@ -907,19 +908,49 @@ export default class Settings {
         }
         
         // Form submission
-        form.addEventListener('submit', e => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (this.validatePasswordForm(form)) {
-                this.animateSaveButton(e.submitter);
-                this.showSuccessAnimation();
-                
-                setTimeout(() => {
-                    this.showNotification({
-                        title: 'Password updated',
-                        message: 'Your password has been changed successfully.',
-                        type: 'success'
+                if (!confirm('Are you sure you want to change your password?')) {
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('current_password', currentPassword.value);
+                formData.append('new_password', newPassword.value);
+
+                try {
+                    const response = await fetch('../backend/api/update_password.php', {
+                        method: 'POST',
+                        body: formData
                     });
-                }, 1000);
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.animateSaveButton(e.submitter);
+                        this.showSuccessAnimation();
+                        
+                        setTimeout(() => {
+                            this.showNotification({
+                                title: 'Password updated',
+                                message: 'Your password has been changed successfully.',
+                                type: 'success'
+                            });
+                        }, 1000);
+
+                        // Clear the form
+                        form.reset();
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    this.showNotification({
+                        title: 'Error',
+                        message: error.message || 'Failed to update password',
+                        type: 'error'
+                    });
+                }
             }
         });
     }
@@ -1492,9 +1523,19 @@ export default class Settings {
         // First validate required fields
         if (!this.validateForm(form)) return false;
         
+        const currentPassword = form.querySelector('#current-password');
         const newPassword = form.querySelector('#new-password');
         const confirmPassword = form.querySelector('#confirm-password');
         let isValid = true;
+        
+        // Current password validation
+        if (!currentPassword.value) {
+            isValid = false;
+            currentPassword.classList.add('error-input');
+            const errorElem = currentPassword.parentElement.nextElementSibling;
+            errorElem.textContent = 'Current password is required';
+            errorElem.classList.remove('hidden');
+        }
         
         // New password validation
         if (newPassword.value.length < 8) {
@@ -1511,6 +1552,15 @@ export default class Settings {
             confirmPassword.classList.add('error-input');
             const errorElem = confirmPassword.parentElement.nextElementSibling;
             errorElem.textContent = 'Passwords do not match';
+            errorElem.classList.remove('hidden');
+        }
+        
+        // Make sure new password is different from current
+        if (currentPassword.value === newPassword.value) {
+            isValid = false;
+            newPassword.classList.add('error-input');
+            const errorElem = newPassword.parentElement.nextElementSibling.nextElementSibling;
+            errorElem.textContent = 'New password must be different from current password';
             errorElem.classList.remove('hidden');
         }
         
