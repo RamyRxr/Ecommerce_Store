@@ -559,37 +559,37 @@ export default class Settings {
                             <label for="language">Language</label>
                             <select id="language" required>
                                 <option value="en" ${this.generalSettings.language === 'en' ? 'selected' : ''}>English</option>
-                                <option value="es">Español (Spanish)</option>
-                                <option value="fr">Français (French)</option>
-                                <option value="de">Deutsch (German)</option>
-                                <option value="ja">日本語 (Japanese)</option>
-                                <option value="zh">中文 (Chinese)</option>
-                                <option value="ar">العربية (Arabic)</option>
+                                <option value="es" ${this.generalSettings.language === 'es' ? 'selected' : ''}>Español (Spanish)</option>
+                                <option value="fr" ${this.generalSettings.language === 'fr' ? 'selected' : ''}>Français (French)</option>
+                                <option value="de" ${this.generalSettings.language === 'de' ? 'selected' : ''}>Deutsch (German)</option>
+                                <option value="ja" ${this.generalSettings.language === 'ja' ? 'selected' : ''}>日本語 (Japanese)</option>
+                                <option value="zh" ${this.generalSettings.language === 'zh' ? 'selected' : ''}>中文 (Chinese)</option>
+                                <option value="ar" ${this.generalSettings.language === 'ar' ? 'selected' : ''}>العربية (Arabic)</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="currency">Currency</label>
                             <select id="currency" required>
-                                <option value="usd" selected>USD ($) - US Dollar</option>
-                                <option value="eur">EUR (€) - Euro</option>
-                                <option value="gbp">GBP (£) - British Pound</option>
-                                <option value="jpy">JPY (¥) - Japanese Yen</option>
-                                <option value="cad">CAD ($) - Canadian Dollar</option>
-                                <option value="aud">AUD ($) - Australian Dollar</option>
+                                <option value="usd" ${this.generalSettings.currency === 'usd' ? 'selected' : ''}>USD ($) - US Dollar</option>
+                                <option value="eur" ${this.generalSettings.currency === 'eur' ? 'selected' : ''}>EUR (€) - Euro</option>
+                                <option value="gbp" ${this.generalSettings.currency === 'gbp' ? 'selected' : ''}>GBP (£) - British Pound</option>
+                                <option value="jpy" ${this.generalSettings.currency === 'jpy' ? 'selected' : ''}>JPY (¥) - Japanese Yen</option>
+                                <option value="cad" ${this.generalSettings.currency === 'cad' ? 'selected' : ''}>CAD ($) - Canadian Dollar</option>
+                                <option value="aud" ${this.generalSettings.currency === 'aud' ? 'selected' : ''}>AUD ($) - Australian Dollar</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="timezone">Time Zone</label>
                             <select id="timezone" required>
-                                <option value="utc" selected>UTC+00:00 - Coordinated Universal Time</option>
-                                <option value="est">UTC-05:00 - Eastern Standard Time</option>
-                                <option value="cst">UTC-06:00 - Central Standard Time</option>
-                                <option value="mst">UTC-07:00 - Mountain Standard Time</option>
-                                <option value="pst">UTC-08:00 - Pacific Standard Time</option>
-                                <option value="cet">UTC+01:00 - Central European Time</option>
-                                <option value="jst">UTC+09:00 - Japan Standard Time</option>
+                                <option value="utc" ${this.generalSettings.timezone === 'utc' ? 'selected' : ''}>UTC+00:00 - Coordinated Universal Time</option>
+                                <option value="est" ${this.generalSettings.timezone === 'est' ? 'selected' : ''}>UTC-05:00 - Eastern Standard Time</option>
+                                <option value="cst" ${this.generalSettings.timezone === 'cst' ? 'selected' : ''}>UTC-06:00 - Central Standard Time</option>
+                                <option value="mst" ${this.generalSettings.timezone === 'mst' ? 'selected' : ''}>UTC-07:00 - Mountain Standard Time</option>
+                                <option value="pst" ${this.generalSettings.timezone === 'pst' ? 'selected' : ''}>UTC-08:00 - Pacific Standard Time</option>
+                                <option value="cet" ${this.generalSettings.timezone === 'cet' ? 'selected' : ''}>UTC+01:00 - Central European Time</option>
+                                <option value="jst" ${this.generalSettings.timezone === 'jst' ? 'selected' : ''}>UTC+09:00 - Japan Standard Time</option>
                             </select>
                         </div>
                         
