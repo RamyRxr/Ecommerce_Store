@@ -603,19 +603,8 @@ export default class ExploreContents {
                 const product = this.products.find(p => p.id === productId);
 
                 if (product) {
-                    product.isSaved = !product.isSaved;
-                    saveBtn.classList.toggle('saved', product.isSaved);
-
-                    if (product.isSaved) {
-                        saveBtn.innerHTML = '<i class="bx bxs-heart"></i>';
-                    } else {
-                        saveBtn.innerHTML = '<i class="bx bx-heart"></i>';
-                    }
-
+                    // Don't update UI immediately, let updateSavedItems handle it
                     this.updateSavedItems(product);
-
-                    // Add this line to immediately update the badge count
-                    document.dispatchEvent(new CustomEvent('updateSavedBadge'));
                 }
             }
         });
@@ -655,6 +644,10 @@ export default class ExploreContents {
     // Add a new method to handle saving items to localStorage
     async updateSavedItems(product) {
         try {
+            // Get current state before making the change
+            const currentSavedState = product.isSaved;
+            const action = currentSavedState ? 'remove' : 'add';
+
             const response = await fetch('../backend/api/saved/add_to_saved.php', {
                 method: 'POST',
                 headers: {
@@ -662,31 +655,51 @@ export default class ExploreContents {
                 },
                 body: JSON.stringify({
                     product_id: product.id,
-                    action: product.isSaved ? 'remove' : 'add'  // Changed this line
+                    action: action
                 })
             });
 
             const data = await response.json();
             
             if (data.success) {
-                // Update local state AFTER successful API call
-                product.isSaved = !product.isSaved;
+                // Only update the state and UI after successful API call
+                product.isSaved = !currentSavedState;
                 
-                // Update UI
+                // Update UI for this specific product card
                 const saveBtn = document.querySelector(`.product-card[data-id="${product.id}"] .save-btn`);
                 if (saveBtn) {
-                    saveBtn.classList.toggle('saved');
-                    saveBtn.innerHTML = `<i class='bx ${product.isSaved ? 'bxs-heart' : 'bx-heart'}'></i>`;
+                    if (!currentSavedState) {
+                        // Adding to saved
+                        saveBtn.classList.add('saved');
+                        saveBtn.innerHTML = '<i class="bx bxs-heart"></i>';
+                    } else {
+                        // Removing from saved
+                        saveBtn.classList.remove('saved');
+                        saveBtn.innerHTML = '<i class="bx bx-heart"></i>';
+                    }
                 }
                 
-                // Update badge
+                // Trigger badge update
                 document.dispatchEvent(new CustomEvent('updateSavedBadge'));
+                
+                // Refresh saved items list if we're on the saved page
+                const savedItemsInstance = window.savedItemsInstance;
+                if (savedItemsInstance) {
+                    savedItemsInstance.loadSavedItems();
+                }
             } else {
-                throw new Error(data.message);
+                throw new Error(data.message || 'Failed to update saved state');
             }
         } catch (error) {
             console.error('Error updating saved items:', error);
-            // Show error message to user
+            // Revert visual state on error
+            product.isSaved = !product.isSaved;
+            const saveBtn = document.querySelector(`.product-card[data-id="${product.id}"] .save-btn`);
+            if (saveBtn) {
+                saveBtn.classList.toggle('saved');
+                saveBtn.innerHTML = `<i class='bx ${product.isSaved ? 'bxs-heart' : 'bx-heart'}'></i>`;
+            }
+            // Show error message
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-toast';
             errorDiv.textContent = error.message || 'Failed to update saved item';
