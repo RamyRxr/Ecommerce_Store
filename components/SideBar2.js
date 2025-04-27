@@ -199,11 +199,15 @@ export default class SideBar2 {
     }
 
     // Add a new method to update saved count
-    updateSavedCount() {
+    async updateSavedCount() {
         try {
-            // Get saved items from localStorage
-            const savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+            // Fetch saved items count from database
+            const response = await fetch('../backend/api/saved/get_saved_items.php');
+            if (!response.ok) throw new Error('Failed to fetch saved items');
 
+            const data = await response.json();
+            const savedItems = data.success ? data.data : [];
+            
             // Update the badge
             const savedBadge = document.querySelector('.saved-badge');
             if (savedBadge) {

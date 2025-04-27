@@ -24,7 +24,7 @@ export default class SavedItems {
     }
 
     async init() {
-        await this.loadSavedItems();
+        await this.loadSavedItems(); // Load items first
         this.render();
         this.setupEventListeners();
     }
@@ -38,7 +38,13 @@ export default class SavedItems {
             
             if (data.success) {
                 this.savedItems = data.data.map(item => ({
-                    ...item,
+                    id: item.id,
+                    name: item.title,
+                    description: item.description,
+                    price: parseFloat(item.price),
+                    originalPrice: item.original_price ? parseFloat(item.original_price) : null,
+                    rating: parseFloat(item.rating || 0),
+                    ratingCount: parseInt(item.rating_count || 0),
                     image: item.images[0] 
                         ? `${item.images[0].includes('uploads/') 
                             ? '../' + item.images[0] 
@@ -51,7 +57,7 @@ export default class SavedItems {
                     )
                 }));
 
-                console.log('Loaded saved items:', this.savedItems); // Debug log
+                console.log('Loaded saved items:', this.savedItems);
             } else {
                 throw new Error(data.message || 'Failed to load saved items');
             }
@@ -396,7 +402,7 @@ export default class SavedItems {
             console.error('Error removing item:', error);
         }
     }
-    
+
     // Update undoRemove method to handle progress intervals
     undoRemove(itemId) {
         // Check if the item exists in deletedItems
