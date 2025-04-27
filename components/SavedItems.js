@@ -440,12 +440,8 @@ export default class SavedItems {
             const data = await response.json();
             if (!data.success) throw new Error(data.message);
 
-            // Update local state after successful API call
-            if (index < this.savedItems.length) {
-                this.savedItems.splice(index, 0, item);
-            } else {
-                this.savedItems.push(item);
-            }
+            // Reload saved items from server instead of manipulating local array
+            await this.loadSavedItems();
 
             // Clean up
             delete this.deletedItems[itemId];
@@ -461,17 +457,11 @@ export default class SavedItems {
                 itemCountElement.textContent = `${this.savedItems.length} items saved`;
             }
 
-            // Re-render if needed
-            if (this.savedItems.length === 1) {
-                this.render();
-            }
-            
             // Update badge
             document.dispatchEvent(new CustomEvent('updateSavedBadge'));
 
         } catch (error) {
             console.error('Error restoring item:', error);
-            // Show error message to user
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-toast';
             errorDiv.textContent = 'Failed to restore item';
