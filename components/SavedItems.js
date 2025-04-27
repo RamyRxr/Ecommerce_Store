@@ -31,49 +31,30 @@ export default class SavedItems {
 
     async loadSavedItems() {
         try {
-            // Get saved items from localStorage
-            const savedItemsJson = localStorage.getItem('savedItems');
+            const response = await fetch('../backend/api/saved/get_saved_items.php');
+            if (!response.ok) throw new Error('Failed to fetch saved items');
+
+            const data = await response.json();
             
-            if (savedItemsJson) {
-                let savedItems = JSON.parse(savedItemsJson);
-                
-                // Ensure all items have the isSaved flag set to true
-                savedItems = savedItems.map(item => ({
+            if (data.success) {
+                this.savedItems = data.data.map(item => ({
                     ...item,
-                    isSaved: true
+                    image: item.images[0] 
+                        ? `${item.images[0].includes('uploads/') 
+                            ? '../' + item.images[0] 
+                            : '../backend/uploads/products/' + item.images[0]}`
+                        : '/Project-Web/assets/images/products-images/placeholder.svg',
+                    images: item.images.map(img =>
+                        `${img.includes('uploads/') 
+                            ? '../' + img 
+                            : '../backend/uploads/products/' + img}`
+                    )
                 }));
-                
-                this.savedItems = savedItems;
+
+                console.log('Loaded saved items:', this.savedItems); // Debug log
             } else {
-                // Demo data if no saved items exist
-                console.log('No saved items found, using demo data');
-                const demoSavedItems = [
-                    {
-                        id: 1,
-                        name: "Sony WH-1000XM5",
-                        description: "Premium noise-cancelling headphones with industry-leading sound quality and battery life.",
-                        price: 349.99,
-                        originalPrice: 399.99,
-                        category: "headphones",
-                        brand: "sony",
-                        rating: 4.8,
-                        ratingCount: 1254,
-                        image: "../assets/images/products-images/product-1.svg",
-                        isSale: true,
-                        isNew: false,
-                        isSaved: true,
-                        dateAdded: new Date().toISOString()
-                    },
-                    // Other demo items...
-                ];
-                
-                this.savedItems = demoSavedItems;
-                localStorage.setItem('savedItems', JSON.stringify(demoSavedItems));
+                throw new Error(data.message || 'Failed to load saved items');
             }
-            
-            // Sort by date added (newest first)
-            this.savedItems.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
-            
         } catch (error) {
             console.error('Error loading saved items:', error);
             this.savedItems = [];
@@ -358,57 +339,64 @@ export default class SavedItems {
     }
 
     // Update the removeItem method
-    removeItem(itemId) {
-        // Find the item in the savedItems array
-        const itemIndex = this.savedItems.findIndex(item => item.id === itemId);
-        if (itemIndex === -1) return;
+    async removeItem(itemId) {
+        try {
+            // Call API to remove item
+            const response = await fetch('../backend/api/saved/add_to_saved.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: itemId,
+                    action: 'remove'
+                })
+            });
 
-        // Store the item for potential undo
-        this.deletedItems[itemId] = {
-            item: this.savedItems[itemIndex],
-            index: itemIndex,
-            timestamp: new Date().getTime() // Add timestamp for notification display
-        };
+            if (!response.ok) throw new Error('Failed to remove item');
 
-        // Remove the item from the savedItems array
-        this.savedItems.splice(itemIndex, 1);
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
 
-        // Update localStorage - make sure to mark as not saved
-        let allSavedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
-        allSavedItems = allSavedItems.filter(item => item.id !== itemId);
-        localStorage.setItem('savedItems', JSON.stringify(allSavedItems));
+            // Find the item in the savedItems array
+            const itemIndex = this.savedItems.findIndex(item => item.id === itemId);
+            if (itemIndex === -1) return;
 
-        // Update the UI first
-        this.updateItemCards();
-        this.updatePagination();
-        
-        // Update item count in header
-        const itemCountElement = document.querySelector('.saved-header p');
-        if (itemCountElement) {
-            itemCountElement.textContent = `${this.savedItems.length} items saved`;
+            // Store the item for potential undo
+            this.deletedItems[itemId] = {
+                item: this.savedItems[itemIndex],
+                index: itemIndex,
+                timestamp: new Date().getTime()
+            };
+
+            // Remove the item from the savedItems array
+            this.savedItems.splice(itemIndex, 1);
+
+            // Update the UI
+            this.updateItemCards();
+            this.updatePagination();
+            
+            // Update item count in header
+            const itemCountElement = document.querySelector('.saved-header p');
+            if (itemCountElement) {
+                itemCountElement.textContent = `${this.savedItems.length} items saved`;
+            }
+
+            // Show notification
+            this.showNotification(itemId);
+
+            // Update saved badge
+            document.dispatchEvent(new CustomEvent('updateSavedBadge'));
+
+            // If no items left, show the empty state
+            if (this.savedItems.length === 0) {
+                this.render();
+            }
+        } catch (error) {
+            console.error('Error removing item:', error);
         }
-
-        // Show notification with timer AFTER UI update
-        this.showNotification(itemId);
-
-        // Set timer for permanent deletion - changed to 5 seconds
-        if (this.deleteTimers[itemId]) {
-            clearTimeout(this.deleteTimers[itemId]);
-        }
-
-        this.deleteTimers[itemId] = setTimeout(() => {
-            this.permanentlyDeleteItem(itemId);
-        }, 5000); // 5 seconds
-
-        // If no items left, show the empty state
-        if (this.savedItems.length === 0) {
-            this.render();
-        }
-        
-        // Dispatch event to update saved badge
-        document.dispatchEvent(new CustomEvent('updateSavedBadge'));
     }
-
+    
     // Update undoRemove method to handle progress intervals
     undoRemove(itemId) {
         // Check if the item exists in deletedItems

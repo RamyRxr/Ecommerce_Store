@@ -70,15 +70,15 @@ export default class ExploreContents {
         }
     }
 
-    initializeSavedStates() {
-        // Get saved items from localStorage
-        const savedItemsJson = localStorage.getItem('savedItems');
+    async initializeSavedStates() {
+        try {
+            const response = await fetch('../backend/api/saved/get_saved_items.php');
+            if (!response.ok) throw new Error('Failed to fetch saved states');
 
-        if (savedItemsJson) {
-            try {
-                const savedItems = JSON.parse(savedItemsJson);
-                const savedIds = savedItems.map(item => item.id);
-
+            const data = await response.json();
+            if (data.success) {
+                const savedIds = data.data.map(item => item.product_id); // Changed from id to product_id
+                
                 // Update isSaved flag for products
                 this.products.forEach(product => {
                     product.isSaved = savedIds.includes(product.id);
@@ -91,10 +91,19 @@ export default class ExploreContents {
                     });
                 }
 
-                console.log(`Initialized ${savedIds.length} saved items states`);
-            } catch (error) {
-                console.error('Error initializing saved states:', error);
+                // Update UI for all saved buttons
+                document.querySelectorAll('.product-card').forEach(card => {
+                    const productId = parseInt(card.dataset.id);
+                    const saveBtn = card.querySelector('.save-btn');
+                    if (saveBtn) {
+                        const isSaved = savedIds.includes(productId);
+                        saveBtn.classList.toggle('saved', isSaved);
+                        saveBtn.innerHTML = `<i class='bx ${isSaved ? 'bxs-heart' : 'bx-heart'}'></i>`;
+                    }
+                });
             }
+        } catch (error) {
+            console.error('Error initializing saved states:', error);
         }
     }
 
@@ -320,7 +329,7 @@ export default class ExploreContents {
         paginatedProducts.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
-            productCard.dataset.productId = product.id; // Add this line
+            productCard.dataset.id = product.id; // Change from productId to id
 
             // Generate stars based on rating
             const fullStars = Math.floor(product.rating);
@@ -644,28 +653,46 @@ export default class ExploreContents {
     }
 
     // Add a new method to handle saving items to localStorage
-    updateSavedItems(product) {
-        // Get current saved items from localStorage
-        let savedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
+    async updateSavedItems(product) {
+        try {
+            const response = await fetch('../backend/api/saved/add_to_saved.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: product.id,
+                    action: product.isSaved ? 'remove' : 'add'  // Changed this line
+                })
+            });
 
-        if (product.isSaved) {
-            // If the product isn't already in saved items, add it
-            if (!savedItems.some(item => item.id === product.id)) {
-                savedItems.push({
-                    ...product,
-                    dateAdded: new Date().toISOString()
-                });
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update local state AFTER successful API call
+                product.isSaved = !product.isSaved;
+                
+                // Update UI
+                const saveBtn = document.querySelector(`.product-card[data-id="${product.id}"] .save-btn`);
+                if (saveBtn) {
+                    saveBtn.classList.toggle('saved');
+                    saveBtn.innerHTML = `<i class='bx ${product.isSaved ? 'bxs-heart' : 'bx-heart'}'></i>`;
+                }
+                
+                // Update badge
+                document.dispatchEvent(new CustomEvent('updateSavedBadge'));
+            } else {
+                throw new Error(data.message);
             }
-        } else {
-            // Remove product from saved items
-            savedItems = savedItems.filter(item => item.id !== product.id);
+        } catch (error) {
+            console.error('Error updating saved items:', error);
+            // Show error message to user
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-toast';
+            errorDiv.textContent = error.message || 'Failed to update saved item';
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
         }
-
-        // Save back to localStorage
-        localStorage.setItem('savedItems', JSON.stringify(savedItems));
-
-        // Dispatch event to update saved badge (add this if it's not already there)
-        document.dispatchEvent(new CustomEvent('updateSavedBadge'));
     }
 
     // Add this method to the ExploreContents class
