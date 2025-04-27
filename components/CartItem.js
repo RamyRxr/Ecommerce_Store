@@ -24,7 +24,20 @@ export default class CartItem2 {
 
             const data = await response.json();
             if (data.success) {
-                this.cartItems = data.data;
+                // Format cart items with proper image paths
+                this.cartItems = data.data.map(item => ({
+                    ...item,
+                    image: item.images[0] 
+                        ? `${item.images[0].includes('uploads/') 
+                            ? '../' + item.images[0] 
+                            : '../backend/uploads/products/' + item.images[0]}`
+                        : '/Project-Web/assets/images/products-images/placeholder.svg',
+                    images: item.images.map(img =>
+                        `${img.includes('uploads/') 
+                            ? '../' + img 
+                            : '../backend/uploads/products/' + img}`
+                    )
+                }));
             } else {
                 throw new Error(data.message || 'Failed to load cart items');
             }
