@@ -171,11 +171,15 @@ export default class SideBar2 {
     }
 
     // Add this method to the SideBar2 class
-    updateCartCount() {
+    async updateCartCount() {
         try {
-            // Get cart items from localStorage
-            const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            // Fetch cart items count from database
+            const response = await fetch('../backend/api/cart/get_cart.php');
+            if (!response.ok) throw new Error('Failed to fetch cart items');
 
+            const data = await response.json();
+            const cartItems = data.success ? data.data : [];
+            
             // Calculate total items
             const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 

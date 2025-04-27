@@ -17,52 +17,44 @@ export default class CartItem2 {
 
     async loadCartItems() {
         try {
-            // Get cart items from localStorage
-            const cartItemsJson = localStorage.getItem('cartItems');
+            const response = await fetch('../backend/api/cart/get_cart.php');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
 
-            if (cartItemsJson) {
-                this.cartItems = JSON.parse(cartItemsJson);
+            const data = await response.json();
+            if (data.success) {
+                this.cartItems = data.data;
             } else {
-                // Demo data if no cart items exist
-                const demoCartItems = [
-                    {
-                        id: 1,
-                        name: "Sony WH-1000XM5",
-                        description: "Premium noise-cancelling headphones with industry-leading sound quality and battery life.",
-                        price: 349.99,
-                        quantity: 1,
-                        color: "Black",
-                        image: "../assets/images/products-images/product-1.svg",
-                        dateAdded: new Date().toISOString()
-                    },
-                    {
-                        id: 2,
-                        name: "iPhone 15 Pro",
-                        description: "Apple's latest flagship smartphone with A17 Pro chip, titanium design and 48MP camera.",
-                        price: 999.99,
-                        quantity: 1,
-                        color: "Titanium Gray",
-                        image: "../assets/images/products-images/product-2.svg",
-                        dateAdded: new Date().toISOString()
-                    },
-                    {
-                        id: 5,
-                        name: "Sony Alpha A7 IV",
-                        description: "Full-frame mirrorless camera with 33MP sensor, 4K60p video and advanced autofocus.",
-                        price: 2499.99,
-                        quantity: 1,
-                        color: "Black",
-                        image: "../assets/images/products-images/product-5.svg",
-                        dateAdded: new Date().toISOString()
-                    }
-                ];
-
-                this.cartItems = demoCartItems;
-                localStorage.setItem('cartItems', JSON.stringify(demoCartItems));
+                throw new Error(data.message || 'Failed to load cart items');
             }
         } catch (error) {
             console.error('Error loading cart items:', error);
             this.cartItems = [];
+            // Optionally show error to user
+            this.showErrorMessage(error.message);
+        }
+   }
+
+    // Add this helper method
+    showErrorMessage(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `
+            <i class='bx bx-error-circle'></i>
+            <span>${message}</span>
+        `;
+        
+        // Remove any existing error message
+        const existingError = document.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add the new error message
+        const cartHeader = document.querySelector('.cart-header');
+        if (cartHeader) {
+            cartHeader.after(errorDiv);
         }
     }
 
@@ -263,61 +255,59 @@ export default class CartItem2 {
         });
     }
 
-    updateItemQuantity(itemId, change) {
-        const itemIndex = this.cartItems.findIndex(item => item.id === itemId);
-        if (itemIndex === -1) return;
+    // Update updateItemQuantity method
+    async updateItemQuantity(itemId, change) {
+        try {
+            const response = await fetch('../backend/api/cart/update_quantity.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    item_id: itemId,
+                    quantity_change: change
+                })
+            });
 
-        // Update quantity but ensure it doesn't go below 1
-        const newQuantity = this.cartItems[itemIndex].quantity + change;
-        if (newQuantity < 1) return;
-
-        this.cartItems[itemIndex].quantity = newQuantity;
-
-        // Update localStorage
-        localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
-
-        // Dispatch event to update cart badge
-        document.dispatchEvent(new CustomEvent('updateCartBadge'));
-
-        // Update the UI
-        this.render();
+            if (!response.ok) throw new Error('Failed to update quantity');
+            
+            const data = await response.json();
+            if (data.success) {
+                await this.loadCartItems();
+                this.render();
+                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            this.showErrorMessage('Failed to update quantity');
+        }
     }
 
-    removeItem(itemId) {
-        // Find the item in the cart
-        const itemIndex = this.cartItems.findIndex(item => item.id === itemId);
-        if (itemIndex === -1) return;
+    // Update removeItem method
+    async removeItem(itemId) {
+        try {
+            const response = await fetch('../backend/api/cart/remove_item.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    item_id: itemId
+                })
+            });
 
-        // Store the item for potential undo
-        this.deletedItems[itemId] = {
-            item: this.cartItems[itemIndex],
-            index: itemIndex,
-            timestamp: new Date().getTime() // Add timestamp for notification display
-        };
+            if (!response.ok) throw new Error('Failed to remove item');
 
-        // Remove the item from the cart
-        this.cartItems.splice(itemIndex, 1);
-
-        // Update localStorage
-        localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
-
-        // Update the UI FIRST
-        this.render();
-
-        // THEN show notification AFTER rendering with its own timer
-        this.showNotification(itemId);
-
-        // Set a timer to permanently delete after 5 seconds
-        if (this.deleteTimers[itemId]) {
-            clearTimeout(this.deleteTimers[itemId]);
+            const data = await response.json();
+            if (data.success) {
+                await this.loadCartItems();
+                this.render();
+                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+            }
+        } catch (error) {
+            console.error('Error removing item:', error);
+            this.showErrorMessage('Failed to remove item');
         }
-
-        this.deleteTimers[itemId] = setTimeout(() => {
-            this.permanentlyDeleteItem(itemId);
-        }, 5000); // 5 seconds
-
-        // Dispatch event to update cart badge
-        document.dispatchEvent(new CustomEvent('updateCartBadge'));
     }
 
     undoRemove(itemId) {
@@ -484,5 +474,33 @@ export default class CartItem2 {
         const container = document.createElement('div');
         container.className = 'notification-container global-notification-container';
         document.body.appendChild(container);
+    }
+
+    async addToCart(product) {
+        try {
+            const response = await fetch('../backend/api/cart/add_to_cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId: product.id,
+                    quantity: 1
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                await this.loadCartItems();
+                this.render();
+                this.showAddedToCartConfirmation(product.id);
+                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+        }
     }
 }

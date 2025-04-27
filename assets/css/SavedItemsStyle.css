@@ -256,9 +256,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    width: 100%;
     height: 410px;
-    cursor: pointer;
 }
 
 .item-card:hover {
@@ -279,12 +277,13 @@
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     transition: transform 0.5s;
-    padding: 10px;
 }
 
 .item-card:hover .item-image img {
+    object-fit: cover;
+    transition: transform 1s;
     transform: scale(1.05);
 }
 

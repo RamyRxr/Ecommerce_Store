@@ -320,7 +320,7 @@ export default class ExploreContents {
         paginatedProducts.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
-            productCard.dataset.id = product.id;
+            productCard.dataset.productId = product.id; // Add this line
 
             // Generate stars based on rating
             const fullStars = Math.floor(product.rating);
@@ -625,6 +625,22 @@ export default class ExploreContents {
                 }
             }
         });
+
+        // Add to cart button click handler
+        const productCards = document.querySelectorAll('.product-card');
+        productCards.forEach(card => {
+            const addToCartBtn = card.querySelector('.add-to-cart-btn');
+            if (addToCartBtn) {
+                addToCartBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const productId = card.dataset.productId;
+                    const product = this.products.find(p => p.id === parseInt(productId));
+                    if (product) {
+                        await this.addToCart(product);
+                    }
+                });
+            }
+        });
     }
 
     // Add a new method to handle saving items to localStorage
@@ -653,37 +669,41 @@ export default class ExploreContents {
     }
 
     // Add this method to the ExploreContents class
-    addToCart(product) {
-        // Get current cart items from localStorage
-        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+    async addToCart(product) {
+        try {
+            const response = await fetch('../backend/api/cart/add_to_cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: product.id,
+                    quantity: 1
+                })
+            });
 
-        // Check if item is already in cart
-        const existingItemIndex = cartItems.findIndex(item => item.id === product.id);
+            const data = await response.json();
 
-        if (existingItemIndex > -1) {
-            // Item already exists, increment quantity
-            cartItems[existingItemIndex].quantity += 1;
-            console.log(`Increased quantity of ${product.name} in cart`);
-        } else {
-            // Add new item to cart with quantity 1
-            const cartItem = {
-                ...product,
-                quantity: 1,
-                color: product.color || "Default", // Add a default color if none exists
-                dateAdded: new Date().toISOString()
-            };
-            cartItems.push(cartItem);
-            console.log(`Added ${product.name} to cart`);
+            if (data.success) {
+                // Show visual confirmation
+                this.showAddedToCartConfirmation(product.id);
+                
+                // Update cart badge
+                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+                
+                console.log(`Added ${product.name} to cart`);
+            } else {
+                throw new Error(data.message || 'Failed to add item to cart');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            // Show error message to user
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-toast';
+            errorDiv.textContent = error.message || 'Failed to add item to cart';
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
         }
-
-        // Save back to localStorage
-        localStorage.setItem('cartItems', JSON.stringify(cartItems));
-
-        // Show visual confirmation
-        this.showAddedToCartConfirmation(product.id);
-
-        // Dispatch event to update cart count
-        document.dispatchEvent(new CustomEvent('updateCartBadge'));
     }
 
     // Visual confirmation when product is added to cart

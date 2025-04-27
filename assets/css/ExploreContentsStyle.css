@@ -377,7 +377,7 @@ body.dark-mode .search-button:hover {
 }
 
 /*** PRODUCT CARD ***/
-/* Update the product card styles to ensure consistent height */
+
 .product-card {
     background-color: var(--light-bg);
     border-radius: 8px;
@@ -387,9 +387,7 @@ body.dark-mode .search-button:hover {
     display: flex;
     flex-direction: column;
     position: relative;
-    /* Width remains at the original size as set in your grid */
     height: 410px;
-    /* Fixed height to ensure consistency */
 }
 
 .product-card:hover {
@@ -400,13 +398,13 @@ body.dark-mode .search-button:hover {
 .product-card:hover .product-image img {
     object-fit: cover;
     transition: transform 1s;
+    transform: scale(1.05);
 }
 
 .product-image {
     position: relative;
     width: 100%;
     height: 215px;
-    /* Fixed height for image section - square */
     overflow: hidden;
 }
 
@@ -418,10 +416,6 @@ body.dark-mode .search-button:hover {
     height: 100%;
     object-fit: cover;
     transition: transform 0.5s;
-}
-
-.product-card:hover .product-image img {
-    transform: scale(1.05);
 }
 
 .save-btn {
@@ -725,7 +719,7 @@ body.dark-mode .reset-search-btn:hover {
 }
 
 body.dark-mode .product-image img {
-    background-color: #1a1a1a; /* Optional: darker background for empty spaces in dark mode */
+    background-color: #1a1a1a; 
 }
 
 /*** PAGINATION ***/
