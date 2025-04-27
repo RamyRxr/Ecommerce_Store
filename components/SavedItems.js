@@ -404,57 +404,80 @@ export default class SavedItems {
     }
 
     // Update undoRemove method to handle progress intervals
-    undoRemove(itemId) {
-        // Check if the item exists in deletedItems
-        if (!this.deletedItems[itemId]) return;
+    async undoRemove(itemId) {
+        try {
+            // Check if the item exists in deletedItems
+            if (!this.deletedItems[itemId]) return;
 
-        // Clear the delete timer
-        if (this.deleteTimers[itemId]) {
-            clearTimeout(this.deleteTimers[itemId]);
-            delete this.deleteTimers[itemId];
-        }
-        
-        // Clear the progress interval if it exists
-        if (this.progressIntervals[itemId]) {
-            clearInterval(this.progressIntervals[itemId]);
-            delete this.progressIntervals[itemId];
-        }
+            // Clear timers and intervals
+            if (this.deleteTimers[itemId]) {
+                clearTimeout(this.deleteTimers[itemId]);
+                delete this.deleteTimers[itemId];
+            }
+            
+            if (this.progressIntervals[itemId]) {
+                clearInterval(this.progressIntervals[itemId]);
+                delete this.progressIntervals[itemId];
+            }
 
-        // Rest of the method stays the same
-        const { item, index } = this.deletedItems[itemId];
+            // Get the deleted item data
+            const { item, index } = this.deletedItems[itemId];
 
-        if (index < this.savedItems.length) {
-            this.savedItems.splice(index, 0, item);
-        } else {
-            this.savedItems.push(item);
-        }
-
-        delete this.deletedItems[itemId];
-
-        let allSavedItems = JSON.parse(localStorage.getItem('savedItems')) || [];
-        if (!allSavedItems.some(savedItem => savedItem.id === item.id)) {
-            allSavedItems.push({
-                ...item,
-                isSaved: true
+            // Call API to re-add item to saved items
+            const response = await fetch('../backend/api/saved/add_to_saved.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: item.id,
+                    action: 'add'
+                })
             });
-        }
-        localStorage.setItem('savedItems', JSON.stringify(allSavedItems));
 
-        this.removeNotification(itemId);
-        this.updateItemCards();
-        this.updatePagination();
-        
-        const itemCountElement = document.querySelector('.saved-header p');
-        if (itemCountElement) {
-            itemCountElement.textContent = `${this.savedItems.length} items saved`;
-        }
+            if (!response.ok) throw new Error('Failed to restore item');
 
-        if (this.savedItems.length === 1) {
-            this.render();
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
+
+            // Update local state after successful API call
+            if (index < this.savedItems.length) {
+                this.savedItems.splice(index, 0, item);
+            } else {
+                this.savedItems.push(item);
+            }
+
+            // Clean up
+            delete this.deletedItems[itemId];
+            this.removeNotification(itemId);
+
+            // Update UI
+            this.updateItemCards();
+            this.updatePagination();
+            
+            // Update count
+            const itemCountElement = document.querySelector('.saved-header p');
+            if (itemCountElement) {
+                itemCountElement.textContent = `${this.savedItems.length} items saved`;
+            }
+
+            // Re-render if needed
+            if (this.savedItems.length === 1) {
+                this.render();
+            }
+            
+            // Update badge
+            document.dispatchEvent(new CustomEvent('updateSavedBadge'));
+
+        } catch (error) {
+            console.error('Error restoring item:', error);
+            // Show error message to user
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-toast';
+            errorDiv.textContent = 'Failed to restore item';
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
         }
-        
-        // Dispatch event to update saved badge
-        document.dispatchEvent(new CustomEvent('updateSavedBadge'));
     }
 
     // Update permanentlyDeleteItem method to clear progress intervals
