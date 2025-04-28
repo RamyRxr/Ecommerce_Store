@@ -475,9 +475,7 @@ export default class SignUp {
         })
         .then(data => {
             if (data.success) {
-                // Show success message
                 alert('Registration successful! Please log in.');
-                // Redirect to login page
                 window.location.href = './login.html?registered=true';
             } else {
                 throw new Error(data.message || 'Registration failed');
