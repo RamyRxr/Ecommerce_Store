@@ -13,7 +13,7 @@ try {
     $userId = $_SESSION['user']['id'];
 
     // Create upload directory if it doesn't exist
-    $uploadDir = '../uploads/products/';
+    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Project-Web/backend/uploads/products/';
     if (!file_exists($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }
@@ -44,10 +44,8 @@ try {
                 $destination = $uploadDir . $filename;
                 
                 if (move_uploaded_file($tmp_name, $destination)) {
-                    // Change this line to use the correct path relative to your web root
-                    $imageUrls[] = '../uploads/products/' . $filename;
-                    // or better use absolute path from web root
-                    // $imageUrls[] = '/Project-Web/backend/uploads/products/' . $filename;
+                    // Store the URL path relative to the Project-Web root
+                    $imageUrls[] = 'backend/uploads/products/' . $filename;
                 }
             }
         }
