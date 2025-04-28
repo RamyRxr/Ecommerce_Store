@@ -288,14 +288,9 @@ export default class ExploreContents {
         const productsGrid = document.querySelector('.products-grid');
         if (!productsGrid) return;
 
-        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-        const endIndex = startIndex + this.itemsPerPage;
-        const paginatedProducts = this.filteredProducts.slice(startIndex, endIndex);
-
         productsGrid.innerHTML = '';
 
         if (this.filteredProducts.length === 0) {
-            // No products found message with fancy styling
             productsGrid.innerHTML = `
                 <div class="no-products">
                     <div class="no-products-icon">
@@ -325,6 +320,10 @@ export default class ExploreContents {
             }
             return;
         }
+
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = startIndex + this.itemsPerPage;
+        const paginatedProducts = this.filteredProducts.slice(startIndex, endIndex);
 
         paginatedProducts.forEach(product => {
             const productCard = document.createElement('div');
@@ -548,9 +547,7 @@ export default class ExploreContents {
 
         // Listen to filter application from sidebar
         document.addEventListener('filtersApplied', (event) => {
-            const { filters, products } = event.detail;
-            // Update products directly from the filtered results
-            this.products = products;
+            const products = event.detail.products;
             this.filteredProducts = products;
             this.currentPage = 1;
             this.updateProductCards();

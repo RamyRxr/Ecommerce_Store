@@ -1,99 +1,83 @@
+
 <?php
 header('Content-Type: application/json');
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-session_start();
-
 require_once '../../config/database.php';
 
 try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Get filter parameters from POST request
+    // Get filter parameters
     $data = json_decode(file_get_contents('php://input'), true);
-    if (!$data) {
-        throw new Exception('Invalid JSON data received');
-    }
     
-    // Extract filter parameters
-    $categories = array_map('strtolower', $data['categories'] ?? []);
-    $brands = array_map('strtolower', $data['brands'] ?? []);
-    $rating = floatval($data['rating'] ?? 0);
-    $minPrice = floatval($data['price']['min'] ?? 0);
-    $maxPrice = $data['price']['max'] !== 'unlimited' ? floatval($data['price']['max']) : null;
-
-    // Build base query
-    $sql = "SELECT p.*, 
-            GROUP_CONCAT(DISTINCT pi.image_url) as image_urls,
-            u.username as seller_name
+    // Start building the query
+    $sql = "SELECT p.*, GROUP_CONCAT(pi.image_url) as images, u.username as seller_name
             FROM products p 
             LEFT JOIN product_images pi ON p.id = pi.product_id 
             LEFT JOIN users u ON p.seller_id = u.id
-            WHERE p.status = 'active'";
+            WHERE 1=1";
     
-    $params = [];
+    $params = array();
 
-    // Add category filter
-    if (!empty($categories)) {
-        $placeholders = str_repeat('?,', count($categories) - 1) . '?';
-        $sql .= " AND LOWER(p.category) IN ($placeholders)";
-        $params = array_merge($params, $categories);
+    // Add filters
+    if (!empty($data['categories'])) {
+        $placeholders = str_repeat('?,', count($data['categories']) - 1) . '?';
+        $sql .= " AND category IN ($placeholders)";
+        $params = array_merge($params, $data['categories']);
     }
 
-    // Add brand filter
-    if (!empty($brands)) {
-        $placeholders = str_repeat('?,', count($brands) - 1) . '?';
-        $sql .= " AND LOWER(p.brand) IN ($placeholders)";
-        $params = array_merge($params, $brands);
+    if (!empty($data['brands'])) {
+        $placeholders = str_repeat('?,', count($data['brands']) - 1) . '?';
+        $sql .= " AND brand IN ($placeholders)";
+        $params = array_merge($params, $data['brands']);
     }
 
-    // Add price filter
-    if ($minPrice > 0) {
-        $sql .= " AND p.price >= ?";
-        $params[] = $minPrice;
+    if (isset($data['price']['min'])) {
+        $sql .= " AND price >= ?";
+        $params[] = $data['price']['min'];
     }
 
-    if ($maxPrice !== null) {
-        $sql .= " AND p.price <= ?";
-        $params[] = $maxPrice;
+    if (isset($data['price']['max']) && $data['price']['max'] !== 'unlimited') {
+        $sql .= " AND price <= ?";
+        $params[] = $data['price']['max'];
     }
 
-    // Add rating filter
-    if ($rating > 0) {
-        $sql .= " AND p.rating >= ?";
-        $params[] = $rating;
+    if (!empty($data['rating'])) {
+        $sql .= " AND rating >= ?";
+        $params[] = $data['rating'];
     }
 
-    // Group by and order
-    $sql .= " GROUP BY p.id ORDER BY p.created_at DESC";
+    $sql .= " GROUP BY p.id";
 
-    // Execute query
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Format products
-    foreach ($products as &$product) {
-        $product['images'] = $product['image_urls'] ? explode(',', $product['image_urls']) : [];
-        unset($product['image_urls']);
-        $product['price'] = floatval($product['price']);
-        $product['rating'] = floatval($product['rating']);
-    }
+    // Format the response
+    $formattedProducts = array_map(function($product) {
+        return [
+            'id' => $product['id'],
+            'title' => $product['title'],
+            'price' => floatval($product['price']),
+            'description' => $product['description'],
+            'images' => $product['images'] ? explode(',', $product['images']) : [],
+            'rating' => floatval($product['rating']),
+            'category' => $product['category'],
+            'brand' => $product['brand'],
+            'seller_name' => $product['seller_name']
+        ];
+    }, $products);
 
     echo json_encode([
         'success' => true,
         'data' => [
-            'listings' => $products,
-            'total' => count($products)
+            'listings' => $formattedProducts
         ]
     ]);
 
 } catch (Exception $e) {
-    error_log($e->getMessage());
-    http_response_code(500);
     echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
+        'success' => false, 
+        'message' => 'Error: ' . $e->getMessage()
     ]);
 }

@@ -263,57 +263,38 @@ export default class FilterSidebar {
         const applyButton = document.getElementById('apply-filters');
         if (applyButton) {
             applyButton.addEventListener('click', async () => {
-                // Collect filter data
-                const selectedCategories = Array.from(
-                    document.querySelectorAll('input[name="category"]:checked')
-                ).map(el => el.value);
-
-                const selectedBrands = Array.from(
-                    document.querySelectorAll('input[name="brand"]:checked')
-                ).map(el => el.value);
-
-                const selectedRating = document.querySelector('input[name="rating"]:checked')?.value;
-
-                const priceRange = {
-                    min: parseInt(minPrice.value) || this.minPrice,
-                    max: this.isUnlimited ? 'unlimited' : (parseInt(maxPrice.value) || this.maxPrice)
-                };
-
-                // Create filter object
+                // Get selected filters
                 const filters = {
-                    categories: selectedCategories,
-                    brands: selectedBrands,
-                    rating: selectedRating,
-                    price: priceRange
+                    categories: Array.from(document.querySelectorAll('input[name="category"]:checked')).map(el => el.value),
+                    brands: Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(el => el.value),
+                    rating: document.querySelector('input[name="rating"]:checked')?.value || 0,
+                    price: {
+                        min: parseInt(document.getElementById('min-price').value) || 0,
+                        max: document.getElementById('unlimited-price').checked ? 'unlimited' : 
+                             parseInt(document.getElementById('max-price').value)
+                    }
                 };
 
                 try {
-                    // Send filters to backend
                     const response = await fetch('/Project-Web/backend/api/explore/filter_products.php', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(filters)
                     });
 
                     const data = await response.json();
                     
                     if (data.success) {
-                        // Dispatch custom event with filtered products
-                        const filterEvent = new CustomEvent('filtersApplied', {
-                            detail: { 
-                                filters,
-                                products: data.data.listings
-                            }
-                        });
-                        document.dispatchEvent(filterEvent);
+                        // Dispatch event with filtered products
+                        document.dispatchEvent(new CustomEvent('filtersApplied', {
+                            detail: { products: data.data.listings }
+                        }));
                     } else {
                         throw new Error(data.message);
                     }
                 } catch (error) {
-                    console.error('Error applying filters:', error);
-                    alert('Failed to apply filters. Please try again.');
+                    console.error('Error:', error);
+                    alert('Failed to apply filters');
                 }
             });
         }
