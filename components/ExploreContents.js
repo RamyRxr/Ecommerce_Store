@@ -17,6 +17,29 @@ export default class ExploreContents {
         this.setupEventListeners();
     }
 
+    // Add this helper method to format product data
+    formatProductData(listing) {
+        return {
+            id: listing.id,
+            name: listing.title,
+            description: listing.description,
+            price: parseFloat(listing.price),
+            originalPrice: listing.original_price ? parseFloat(listing.original_price) : null,
+            category: listing.category,
+            brand: listing.brand,
+            image: listing.images[0] ? `${listing.images[0].includes('uploads/') ? '../' + listing.images[0] : '../backend/uploads/products/' + listing.images[0]}` : '/Project-Web/assets/images/products-images/placeholder.svg',
+            images: listing.images.map(img =>
+                `${img.includes('uploads/') ? '../' + img : '../backend/uploads/products/' + img}`
+            ),
+            condition: listing.condition,
+            seller: listing.seller_name,
+            dateAdded: new Date(listing.created_at),
+            rating: parseFloat(listing.rating) || 0,
+            ratingCount: parseInt(listing.rating_count) || 0,
+            isSaved: false
+        };
+    }
+
     async fetchProducts() {
         try {
             const response = await fetch('../backend/api/get_all_products.php');
@@ -27,28 +50,9 @@ export default class ExploreContents {
             const data = await response.json();
 
             if (data.success) {
-                this.products = data.data.listings.map(listing => ({
-                    id: listing.id,
-                    name: listing.title,
-                    description: listing.description,
-                    price: parseFloat(listing.price),
-                    originalPrice: listing.original_price ? parseFloat(listing.original_price) : null,
-                    category: listing.category,
-                    brand: listing.brand,
-                    image: listing.images[0] ? `${listing.images[0].includes('uploads/') ? '../' + listing.images[0] : '../backend/uploads/products/' + listing.images[0]}` : '/Project-Web/assets/images/products-images/placeholder.svg',
-                    images: listing.images.map(img =>
-                        `${img.includes('uploads/') ? '../' + img : '../backend/uploads/products/' + img}`
-                    ),
-                    condition: listing.condition,
-                    seller: listing.seller_name,
-                    dateAdded: new Date(listing.created_at),
-                    rating: parseFloat(listing.rating) || 0,
-                    ratingCount: parseInt(listing.rating_count) || 0,
-                    isSaved: false
-                }));
-
-                // Add debug logging
-                console.log('Sample image path:', this.products[0]?.image);
+                this.products = data.data.listings.map(listing => 
+                    this.formatProductData(listing)
+                );
 
                 this.filteredProducts = [...this.products];
                 this.sortProducts('newest');
@@ -547,15 +551,19 @@ export default class ExploreContents {
 
         // Listen to filter application from sidebar
         document.addEventListener('filtersApplied', (event) => {
-            // Update the filtered products array with the new filtered products
-            this.filteredProducts = event.detail.products;
-            
-            // Reset to first page
-            this.currentPage = 1;
-            
-            // Use the existing methods to update display
-            this.updateProductCards();
-            this.updatePagination();
+            if (event.detail && event.detail.products) {
+                // Map the filtered products using the same format as initial products
+                this.filteredProducts = event.detail.products.map(listing => 
+                    this.formatProductData(listing)
+                );
+                
+                // Reset to first page
+                this.currentPage = 1;
+                
+                // Update display
+                this.updateProductCards();
+                this.updatePagination();
+            }
         });
 
         // Listen to filter reset from sidebar
