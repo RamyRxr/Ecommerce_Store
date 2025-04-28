@@ -478,6 +478,16 @@ export default class ExploreContents {
         const searchInput = document.getElementById('main-search');
         const searchButton = document.getElementById('search-button');
 
+        // Check if we should focus the search input
+        if (sessionStorage.getItem('focusSearch') === 'true') {
+            const searchInput = document.getElementById('main-search');
+            if (searchInput) {
+                searchInput.focus();
+                // Clear the flag after focusing
+                sessionStorage.removeItem('focusSearch');
+            }
+        }
+
         if (searchInput) {
             // Add debouncing to improve performance
             let searchTimeout;

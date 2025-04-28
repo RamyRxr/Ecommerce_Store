@@ -145,6 +145,17 @@ export default class SideBar2 {
             });
         });
 
+         // Add event listener for search box click
+        const searchBox = document.querySelector('.search-box');
+        if (searchBox) {
+            searchBox.addEventListener('click', () => {
+                // Store the search focus state in sessionStorage
+                sessionStorage.setItem('focusSearch', 'true');
+                // Redirect to explore page
+                window.location.href = '../HTML-Pages/ExplorePage.html';
+            });
+        }
+
         // Listen for cart updates
         document.addEventListener('updateCartBadge', () => {
             this.updateCartCount();
