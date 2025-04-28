@@ -352,13 +352,13 @@ export default class ExploreContents {
 
             productCard.innerHTML = `
                 <div class="product-image">
-                    <img src="${product.image}" alt="${product.name}">
+                    <img src="${product.image}" alt="${product.title}">
                     <button class="save-btn ${product.isSaved ? 'saved' : ''}">
                         <i class='bx ${product.isSaved ? 'bxs-heart' : 'bx-heart'}'></i>
                     </button>
                 </div>
                 <div class="product-info">
-                    <h3 class="product-name">${product.name}</h3>
+                    <h3 class="product-name">${product.title}</h3>
                     <p class="product-description">${truncatedDescription}</p>
                     <div class="product-meta">
                         <div class="price-container">
@@ -547,9 +547,13 @@ export default class ExploreContents {
 
         // Listen to filter application from sidebar
         document.addEventListener('filtersApplied', (event) => {
-            const products = event.detail.products;
-            this.filteredProducts = products;
+            // Update the filtered products array with the new filtered products
+            this.filteredProducts = event.detail.products;
+            
+            // Reset to first page
             this.currentPage = 1;
+            
+            // Use the existing methods to update display
             this.updateProductCards();
             this.updatePagination();
         });
