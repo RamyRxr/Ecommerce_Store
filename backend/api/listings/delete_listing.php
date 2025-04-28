@@ -2,10 +2,9 @@
 header('Content-Type: application/json');
 session_start();
 
-require_once '../config/database.php';
+require_once '../../config/database.php';
 
 try {
-    // Check if user is logged in
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
         throw new Exception('User not logged in');
     }
@@ -20,7 +19,10 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // First check if the listing belongs to the user
+    // Begin transaction
+    $conn->beginTransaction();
+
+    // Check if listing belongs to user
     $checkSql = "SELECT id FROM products WHERE id = :listing_id AND seller_id = :seller_id";
     $checkStmt = $conn->prepare($checkSql);
     $checkStmt->bindParam(':listing_id', $listingId);
@@ -31,11 +33,20 @@ try {
         throw new Exception('Unauthorized access to listing');
     }
 
-    // Delete the listing
-    $deleteSql = "DELETE FROM products WHERE id = :listing_id";
-    $deleteStmt = $conn->prepare($deleteSql);
-    $deleteStmt->bindParam(':listing_id', $listingId);
-    $deleteStmt->execute();
+    // Delete images from product_images table
+    $deleteImagesSql = "DELETE FROM product_images WHERE product_id = :listing_id";
+    $deleteImagesStmt = $conn->prepare($deleteImagesSql);
+    $deleteImagesStmt->bindParam(':listing_id', $listingId);
+    $deleteImagesStmt->execute();
+
+    // Delete the product
+    $deleteProductSql = "DELETE FROM products WHERE id = :listing_id";
+    $deleteProductStmt = $conn->prepare($deleteProductSql);
+    $deleteProductStmt->bindParam(':listing_id', $listingId);
+    $deleteProductStmt->execute();
+
+    // Commit transaction
+    $conn->commit();
 
     echo json_encode([
         'success' => true,
@@ -43,6 +54,10 @@ try {
     ]);
 
 } catch (Exception $e) {
+    if (isset($conn)) {
+        $conn->rollBack();
+    }
+    
     http_response_code(500);
     echo json_encode([
         'success' => false,

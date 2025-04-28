@@ -22,8 +22,8 @@ export default class SellingContents {
                 throw new Error('User not logged in');
             }
 
-            // Fetch active listings from database
-            const response = await fetch('../backend/api/get_listings.php');
+            // Fix the API endpoint path
+            const response = await fetch('../backend/api/listings/get_listings.php');
             if (!response.ok) {
                 throw new Error('Failed to fetch listings');
             }
@@ -31,7 +31,7 @@ export default class SellingContents {
             const data = await response.json();
             
             if (data.success) {
-                this.listings = data.listings.map(listing => ({
+                this.listings = data.data.listings.map(listing => ({
                     id: listing.id,
                     title: listing.title,
                     description: listing.description,
@@ -64,7 +64,7 @@ export default class SellingContents {
             }
         }
     }
-
+    
     render() {
         const sellingContentHTML = `
             <div class="selling-content">
@@ -803,24 +803,32 @@ export default class SellingContents {
         }
 
         try {
-            const response = await fetch('../backend/api/create_listing.php', {
+            const response = await fetch('../backend/api/listings/update_listing.php', { // Path was incorrect
                 method: 'POST',
-                body: formData // Don't set Content-Type header, let browser set it with boundary
+                body: formData
             });
 
             const data = await response.json();
+            
             if (data.success) {
-                alert('Listing created successfully!');
+                // Update local listing
+                await this.loadListings(); // Reload listings from server
+                
+                // Show confirmation
+                alert('Listing updated successfully!');
+
+                // Reset editing state and switch back to active listings tab
+                this.editingListingId = null;
                 this.activeTab = 'active';
-                await this.loadListings();
                 this.render();
             } else {
-                alert('Error: ' + data.message);
+                throw new Error(data.message || 'Failed to update listing');
             }
         } catch (error) {
-            console.error('Error creating listing:', error);
-            alert('Error creating listing. Please try again.');
+            console.error('Error updating listing:', error);
+            alert('Error updating listing: ' + error.message);
         }
+
     }
 
     editListing(listingId) {
@@ -829,11 +837,7 @@ export default class SellingContents {
         this.render();
     }
 
-    updateListing(listingId, asDraft = false) {
-        // Find the listing index
-        const index = this.listings.findIndex(item => item.id === listingId);
-        if (index === -1) return;
-
+    async updateListing(listingId, asDraft = false) {
         // Get form values (similar to saveListing)
         const title = document.getElementById('product-title').value;
 
@@ -875,57 +879,98 @@ export default class SellingContents {
             return;
         }
 
-        // Get the current images from the preview container
-        const imagePreviews = document.querySelectorAll('#image-preview-container .image-preview img');
-        const images = Array.from(imagePreviews).map(img => img.src);
+        // Create FormData object for the update
+        const formData = new FormData();
+        formData.append('listing_id', listingId);
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('price', price);
+        formData.append('category', category);
+        formData.append('condition', condition);
+        formData.append('brand', brand);
+        formData.append('model', model);
+        formData.append('shipping', shipping);
+        formData.append('localPickup', localPickup);
+        formData.append('status', asDraft ? 'draft' : 'active');
 
-        // Update the listing (keep ID and view count)
-        this.listings[index] = {
-            ...this.listings[index], // Keep original properties
-            title,
-            description,
-            price,
-            category,
-            condition,
-            brand,
-            model,
-            shipping,
-            localPickup,
-            images, // Use the updated images
-            status: asDraft ? 'draft' : 'active'
-        };
+        // Add images
+        const imagePreviews = document.querySelectorAll('#image-preview-container img');
+        for (let i = 0; i < imagePreviews.length; i++) {
+            const img = imagePreviews[i];
+            if (img.src.startsWith('data:')) {
+                // Convert base64 to blob for new images
+                const blob = await fetch(img.src).then(r => r.blob());
+                formData.append('image[]', blob, `image${i}.jpg`);
+            } else {
+                // For existing images, just send the URL
+                formData.append('existing_images[]', img.src);
+            }
+        }
 
-        // Save to localStorage
-        localStorage.setItem('activeListings', JSON.stringify(this.listings));
+        try {
+            const response = await fetch('../backend/api/listings/update_listing.php', {
+                method: 'POST',
+                body: formData
+            });
 
-        // Show confirmation
-        alert('Listing updated successfully!');
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update local listing
+                await this.loadListings(); // Reload listings from server
+                
+                // Show confirmation
+                alert('Listing updated successfully!');
 
-        // Reset editing state and switch back to active listings tab
-        this.editingListingId = null;
-        this.activeTab = 'active';
-        this.render();
+                // Reset editing state and switch back to active listings tab
+                this.editingListingId = null;
+                this.activeTab = 'active';
+                this.render();
+            } else {
+                throw new Error(data.message || 'Failed to update listing');
+            }
+        } catch (error) {
+            console.error('Error updating listing:', error);
+            alert('Error updating listing: ' + error.message);
+        }
     }
 
-    removeListing(listingId) {
+    async removeListing(listingId) {
         if (confirm('Are you sure you want to remove this listing?')) {
-            // Find the listing
-            const index = this.listings.findIndex(item => item.id === listingId);
-            if (index !== -1) {
-                // Remove from listings array
-                this.listings.splice(index, 1);
+            try {
+                // Create FormData
+                const formData = new FormData();
+                formData.append('listing_id', listingId);
 
-                // Update localStorage
-                localStorage.setItem('activeListings', JSON.stringify(this.listings));
-
-                // Re-render the active listings tab
-                this.render();
-
-                // Show confirmation
-                this.showNotification({
-                    id: listingId,
-                    title: 'Listing removed successfully'
+                // Send delete request to backend
+                const response = await fetch('../backend/api/listings/delete_listing.php', {
+                    method: 'POST',
+                    body: formData
                 });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Find and remove from local listings array
+                    const index = this.listings.findIndex(item => item.id === listingId);
+                    if (index !== -1) {
+                        this.listings.splice(index, 1);
+                    }
+
+                    // Re-render the active listings tab
+                    this.render();
+
+                    // Show success notification
+                    this.showNotification({
+                        id: listingId,
+                        title: 'Listing removed successfully'
+                    });
+                } else {
+                    throw new Error(data.message || 'Failed to delete listing');
+                }
+            } catch (error) {
+                console.error('Error deleting listing:', error);
+                alert('Error deleting listing: ' + error.message);
             }
         }
     }
