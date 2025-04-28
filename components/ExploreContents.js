@@ -548,8 +548,13 @@ export default class ExploreContents {
 
         // Listen to filter application from sidebar
         document.addEventListener('filtersApplied', (event) => {
-            const filters = event.detail.filters;
-            this.applyFilters(filters);
+            const { filters, products } = event.detail;
+            // Update products directly from the filtered results
+            this.products = products;
+            this.filteredProducts = products;
+            this.currentPage = 1;
+            this.updateProductCards();
+            this.updatePagination();
         });
 
         // Listen to filter reset from sidebar

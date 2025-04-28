@@ -262,7 +262,7 @@ export default class FilterSidebar {
         // Apply filters
         const applyButton = document.getElementById('apply-filters');
         if (applyButton) {
-            applyButton.addEventListener('click', () => {
+            applyButton.addEventListener('click', async () => {
                 // Collect filter data
                 const selectedCategories = Array.from(
                     document.querySelectorAll('input[name="category"]:checked')
@@ -287,13 +287,34 @@ export default class FilterSidebar {
                     price: priceRange
                 };
 
-                console.log('Applied filters:', filters);
+                try {
+                    // Send filters to backend
+                    const response = await fetch('/Project-Web/backend/api/explore/filter_products.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(filters)
+                    });
 
-                // Dispatch custom event with filter data
-                const filterEvent = new CustomEvent('filtersApplied', {
-                    detail: { filters }
-                });
-                document.dispatchEvent(filterEvent);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Dispatch custom event with filtered products
+                        const filterEvent = new CustomEvent('filtersApplied', {
+                            detail: { 
+                                filters,
+                                products: data.data.listings
+                            }
+                        });
+                        document.dispatchEvent(filterEvent);
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    console.error('Error applying filters:', error);
+                    alert('Failed to apply filters. Please try again.');
+                }
             });
         }
 
