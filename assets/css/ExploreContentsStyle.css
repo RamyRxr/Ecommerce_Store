@@ -19,7 +19,6 @@
     transition: var(--transition-normal);
     overflow-y: auto;
     scrollbar-width: none;
-    padding-bottom: 80px; /* Add padding to prevent content from going under pagination */
 }
 
 .main-content-container:hover {
@@ -727,21 +726,17 @@ body.dark-mode .product-image img {
     position: absolute;
     bottom: 0;
     width: 100%;
-    padding: 12px 15px;
+    padding: 8px 15px;
     background: var(--light-bg);
     border-radius: 0 0 var(--section-radius) var(--section-radius);
     border-top: 2px solid var(--dark-bg);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 95;
     transition: var(--transition-normal);
 }
 
-/* Update main content container to add bottom padding */
-.main-content-container {
-    padding-bottom: 80px; /* Add padding to prevent content from going under pagination */
-}
+
 
 /* Dark mode adjustment */
 body.dark-mode .pagination-container {

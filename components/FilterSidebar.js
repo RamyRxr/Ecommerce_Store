@@ -285,9 +285,12 @@ export default class FilterSidebar {
                     const data = await response.json();
                     
                     if (data.success) {
-                        // Dispatch event with filtered products
+                        // Dispatch event with filtered products and currentUserId
                         document.dispatchEvent(new CustomEvent('filtersApplied', {
-                            detail: { products: data.data.listings }
+                            detail: { 
+                                products: data.data.listings,
+                                currentUserId: data.data.currentUserId // Add this line
+                            }
                         }));
                     } else {
                         throw new Error(data.message);

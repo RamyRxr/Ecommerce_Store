@@ -38,7 +38,8 @@ try {
     echo json_encode([
         'success' => true,
         'data' => [
-            'listings' => $products
+            'listings' => $products,
+            'currentUserId' => $currentUserId
         ]
     ]);
 

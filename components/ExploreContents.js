@@ -21,7 +21,7 @@ export default class ExploreContents {
     formatProductData(listing) {
         return {
             id: listing.id,
-            name: listing.title,
+            title: listing.title,
             description: listing.description,
             price: parseFloat(listing.price),
             originalPrice: listing.original_price ? parseFloat(listing.original_price) : null,
@@ -149,7 +149,7 @@ export default class ExploreContents {
             // Search within all products or within filtered products if filters are active
             const productsToSearch = this.activeFilters ? this.filteredProducts : this.products;
             this.filteredProducts = productsToSearch.filter(product =>
-                product.name.toLowerCase().includes(searchTerm) ||
+                product.title.toLowerCase().includes(searchTerm) ||
                 product.description.toLowerCase().includes(searchTerm) ||
                 product.brand.toLowerCase().includes(searchTerm) ||
                 product.category.toLowerCase().includes(searchTerm)
@@ -487,7 +487,7 @@ export default class ExploreContents {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     this.searchProducts(searchInput.value);
-                }, 500); // Wait 500ms after user stops typing
+                }, 200); // Wait 500ms after user stops typing
             });
 
             // Search when user presses Enter
@@ -510,6 +510,7 @@ export default class ExploreContents {
         // Filter dropdown toggle
         const filterBtn = document.getElementById('filter-dropdown-btn');
         const filterDropdown = document.querySelector('.filter-dropdown');
+
         if (filterBtn && filterDropdown) {
             filterBtn.addEventListener('click', () => {
                 filterDropdown.classList.toggle('active');
@@ -552,11 +553,13 @@ export default class ExploreContents {
         // Listen to filter application from sidebar
         document.addEventListener('filtersApplied', (event) => {
             if (event.detail && event.detail.products) {
-                // Map the filtered products using the same format as initial products
-                this.filteredProducts = event.detail.products.map(listing => 
-                    this.formatProductData(listing)
-                );
+                const currentUserId = event.detail.currentUserId;
                 
+                // Filter out current user's products and map remaining ones
+                this.filteredProducts = event.detail.products
+                    .filter(product => product.seller_id != currentUserId)
+                    .map(listing => this.formatProductData(listing));
+
                 // Reset to first page
                 this.currentPage = 1;
                 
@@ -745,7 +748,7 @@ export default class ExploreContents {
                 // Update cart badge
                 document.dispatchEvent(new CustomEvent('updateCartBadge'));
                 
-                console.log(`Added ${product.name} to cart`);
+                console.log(`Added ${product.title} to cart`);
             } else {
                 throw new Error(data.message || 'Failed to add item to cart');
             }
