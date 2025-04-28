@@ -189,23 +189,16 @@ export default class LogIn {
         loginBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Signing in...</span>';
         loginBtn.disabled = true;
 
-        fetch('../backend/api/login.php', {
+        // Create FormData instead of JSON
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        fetch('../backend/api/auth/login.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password
-            })
+            body: formData  // Send as FormData instead of JSON
         })
-        .then(response => {
-            // First check if the response is ok
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.success) {
                 // Store user data
@@ -230,7 +223,7 @@ export default class LogIn {
             loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Log In</span>';
             loginBtn.disabled = false;
             // Show error to user
-            alert(error.message || 'Login failed. Please try again.');
+            this.showError(error.message || 'Login failed. Please try again.');
         });
     }
 

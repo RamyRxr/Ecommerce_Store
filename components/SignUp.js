@@ -461,7 +461,7 @@ export default class SignUp {
         formData.append('last_name', document.getElementById('lastName').value);
         formData.append('phone', document.getElementById('phoneNumber').value);
 
-        fetch('../backend/api/register.php', {
+        fetch('../backend/api/auth/register.php', {
             method: 'POST',
             body: formData
         })
