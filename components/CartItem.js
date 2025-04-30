@@ -299,6 +299,30 @@ export default class CartItem2 {
     // Update removeItem method
     async removeItem(itemId) {
         try {
+            // Store item info before removal
+            const itemIndex = this.cartItems.findIndex(item => item.id === itemId);
+            const deletedItem = this.cartItems[itemIndex];
+            this.deletedItems[itemId] = {
+                item: deletedItem,
+                index: itemIndex
+            };
+
+            // Remove item from cart array
+            this.cartItems.splice(itemIndex, 1);
+
+            // Show notification with undo option
+            this.showNotification(itemId);
+
+            // Set timer for permanent deletion
+            this.deleteTimers[itemId] = setTimeout(() => {
+                this.permanentlyDeleteItem(itemId);
+            }, 5000); // 5 seconds delay
+
+            // Update the UI immediately
+            this.render();
+            document.dispatchEvent(new CustomEvent('updateCartBadge'));
+
+            // Make the actual API call
             const response = await fetch('../backend/api/cart/remove_item.php', {
                 method: 'POST',
                 headers: {
@@ -312,10 +336,8 @@ export default class CartItem2 {
             if (!response.ok) throw new Error('Failed to remove item');
 
             const data = await response.json();
-            if (data.success) {
-                await this.loadCartItems();
-                this.render();
-                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to remove item');
             }
         } catch (error) {
             console.error('Error removing item:', error);
@@ -382,18 +404,15 @@ export default class CartItem2 {
 
     showNotification(itemId) {
         const notificationContainer = document.querySelector('.global-notification-container');
-        if (!notificationContainer) {
-            console.error('Notification container not found');
-            return;
-        }
+        if (!notificationContainer) return;
 
         const item = this.deletedItems[itemId].item;
         const notification = document.createElement('div');
         notification.className = 'notification fade-in';
         notification.dataset.id = itemId;
 
-        // Calculate time remaining
-        const secondsRemaining = 5; // Changed from 10 to 5
+        // Calculate time remaining - 5 seconds
+        const secondsRemaining = 5;
 
         notification.innerHTML = `
             <div class="notification-content">
@@ -412,39 +431,31 @@ export default class CartItem2 {
 
         notificationContainer.appendChild(notification);
 
-        // Initialize timer display and progress bar
-        const timeDisplay = notification.querySelector('.notification-time');
+        // Initialize progress bar
         const progressBar = notification.querySelector('.notification-progress');
-
         if (progressBar) {
-            // Use CSS transition for smooth progress bar animation
-            progressBar.style.transition = 'width 5s linear'; // Changed from 10s to 5s
-
-            // Force a reflow before changing the width to ensure the transition works
-            void progressBar.offsetWidth;
-
-            // Start with full width
+            progressBar.style.transition = 'width 5s linear';
+            void progressBar.offsetWidth; // Force reflow
             progressBar.style.width = '100%';
-
-            // After a tiny delay, set width to 0 to start the animation
             setTimeout(() => {
                 progressBar.style.width = '0%';
             }, 50);
         }
 
-        // Create a countdown timer that updates every second
+        // Update timer display
+        const timeDisplay = notification.querySelector('.notification-time');
         let timeLeft = secondsRemaining;
 
         this.progressIntervals[itemId] = setInterval(() => {
             timeLeft--;
-
             if (timeDisplay) {
                 timeDisplay.textContent = `${timeLeft}s`;
             }
-
             if (timeLeft <= 0) {
                 clearInterval(this.progressIntervals[itemId]);
                 delete this.progressIntervals[itemId];
+                // Remove notification when timer ends
+                this.removeNotification(itemId);
             }
         }, 1000);
 

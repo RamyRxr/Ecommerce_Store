@@ -42,6 +42,7 @@
 /*** SEARCH & FILTER SECTION ***/
 .search-filter-container {
     position: sticky;
+    top: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -49,6 +50,8 @@
     height: 62px;
     padding: 20px;
     border-bottom: 2px solid var(--dark-bg);
+    background: var(--light-bg);
+    z-index: 1003; /* Increase z-index to be above everything */
 }
 
 /* Search Button Styling */
@@ -220,6 +223,7 @@ body.dark-mode .search-button:hover {
     opacity: 1;
     visibility: visible;
     transform: scale(1);
+    z-index: 1003;
 }
 
 .filter-option {
