@@ -84,8 +84,9 @@ CREATE TABLE cart_items (
 );
 
 -- Create orders table
+-- Modify orders table
 CREATE TABLE orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id VARCHAR(20) PRIMARY KEY,  -- Changed from INT AUTO_INCREMENT
     user_id INT NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
     shipping_method VARCHAR(50) NOT NULL,
@@ -105,7 +106,7 @@ CREATE TABLE orders (
 -- Create order items table
 CREATE TABLE order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT NOT NULL,
+    order_id VARCHAR(20) NOT NULL,  -- Changed from INT to VARCHAR(20)
     product_id INT,
     product_title VARCHAR(255) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,

@@ -15,43 +15,60 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // 1. Create main order
+    // Get the current order number for this user
     $stmt = $conn->prepare("
-        INSERT INTO orders (user_id, total_price, shipping_method, shipping_cost) 
-        VALUES (:user_id, :total_price, :shipping_method, :shipping_cost)
+        SELECT COUNT(*) as order_count 
+        FROM orders 
+        WHERE user_id = ?
+    ");
+    $stmt->execute([$user_id]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $orderNumber = str_pad($result['order_count'] + 1, 2, '0', STR_PAD_LEFT);
+
+    // Generate order ID in format ORD-MMYY-USERIDORDERNUMBER
+    $orderId = sprintf(
+        "ORD-%s-%d%s",
+        date('my'),
+        $user_id,
+        $orderNumber
+    );
+
+    // Create main order with the generated ID
+    $stmt = $conn->prepare("
+        INSERT INTO orders (id, user_id, total_price, shipping_method, shipping_cost) 
+        VALUES (:order_id, :user_id, :total_price, :shipping_method, :shipping_cost)
     ");
 
     $stmt->execute([
+        ':order_id' => $orderId,
         ':user_id' => $user_id,
         ':total_price' => $data['total_price'],
         ':shipping_method' => $data['shipping_method'],
         ':shipping_cost' => $data['shipping_cost']
     ]);
 
-    $order_id = $conn->lastInsertId();
+    // Create order items
+    $stmt = $conn->prepare("
+        INSERT INTO order_items (order_id, product_id, quantity, price) 
+        VALUES (:order_id, :product_id, :quantity, :price)
+    ");
 
-    // 2. Create order items
     foreach ($data['items'] as $item) {
-        $stmt = $conn->prepare("
-            INSERT INTO order_items (order_id, product_id, quantity, price) 
-            VALUES (:order_id, :product_id, :quantity, :price)
-        ");
-
         $stmt->execute([
-            ':order_id' => $order_id,
+            ':order_id' => $orderId,
             ':product_id' => $item['product_id'],
             ':quantity' => $item['quantity'],
             ':price' => $item['price']
         ]);
     }
 
-    // After creating order items, clear the cart
+    // Clear the cart
     $clearCart = $conn->prepare("DELETE FROM cart_items WHERE user_id = :user_id");
     $clearCart->execute([':user_id' => $user_id]);
 
     echo json_encode([
         'success' => true,
-        'order_id' => $order_id,
+        'order_id' => $orderId,
         'message' => 'Order created successfully'
     ]);
 
@@ -62,4 +79,3 @@ try {
         'message' => $e->getMessage()
     ]);
 }
-?>
