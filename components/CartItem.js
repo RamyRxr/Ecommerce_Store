@@ -47,9 +47,8 @@ export default class CartItem2 {
             // Optionally show error to user
             this.showErrorMessage(error.message);
         }
-   }
+    }
 
-    // Add this helper method
     showErrorMessage(message) {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
@@ -266,9 +265,9 @@ export default class CartItem2 {
                 }
             }
         });
+
     }
 
-    // Update updateItemQuantity method
     async updateItemQuantity(itemId, change) {
         try {
             const response = await fetch('../backend/api/cart/update_quantity.php', {
@@ -296,7 +295,6 @@ export default class CartItem2 {
         }
     }
 
-    // Update removeItem method
     async removeItem(itemId) {
         try {
             // Store item info before removal
@@ -527,4 +525,5 @@ export default class CartItem2 {
             console.error('Error adding to cart:', error);
         }
     }
+
 }
