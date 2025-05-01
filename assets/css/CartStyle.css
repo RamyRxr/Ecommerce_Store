@@ -173,6 +173,7 @@ body.dark-mode::-webkit-scrollbar-thumb {
 }
 
 .undo-btn:hover {
+    color: var(--accent-dark, #1565c0);
     text-decoration: underline;
 }
 

@@ -16,13 +16,6 @@ export default class SellingContents {
 
     async loadListings() {
         try {
-            // Check if user is logged in
-            const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
-            if (!userData) {
-                throw new Error('User not logged in');
-            }
-
-            // Fix the API endpoint path
             const response = await fetch('../backend/api/listings/get_listings.php');
             if (!response.ok) {
                 throw new Error('Failed to fetch listings');
@@ -51,14 +44,15 @@ export default class SellingContents {
                     status: listing.status
                 }));
             } else {
-                throw new Error(data.message);
+                throw new Error(data.message || 'Failed to load listings');
             }
 
         } catch (error) {
             console.error('Error loading listings:', error);
             this.listings = [];
             
-            // If user is not logged in, redirect to login page
+            // If the server returns a session expired/not logged in error,
+            // redirect to login page
             if (error.message === 'User not logged in') {
                 window.location.href = './login.html';
             }
@@ -779,9 +773,28 @@ export default class SellingContents {
         formData.append('title', document.getElementById('product-title').value);
         formData.append('description', document.getElementById('product-description').value);
         formData.append('price', document.getElementById('product-price').value);
-        formData.append('category', document.querySelector('#selected-category').textContent);
-        formData.append('brand', document.querySelector('#selected-brand').textContent);
-        formData.append('condition', document.querySelector('#selected-condition').textContent);
+        
+        // Get category value
+        const categoryOption = document.querySelector('#category-options .fancy-option.selected');
+        let category = categoryOption ? categoryOption.dataset.value : '';
+        if (category === 'other') {
+            category = document.getElementById('other-category').value;
+        }
+        formData.append('category', category);
+        
+        // Get brand value
+        const brandOption = document.querySelector('#brand-options .fancy-option.selected');
+        let brand = brandOption ? brandOption.dataset.value : '';
+        if (brand === 'other') {
+            brand = document.getElementById('other-brand').value;
+        }
+        formData.append('brand', brand);
+        
+        // Get condition value
+        const conditionOption = document.querySelector('#condition-options .fancy-option.selected');
+        const condition = conditionOption ? conditionOption.dataset.value : '';
+        formData.append('condition', condition);
+        
         formData.append('model', document.getElementById('product-model').value);
         
         // Get listing option
@@ -790,6 +803,9 @@ export default class SellingContents {
         
         formData.append('shipping', listingOption === 'shipping' || listingOption === 'both');
         formData.append('localPickup', listingOption === 'pickup' || listingOption === 'both');
+        
+        // Add status (draft or active)
+        formData.append('status', type === 'draft' ? 'draft' : 'active');
         
         // Add images
         const imagePreviews = document.querySelectorAll('#image-preview-container img');
@@ -802,8 +818,16 @@ export default class SellingContents {
             }
         }
 
+        // Basic validation
+        if (!formData.get('title') || !formData.get('category') || !formData.get('condition') ||
+            !formData.get('description') || !formData.get('price') || !formData.get('brand') || 
+            !formData.get('model')) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
         try {
-            const response = await fetch('../backend/api/listings/update_listing.php', { // Path was incorrect
+            const response = await fetch('../backend/api/listings/create_listing.php', {
                 method: 'POST',
                 body: formData
             });
@@ -811,24 +835,22 @@ export default class SellingContents {
             const data = await response.json();
             
             if (data.success) {
-                // Update local listing
+                // Update local listings
                 await this.loadListings(); // Reload listings from server
                 
                 // Show confirmation
-                alert('Listing updated successfully!');
+                alert('Listing created successfully!');
 
-                // Reset editing state and switch back to active listings tab
-                this.editingListingId = null;
+                // Switch to active listings tab
                 this.activeTab = 'active';
                 this.render();
             } else {
-                throw new Error(data.message || 'Failed to update listing');
+                throw new Error(data.message || 'Failed to create listing');
             }
         } catch (error) {
-            console.error('Error updating listing:', error);
-            alert('Error updating listing: ' + error.message);
+            console.error('Error creating listing:', error);
+            alert('Error creating listing: ' + error.message);
         }
-
     }
 
     editListing(listingId) {
