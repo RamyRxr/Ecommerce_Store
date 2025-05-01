@@ -21,7 +21,7 @@ export default class CheckoutSummary {
 
     async loadCartItems() {
         try {
-            const response = await fetch('../backend/api/cart/get_cart_items.php');
+            const response = await fetch('../backend/api/orders/get_cart_items.php');
             if (!response.ok) {
                 throw new Error('Failed to fetch cart items');
             }
@@ -211,10 +211,11 @@ export default class CheckoutSummary {
 
             const totals = this.calculateTotals();
             const orderData = {
-                total_price: totals.total,
+                total_price: parseFloat(totals.total),
                 shipping_method: this.shippingMethod,
                 shipping_cost: this.shippingRates[this.shippingMethod],
-                payment_method: 'credit_card'
+                payment_method: 'credit_card',
+                items: this.cartItems
             };
 
             const response = await fetch('../backend/api/orders/create_order.php', {
@@ -225,15 +226,23 @@ export default class CheckoutSummary {
                 body: JSON.stringify(orderData)
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
             
             if (data.success) {
                 this.hide();
-                alert('Order placed successfully!');
-                window.location.href = `order-confirmation.html?id=${data.order_id}`;
+                // Clear cart items
+                this.cartItems = [];
                 
                 // Update cart badge
                 document.dispatchEvent(new CustomEvent('updateCartBadge'));
+                
+                // Show success message and redirect
+                alert('Order placed successfully!');
+                window.location.href = `order-confirmation.html?id=${data.order_id}`;
             } else {
                 throw new Error(data.message || 'Failed to create order');
             }
