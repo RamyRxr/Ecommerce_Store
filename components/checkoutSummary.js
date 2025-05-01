@@ -233,16 +233,53 @@ export default class CheckoutSummary {
             const data = await response.json();
             
             if (data.success) {
-                this.hide();
-                // Clear cart items
-                this.cartItems = [];
+                // Show success animation
+                const animContainer = document.createElement('div');
+                animContainer.className = 'success-animation-container';
+                animContainer.innerHTML = `
+                    <div class="success-animation">
+                        <i class='bx bx-check'></i>
+                    </div>
+                `;
                 
-                // Update cart badge
-                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+                document.body.appendChild(animContainer);
                 
-                // Show success message and redirect
-                alert('Order placed successfully!');
-                window.location.href = `order-confirmation.html?id=${data.order_id}`;
+                // Add active class after a small delay
+                setTimeout(() => {
+                    animContainer.classList.add('active');
+                }, 10);
+                
+                // Hide animation and update UI
+                setTimeout(() => {
+                    animContainer.classList.remove('active');
+                    setTimeout(() => {
+                        animContainer.remove();
+                        
+                        // Hide checkout summary
+                        this.hide();
+                        
+                        // Clear cart items locally
+                        this.cartItems = [];
+                        
+                        // Update cart badge to show 0
+                        document.dispatchEvent(new CustomEvent('updateCartBadge', {
+                            detail: { count: 0 }
+                        }));
+                        
+                        // Update cart page content immediately
+                        document.dispatchEvent(new CustomEvent('cartUpdated', {
+                            detail: {
+                                items: [],
+                                totals: {
+                                    subtotal: "0.00",
+                                    total: "0.00",
+                                    itemCount: 0
+                            }
+                        }
+                    }));
+
+                }, 300);
+            }, 1500);
             } else {
                 throw new Error(data.message || 'Failed to create order');
             }

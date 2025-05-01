@@ -1027,6 +1027,60 @@ body.dark-mode .summary-items::-webkit-scrollbar-thumb {
     font-size: 20px;
 }
 
+/* Add success animation container styles */
+.success-animation-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.success-animation-container.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.success-animation {
+    width: 100px;
+    height: 100px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: successPop 0.5s forwards;
+}
+
+.success-animation i {
+    font-size: 50px;
+    color: #4CAF50;
+    transform: scale(0);
+    animation: successIconPop 0.3s 0.2s forwards;
+}
+
+@keyframes successPop {
+    0% { transform: scale(0.5); }
+    50% { transform: scale(1.1); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+@keyframes successIconPop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
 /*** DARK MODE STYLES ***/
 body.dark-mode .cart-main-container {
     background: var(--dark-bg);

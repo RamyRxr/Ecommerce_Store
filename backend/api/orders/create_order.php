@@ -45,9 +45,14 @@ try {
         ]);
     }
 
+    // After creating order items, clear the cart
+    $clearCart = $conn->prepare("DELETE FROM cart_items WHERE user_id = :user_id");
+    $clearCart->execute([':user_id' => $user_id]);
+
     echo json_encode([
         'success' => true,
-        'order_id' => $order_id
+        'order_id' => $order_id,
+        'message' => 'Order created successfully'
     ]);
 
 } catch (Exception $e) {
