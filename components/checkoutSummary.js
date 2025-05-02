@@ -21,7 +21,7 @@ export default class CheckoutSummary {
 
     async loadCartItems() {
         try {
-            const response = await fetch('../backend/api/orders/get_order_items.php');
+            const response = await fetch('../backend/api/cart/get_order_items.php');
             if (!response.ok) {
                 throw new Error('Failed to fetch cart items');
             }

@@ -14,7 +14,7 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Get all orders for the current user - no changes here
+    // Get all orders for the current user
     $sql = "SELECT o.id, o.shipping_method, o.total_price as totalAmount, 
             o.created_at as date, o.status,
             o.shipping_address, o.shipping_city, o.shipping_zip as shipping_postal_code, 
@@ -29,68 +29,66 @@ try {
     
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Process each order - simplify to avoid potential errors
+    // Process each order
     foreach ($orders as &$order) {
-        try {
-            // Get basic order items info - simplify the query
-            $itemsSql = "SELECT oi.id, oi.product_id, oi.price, oi.quantity, 
-                         p.title as product_name, 
-                         (oi.price * oi.quantity) as total
-                         FROM order_items oi
-                         LEFT JOIN products p ON oi.product_id = p.id
-                         WHERE oi.order_id = :order_id";
+        // Format shipping address for display
+        $order['shippingAddress'] = [
+            'street' => $order['shipping_address'],
+            'city' => $order['shipping_city'],
+            'zip' => $order['shipping_postal_code'],
+            'country' => $order['shipping_country']
+        ];
+        
+        // Add payment method
+        $order['paymentMethod'] = $order['payment_method'];
+        
+        // Add estimated or actual delivery date
+        if ($order['status'] === 'shipped') {
+            $orderDate = new DateTime($order['date']);
+            $estimatedDelivery = clone $orderDate;
+            $estimatedDelivery->modify('+7 days');
+            $order['estimatedDelivery'] = $estimatedDelivery->format('Y-m-d H:i:s');
+        } elseif ($order['status'] === 'delivered') {
+            $orderDate = new DateTime($order['date']);
+            $actualDelivery = clone $orderDate;
+            $actualDelivery->modify('+' . rand(3, 6) . ' days');
+            $order['actualDelivery'] = $actualDelivery->format('Y-m-d H:i:s');
             
-            $itemsStmt = $conn->prepare($itemsSql);
-            $itemsStmt->bindParam(':order_id', $order['id']);
-            $itemsStmt->execute();
-            
-            $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            // Format shipping address
-            $order['shippingAddress'] = [
-                'street' => $order['shipping_address'] ?? '',
-                'city' => $order['shipping_city'] ?? '',
-                'state' => '',
-                'zip' => $order['shipping_postal_code'] ?? '',
-                'country' => $order['shipping_country'] ?? ''
-            ];
-            
-            // Add payment method
-            $order['paymentMethod'] = $order['payment_method'] ?? '';
-            
-            // Add delivery dates conditionally
-            if ($order['status'] === 'shipped') {
-                $orderDate = new DateTime($order['date']);
-                $estimatedDelivery = clone $orderDate;
-                $estimatedDelivery->modify('+7 days');
-                $order['estimatedDelivery'] = $estimatedDelivery->format('Y-m-d H:i:s');
-            } elseif ($order['status'] === 'delivered') {
-                $orderDate = new DateTime($order['date']);
-                $actualDelivery = clone $orderDate;
-                $actualDelivery->modify('+4 days'); // Fixed days to avoid random errors
-                $order['actualDelivery'] = $actualDelivery->format('Y-m-d H:i:s');
-            }
-            
-            // Clean up response
-            unset($order['shipping_address']);
-            unset($order['shipping_city']);
-            unset($order['shipping_postal_code']);
-            unset($order['shipping_country']);
-            unset($order['payment_method']);
-            
-            // Add items to order
-            $order['items'] = $items;
-        } catch (Exception $orderError) {
-            // Log the error but continue processing other orders
-            error_log('Error processing order ' . $order['id'] . ': ' . $orderError->getMessage());
-            
-            // Add minimal info to not break the UI
-            $order['items'] = [];
-            $order['shippingAddress'] = [
-                'street' => '', 'city' => '', 'state' => '', 'zip' => '', 'country' => ''
-            ];
-            $order['paymentMethod'] = '';
+            // Add random rating status for delivered orders
+            $order['rated'] = (rand(0, 1) === 1);
         }
+        
+        // Get items for this order
+        $itemsSql = "SELECT oi.id, oi.product_id, oi.price, oi.quantity, 
+                     p.title as product_name,
+                     (oi.price * oi.quantity) as total,
+                     GROUP_CONCAT(pi.image_url) as images
+                     FROM order_items oi
+                     LEFT JOIN products p ON oi.product_id = p.id
+                     LEFT JOIN product_images pi ON oi.product_id = pi.product_id
+                     WHERE oi.order_id = :order_id
+                     GROUP BY oi.id";
+        
+        $itemsStmt = $conn->prepare($itemsSql);
+        $itemsStmt->bindParam(':order_id', $order['id']);
+        $itemsStmt->execute();
+        
+        $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Format the response data for each item (EXACTLY like get_cart.php)
+        foreach ($items as &$item) {
+            $item['images'] = $item['images'] ? explode(',', $item['images']) : [];
+        }
+        
+        // Add items to order
+        $order['items'] = $items;
+        
+        // Clean up response
+        unset($order['shipping_address']);
+        unset($order['shipping_city']);
+        unset($order['shipping_postal_code']);
+        unset($order['shipping_country']);
+        unset($order['payment_method']);
     }
     
     echo json_encode([

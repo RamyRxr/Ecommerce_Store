@@ -40,12 +40,15 @@ try {
         throw new Exception('Order not found or not authorized to view');
     }
     
-    // Get items for the order
+    // Get items for the order with images (EXACTLY like get_cart.php)
     $itemsSql = "SELECT oi.*, p.title as product_name,
-                (oi.price * oi.quantity) as total
+                (oi.price * oi.quantity) as total,
+                GROUP_CONCAT(pi.image_url) as images
                 FROM order_items oi
                 LEFT JOIN products p ON oi.product_id = p.id
-                WHERE oi.order_id = :order_id";
+                LEFT JOIN product_images pi ON oi.product_id = pi.product_id
+                WHERE oi.order_id = :order_id
+                GROUP BY oi.id";
                 
     $itemsStmt = $conn->prepare($itemsSql);
     $itemsStmt->bindParam(':order_id', $orderId);
@@ -53,18 +56,9 @@ try {
     
     $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get product images for each item
+    // Format images (EXACTLY like get_cart.php)
     foreach ($items as &$item) {
-        $productId = $item['product_id'];
-        
-        // Get images for this product
-        $imagesSql = "SELECT image_path FROM product_images WHERE product_id = :product_id";
-        $imagesStmt = $conn->prepare($imagesSql);
-        $imagesStmt->bindParam(':product_id', $productId);
-        $imagesStmt->execute();
-        
-        $images = $imagesStmt->fetchAll(PDO::FETCH_COLUMN);
-        $item['images'] = $images; // Store all images
+        $item['images'] = $item['images'] ? explode(',', $item['images']) : [];
     }
     
     // Format shipping address for display
@@ -90,6 +84,13 @@ try {
         $actualDelivery = clone $orderDate;
         $actualDelivery->modify('+' . rand(3, 6) . ' days');
         $order['actualDelivery'] = $actualDelivery->format('Y-m-d H:i:s');
+        
+        // Check if order has been rated
+        $ratingQuery = "SELECT id FROM order_ratings WHERE order_id = :order_id LIMIT 1";
+        $ratingStmt = $conn->prepare($ratingQuery);
+        $ratingStmt->bindParam(':order_id', $orderId);
+        $ratingStmt->execute();
+        $order['rated'] = ($ratingStmt->rowCount() > 0);
     }
     
     // Clean up response

@@ -31,7 +31,7 @@ export default class CartItem2 {
                         ? `${item.images[0].includes('uploads/') 
                             ? '../' + item.images[0] 
                             : '../backend/uploads/products/' + item.images[0]}`
-                        : '/Project-Web/assets/images/products-images/placeholder.svg',
+                        : console.log(error),
                     images: item.images.map(img =>
                         `${img.includes('uploads/') 
                             ? '../' + img 

@@ -1,8 +1,9 @@
 export default class PurchaseHistory {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.activeTab = 'all'; // Default tab
+        this.activeTab = 'all';
         this.orders = [];
+        this.placeholderImage = '/Project-Web/assets/images/products-images/placeholder.svg';
         this.init();
     }
 
@@ -18,39 +19,46 @@ export default class PurchaseHistory {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const data = await response.json();
+
             if (data.success) {
-                this.orders = data.orders.map(order => ({
-                    id: order.id,
-                    date: order.date,
-                    status: order.status,
-                    totalAmount: parseFloat(order.totalAmount),
-                    shippingAddress: order.shippingAddress,
-                    paymentMethod: order.paymentMethod,
-                    estimatedDelivery: order.estimatedDelivery,
-                    actualDelivery: order.actualDelivery,
-                    rated: order.rated || false,
-                    cancellationDate: order.cancellationDate,
-                    cancellationReason: order.cancellationReason,
-                    items: Array.isArray(order.items) ? order.items.map(item => ({
+                this.orders = data.orders.map(order => {
+                    // Process base order data
+                    const processedOrder = {
+                        id: order.id,
+                        date: order.date,
+                        status: order.status,
+                        totalAmount: parseFloat(order.totalAmount || 0),
+                        shippingAddress: order.shippingAddress || {},
+                        paymentMethod: order.paymentMethod || '',
+                        estimatedDelivery: order.estimatedDelivery,
+                        actualDelivery: order.actualDelivery,
+                        rated: order.rated || false,
+                        cancellationDate: order.cancellationDate,
+                        cancellationReason: order.cancellationReason
+                    };
+
+                    // Process order items with EXACTLY the same image handling logic as CartItem.js
+                    processedOrder.items = Array.isArray(order.items) ? order.items.map(item => ({
                         id: item.id,
                         product_id: item.product_id,
                         product_name: item.product_name || 'Product',
-                        price: parseFloat(item.price),
-                        quantity: parseInt(item.quantity),
-                        total: parseFloat(item.total),
-                        // Format image URLs like in SavedPage.js
-                        image: item.product_image 
-                            ? `${item.product_image.includes('uploads/') 
-                                ? '../' + item.product_image 
-                                : '../backend/uploads/products/' + item.product_image}`
-                            : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZWVlZSIvPjxwYXRoIGQ9Ik04MCA3MGg0MHY0MEg4MHoiIGZpbGw9IiNhYWFhYWEiLz48cGF0aCBkPSJNMTQwIDcwdjQwbC0yMC0xMHoiIGZpbGw9IiNhYWFhYWEiLz48cGF0aCBkPSJNNjAgMTMwaDgwdi0yMGwtMjAtMjAtMjAgMjB6IiBmaWxsPSIjYWFhYWFhIi8+PC9zdmc+',
-                        images: item.images ? item.images.map(img =>
-                            `${img.includes('uploads/') 
-                                ? '../' + img 
+                        price: parseFloat(item.price || 0),
+                        quantity: parseInt(item.quantity || 1),
+                        total: parseFloat(item.total || 0),
+                        image: item.images[0]
+                            ? `${item.images[0].includes('uploads/')
+                                ? '../' + item.images[0]
+                                : '../backend/uploads/products/' + item.images[0]}`
+                            : this.placeholderImage,
+                        images: item.images.map(img =>
+                            `${img.includes('uploads/')
+                                ? '../' + img
                                 : '../backend/uploads/products/' + img}`
-                        ) : []
-                    })) : []
-                }));
+                        )
+                    })) : [];
+
+                    return processedOrder;
+                });
 
                 console.log("Orders loaded:", this.orders);
             } else {
@@ -61,6 +69,26 @@ export default class PurchaseHistory {
             this.showError('Failed to load orders. Please try again later.');
             this.orders = [];
         }
+    }
+
+    // Helper method to get first valid image
+    getFirstValidImage(item) {
+        if (item.image) {
+            return item.image.includes('uploads/')
+                ? `../${item.image}`
+                : `../backend/uploads/products/${item.image}`;
+        }
+
+        if (Array.isArray(item.images) && item.images.length > 0) {
+            const img = item.images[0];
+            if (img) {
+                return img.includes('uploads/')
+                    ? `../${img}`
+                    : `../backend/uploads/products/${img}`;
+            }
+        }
+
+        return console.log('rami error 3');
     }
 
     showError(message) {
@@ -287,9 +315,7 @@ export default class PurchaseHistory {
                     ${visibleItems.map(item => `
                         <div class="order-item">
                             <div class="item-image">
-                                <img src="${item.image}" 
-                                     alt="${item.product_name}"
-                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZWVlZSIvPjxwYXRoIGQ9Ik08MCA3MGg0MHY0MEg4MHoiIGZpbGw9IiNhYWFhYWEiLz48cGF0aCBkPSJNMTQwIDcwdjQwbC0yMC0xMHoiIGZpbGw9IiNhYWFhYWEiLz48cGF0aCBkPSJNNjAgMTMwaDgwdi0yMGwtMjAtMjAtMjAgMjB6IiBmaWxsPSIjYWFhYWFhIi8+PC9zdmc+'">
+                                <img src="${item.image}" alt="${item.product_name}">
                             </div>
                             <div class="item-details">
                                 <div class="item-name">${item.product_name}</div>
@@ -369,12 +395,29 @@ export default class PurchaseHistory {
             // Fetch detailed info for this specific order
             const response = await fetch(`../backend/api/orders/get_order_details.php?id=${orderId}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
+
             const data = await response.json();
-            if (!data.success) throw new Error(data.message || 'Failed to load order details');
-            
+            if (!data.order) throw new Error(data.message || 'Failed to load order details');
+
             const order = data.order;
-            
+
+            // Process images using the SAME logic as in loadOrders
+            if (Array.isArray(order.items)) {
+                order.items = order.items.map(item => ({
+                    ...item,
+                    image: item.images[0]
+                        ? `${item.images[0].includes('uploads/')
+                            ? '../' + item.images[0]
+                            : '../backend/uploads/products/' + item.images[0]}`
+                        : this.placeholderImage,
+                    images: item.images.map(img =>
+                        `${img.includes('uploads/')
+                            ? '../' + img
+                            : '../backend/uploads/products/' + img}`
+                    )
+                }));
+            }
+
             // Format dates
             const orderDate = new Date(order.date);
             const formattedDate = orderDate.toLocaleDateString('en-US', {
@@ -449,14 +492,14 @@ export default class PurchaseHistory {
                             <div class="address-payment-section">
                                 <div class="shipping-address">
                                     <h3>Shipping Address</h3>
-                                    <p>${order.shippingAddress.street}</p>
-                                    <p>${order.shippingAddress.city}, ${order.shippingAddress.state || ''} ${order.shippingAddress.zip}</p>
-                                    <p>${order.shippingAddress.country}</p>
+                                    <p>${order.shippingAddress?.street || 'N/A'}</p>
+                                    <p>${order.shippingAddress?.city || 'N/A'}, ${order.shippingAddress?.state || ''} ${order.shippingAddress?.zip || 'N/A'}</p>
+                                    <p>${order.shippingAddress?.country || 'N/A'}</p>
                                 </div>
                                 
                                 <div class="payment-method">
                                     <h3>Payment Method</h3>
-                                    <p>${order.paymentMethod}</p>
+                                    <p>${order.paymentMethod || 'N/A'}</p>
                                 </div>
                             </div>
                             
@@ -469,26 +512,24 @@ export default class PurchaseHistory {
                                         <div class="qty-col">Qty</div>
                                         <div class="total-col">Total</div>
                                     </div>
-                                    ${order.items.map(item => `
+                                    ${Array.isArray(order.items) ? order.items.map(item => `
                                         <div class="order-item-row">
                                             <div class="item-col">
                                                 <div class="item-image">
-                                                    <img src="${item.image}" 
-                                                         alt="${item.product_name || 'Product'}"
-                                                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZWVlZSIvPjxwYXRoIGQ9Ik08MCA3MGg0MHY0MEg4MHoiIGZpbGw9IiNhYWFhYWEiLz48cGF0aCBkPSJNMTQwIDcwdjQwbC0yMC0xMHoiIGZpbGw9IiNhYWFhYWEiLz48cGF0aCBkPSJNNjAgMTMwaDgwdi0yMGwtMjAtMjAtMjAgMjB6IiBmaWxsPSIjYWFhYWFhIi8+PC9zdmc+'">
+                                                    <img src="${item.image}" alt="${item.product_name || 'Product'}">
                                                 </div>
                                                 <div class="item-name">${item.product_name || 'Product'}</div>
                                             </div>
-                                            <div class="price-col">$${parseFloat(item.price).toFixed(2)}</div>
-                                            <div class="qty-col">${item.quantity}</div>
-                                            <div class="total-col">$${parseFloat(item.total).toFixed(2)}</div>
+                                            <div class="price-col">$${parseFloat(item.price || 0).toFixed(2)}</div>
+                                            <div class="qty-col">${item.quantity || 1}</div>
+                                            <div class="total-col">$${parseFloat(item.total || 0).toFixed(2)}</div>
                                         </div>
-                                    `).join('')}
+                                    `).join('') : ''}
                                 </div>
                                 <div class="order-totals">
                                     <div class="subtotal">
                                         <span>Subtotal:</span>
-                                        <span>$${parseFloat(order.totalAmount).toFixed(2)}</span>
+                                        <span>$${parseFloat(order.totalAmount || 0).toFixed(2)}</span>
                                     </div>
                                     <div class="shipping">
                                         <span>Shipping:</span>
@@ -500,7 +541,7 @@ export default class PurchaseHistory {
                                     </div>
                                     <div class="grand-total">
                                         <span>Grand Total:</span>
-                                        <span>$${parseFloat(order.totalAmount).toFixed(2)}</span>
+                                        <span>$${parseFloat(order.totalAmount || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -560,7 +601,7 @@ export default class PurchaseHistory {
                     this.rateOrder(orderId);
                 });
             }
-            
+
         } catch (error) {
             console.error('Error loading order details:', error);
             this.showError('Failed to load order details. Please try again later.');
@@ -614,6 +655,8 @@ export default class PurchaseHistory {
 
         // Add event listeners for star rating
         const stars = document.querySelectorAll('.star-icon');
+        const submitBtn = document.querySelector('.submit-rating-btn');
+
         stars.forEach(star => {
             star.addEventListener('click', () => {
                 const rating = parseInt(star.dataset.rating);
@@ -640,7 +683,6 @@ export default class PurchaseHistory {
                 }
 
                 // Enable submit button
-                const submitBtn = document.querySelector('.submit-rating-btn');
                 if (submitBtn) {
                     submitBtn.removeAttribute('disabled');
                 }
@@ -685,7 +727,7 @@ export default class PurchaseHistory {
                     try {
                         // Get comments if provided
                         const comments = document.getElementById('rating-comments').value;
-                        
+
                         // Submit rating via API
                         const response = await fetch('../backend/api/orders/add_rating.php', {
                             method: 'POST',
@@ -698,12 +740,12 @@ export default class PurchaseHistory {
                                 comments: comments
                             })
                         });
-                        
+
                         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        
+
                         const data = await response.json();
                         if (!data.success) throw new Error(data.message || 'Failed to submit rating');
-                        
+
                         // Update local order data
                         const orderIndex = this.orders.findIndex(o => o.id === orderId);
                         if (orderIndex !== -1) {
@@ -717,7 +759,7 @@ export default class PurchaseHistory {
                         alert('Thank you for your rating!');
                         await this.loadOrders(); // Reload orders from server
                         this.render();
-                        
+
                     } catch (error) {
                         console.error('Error submitting rating:', error);
                         this.showError('Failed to submit your rating. Please try again later.');
@@ -742,19 +784,19 @@ export default class PurchaseHistory {
                         reason: 'Cancelled by customer'
                     })
                 });
-                
+
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
+
                 const data = await response.json();
                 if (!data.success) throw new Error(data.message || 'Failed to cancel order');
-                
+
                 // Show confirmation
                 alert('Order cancelled successfully');
-                
+
                 // Reload orders and refresh UI
                 await this.loadOrders();
                 this.render();
-                
+
             } catch (error) {
                 console.error('Error cancelling order:', error);
                 this.showError('Failed to cancel order. Please try again later.');
