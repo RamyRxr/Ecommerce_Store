@@ -13,7 +13,7 @@ try {
     $userId = $_SESSION['user']['id'];
     
     // Get order ID from query parameter
-    $orderId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+    $orderId = isset($_GET['id']) ? $_GET['id'] : null;
     if (!$orderId) {
         throw new Exception('Order ID is required');
     }
@@ -40,16 +40,17 @@ try {
         throw new Exception('Order not found or not authorized to view');
     }
     
-    // Get items for the order with images (EXACTLY like get_cart.php)
-    $itemsSql = "SELECT oi.*, p.title as product_name,
-                (oi.price * oi.quantity) as total,
-                GROUP_CONCAT(pi.image_url) as images
-                FROM order_items oi
-                LEFT JOIN products p ON oi.product_id = p.id
-                LEFT JOIN product_images pi ON oi.product_id = pi.product_id
-                WHERE oi.order_id = :order_id
-                GROUP BY oi.id";
-                
+    // Get items for this order with images (EXACTLY like get_cart.php)
+    $itemsSql = "SELECT oi.id, oi.product_id, oi.price, oi.quantity, 
+                 p.title as product_name, 
+                 (oi.price * oi.quantity) as total,
+                 GROUP_CONCAT(pi.image_url) as images
+                 FROM order_items oi
+                 LEFT JOIN products p ON oi.product_id = p.id
+                 LEFT JOIN product_images pi ON oi.product_id = pi.product_id
+                 WHERE oi.order_id = :order_id
+                 GROUP BY oi.id";
+    
     $itemsStmt = $conn->prepare($itemsSql);
     $itemsStmt->bindParam(':order_id', $orderId);
     $itemsStmt->execute();
@@ -112,7 +113,7 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => 'Server error: ' . $e->getMessage()
     ]);
 }
 ?>

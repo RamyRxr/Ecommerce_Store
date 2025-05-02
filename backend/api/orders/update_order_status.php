@@ -11,48 +11,57 @@ try {
     }
 
     $userId = $_SESSION['user']['id'];
+    
+    // Get data from request body
     $data = json_decode(file_get_contents('php://input'), true);
     
-    // Check required parameters
     if (!isset($data['order_id']) || !isset($data['status'])) {
         throw new Exception('Order ID and status are required');
     }
     
     $orderId = $data['order_id'];
-    $newStatus = $data['status'];
-    $reason = $data['reason'] ?? null;
+    $status = $data['status'];
+    $reason = isset($data['reason']) ? $data['reason'] : '';
     
-    // Valid status values
-    $validStatuses = ['pending', 'shipped', 'delivered', 'cancelled'];
-    if (!in_array($newStatus, $validStatuses)) {
-        throw new Exception('Invalid status value');
+    // Only allow users to cancel orders
+    if ($status !== 'cancelled') {
+        throw new Exception('Invalid status update request');
     }
     
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Verify user owns this order
-    $checkStmt = $conn->prepare("SELECT id FROM orders WHERE id = ? AND user_id = ?");
-    $checkStmt->execute([$orderId, $userId]);
-    $order = $checkStmt->fetch(PDO::FETCH_ASSOC);
+    // Verify the order belongs to this user and is in a status that can be cancelled
+    $orderSql = "SELECT id, status FROM orders WHERE id = :order_id AND user_id = :user_id";
+    $orderStmt = $conn->prepare($orderSql);
+    $orderStmt->bindParam(':order_id', $orderId);
+    $orderStmt->bindParam(':user_id', $userId);
+    $orderStmt->execute();
+    
+    $order = $orderStmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$order) {
-        throw new Exception('Order not found or unauthorized access');
+        throw new Exception('Order not found');
+    }
+    
+    if ($order['status'] !== 'pending') {
+        throw new Exception('Only pending orders can be cancelled');
     }
     
     // Update the order status
-    $sql = "UPDATE orders SET status = :status WHERE id = :order_id";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':status', $newStatus);
-    $stmt->bindParam(':order_id', $orderId);
-    $stmt->execute();
+    $updateSql = "UPDATE orders SET 
+                  status = :status, 
+                  cancellation_reason = :reason,
+                  cancellation_date = NOW(),
+                  updated_at = NOW()
+                  WHERE id = :order_id AND user_id = :user_id";
     
-    // If cancellation, record the reason
-    if ($newStatus === 'cancelled' && $reason) {
-        // In a real application, you'd have a separate table for cancellation info
-        // Here we'll just log it for demonstration
-        error_log("Order $orderId cancelled by user $userId. Reason: $reason");
-    }
+    $updateStmt = $conn->prepare($updateSql);
+    $updateStmt->bindParam(':status', $status);
+    $updateStmt->bindParam(':reason', $reason);
+    $updateStmt->bindParam(':order_id', $orderId);
+    $updateStmt->bindParam(':user_id', $userId);
+    $updateStmt->execute();
     
     echo json_encode([
         'success' => true,
@@ -63,7 +72,7 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => 'Server error: ' . $e->getMessage()
     ]);
 }
 ?>

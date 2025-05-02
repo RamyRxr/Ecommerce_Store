@@ -370,7 +370,7 @@ export default class PurchaseHistory {
                 this.render();
             }
 
-            // View order details
+            // View order details - this handles the click event on the view details button
             if (e.target.closest('.view-details-btn')) {
                 const orderId = e.target.closest('.view-details-btn').dataset.id;
                 this.viewOrderDetails(orderId);

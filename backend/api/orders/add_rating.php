@@ -11,16 +11,17 @@ try {
     }
 
     $userId = $_SESSION['user']['id'];
+    
+    // Get data from request body
     $data = json_decode(file_get_contents('php://input'), true);
     
-    // Check required parameters
     if (!isset($data['order_id']) || !isset($data['rating'])) {
         throw new Exception('Order ID and rating are required');
     }
     
     $orderId = $data['order_id'];
     $rating = intval($data['rating']);
-    $comments = $data['comments'] ?? '';
+    $comments = isset($data['comments']) ? $data['comments'] : '';
     
     // Validate rating
     if ($rating < 1 || $rating > 5) {
@@ -30,17 +31,37 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Verify user owns this order and it's delivered
-    $checkStmt = $conn->prepare("SELECT id FROM orders WHERE id = ? AND user_id = ? AND status = 'delivered'");
-    $checkStmt->execute([$orderId, $userId]);
-    $order = $checkStmt->fetch(PDO::FETCH_ASSOC);
+    // Verify the order belongs to this user
+    $orderSql = "SELECT id FROM orders WHERE id = :order_id AND user_id = :user_id AND status = 'delivered'";
+    $orderStmt = $conn->prepare($orderSql);
+    $orderStmt->bindParam(':order_id', $orderId);
+    $orderStmt->bindParam(':user_id', $userId);
+    $orderStmt->execute();
     
-    if (!$order) {
-        throw new Exception('Order not found, unauthorized access, or order not delivered');
+    if ($orderStmt->rowCount() === 0) {
+        throw new Exception('Order not found or not eligible for rating');
     }
     
-    // In a real app, you would insert into a ratings table
-    // For now, let's just simulate success
+    // Check if order has already been rated
+    $checkSql = "SELECT id FROM order_ratings WHERE order_id = :order_id";
+    $checkStmt = $conn->prepare($checkSql);
+    $checkStmt->bindParam(':order_id', $orderId);
+    $checkStmt->execute();
+    
+    if ($checkStmt->rowCount() > 0) {
+        throw new Exception('This order has already been rated');
+    }
+    
+    // Add the rating
+    $sql = "INSERT INTO order_ratings (order_id, user_id, rating, comments, created_at) 
+            VALUES (:order_id, :user_id, :rating, :comments, NOW())";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':order_id', $orderId);
+    $stmt->bindParam(':user_id', $userId);
+    $stmt->bindParam(':rating', $rating);
+    $stmt->bindParam(':comments', $comments);
+    $stmt->execute();
     
     echo json_encode([
         'success' => true,
@@ -51,7 +72,7 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => 'Server error: ' . $e->getMessage()
     ]);
 }
 ?>
