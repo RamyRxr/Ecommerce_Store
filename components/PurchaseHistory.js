@@ -401,6 +401,51 @@ export default class PurchaseHistory {
 
             const order = data.order;
 
+            // Also fetch current user data to get shipping address and payment info
+            const userResponse = await fetch('../backend/api/get_user_settings.php');
+            const userData = await userResponse.json();
+
+            if (!userData.success) {
+                throw new Error(userData.message || 'Failed to load user data');
+            }
+
+            const user = userData.data.user;
+
+            // Enhance order with user's shipping address if available
+            if (user) {
+                order.shippingAddress = {
+                    street: user.address || order.shippingAddress?.street || 'N/A',
+                    city: user.city || order.shippingAddress?.city || 'N/A',
+                    state: user.state || order.shippingAddress?.state || '',
+                    zip: user.zip_code || order.shippingAddress?.zip || 'N/A',
+                    country: user.country || order.shippingAddress?.country || 'N/A'
+                };
+            }
+
+            // Function to convert country codes to names
+            const getCountryName = (countryCode) => {
+                const countries = {
+                    'us': 'United States',
+                    'ca': 'Canada',
+                    'uk': 'United Kingdom',
+                    'gb': 'United Kingdom',
+                    'au': 'Australia',
+                    'de': 'Germany',
+                    'fr': 'France',
+                    'it': 'Italy',
+                    'es': 'Spain',
+                    'jp': 'Japan',
+                    'cn': 'China',
+                    'in': 'India',
+                    'br': 'Brazil',
+                    'mx': 'Mexico',
+                    // Add more countries as needed
+                };
+
+                // If country code is found in our map, return the name, otherwise return the code itself
+                return countries[countryCode.toLowerCase()] || countryCode;
+            };
+
             // Process images using the SAME logic as in loadOrders
             if (Array.isArray(order.items)) {
                 order.items = order.items.map(item => ({
@@ -427,6 +472,21 @@ export default class PurchaseHistory {
                 hour: '2-digit',
                 minute: '2-digit'
             });
+
+            // Get payment method in more user-friendly format if possible
+            let paymentMethodDisplay = order.paymentMethod || 'N/A';
+
+            // If it's a credit card, format it nicely
+            if (order.paymentMethod && order.paymentMethod.includes('card')) {
+                // First try to get payment method from order data
+                if (order.paymentDetails) {
+                    paymentMethodDisplay = `${order.paymentDetails.card_type || ''} card ending in ${order.paymentDetails.last_four || '****'}`;
+                } else if (userData.data.paymentMethods && userData.data.paymentMethods.length > 0) {
+                    // If not in order, get default payment method from user data
+                    const defaultPayment = userData.data.paymentMethods[0];
+                    paymentMethodDisplay = `${defaultPayment.card_type || ''} card ending in ${defaultPayment.last_four || '****'}`;
+                }
+            }
 
             // Build the modal HTML with all order details
             const modalHTML = `
@@ -494,12 +554,12 @@ export default class PurchaseHistory {
                                     <h3>Shipping Address</h3>
                                     <p>${order.shippingAddress?.street || 'N/A'}</p>
                                     <p>${order.shippingAddress?.city || 'N/A'}, ${order.shippingAddress?.state || ''} ${order.shippingAddress?.zip || 'N/A'}</p>
-                                    <p>${order.shippingAddress?.country || 'N/A'}</p>
+                                    <p>${order.shippingAddress?.country ? getCountryName(order.shippingAddress.country) : 'N/A'}</p>
                                 </div>
                                 
                                 <div class="payment-method">
                                     <h3>Payment Method</h3>
-                                    <p>${order.paymentMethod || 'N/A'}</p>
+                                    <p>${paymentMethodDisplay}</p>
                                 </div>
                             </div>
                             
