@@ -501,7 +501,7 @@ body.dark-mode::-webkit-scrollbar-thumb {
 /*** CHECKOUT SUMMARY ***/
 .checkout-summary-container {
     position: fixed;
-    top: 20px;
+    top: 18px;
     left: 50%;
     transform: translateX(-50%) translateY(-20px);
     width: 90%;
