@@ -918,6 +918,28 @@ body.dark-mode .summary-items::-webkit-scrollbar-thumb {
     color: var(--danger, #e53935);
 }
 
+/* Error animation styles */
+.success-animation.error {
+    background: #ffebee;
+    border: 2px solid #e53935;
+}
+
+.success-animation.error i {
+    color: #e53935;
+    animation: errorIconPop 0.3s 0.2s forwards;
+}
+
+@keyframes errorIconPop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Error notification styles */
+.notification-icon[style*="color: #e53935"] {
+    color: #e53935;
+}
+
 .summary-totals {
     padding: 12px 20px 5px 20px;
     flex-shrink: 0;

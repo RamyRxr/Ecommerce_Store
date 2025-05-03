@@ -209,6 +209,29 @@ export default class CheckoutSummary {
                 return;
             }
 
+            // Check if user shipping information is complete first
+            const userResponse = await fetch('../backend/api/get_user_settings.php');
+            const userData = await userResponse.json();
+            
+            if (!userData.success) {
+                throw new Error(userData.message || 'Failed to load user data');
+            }
+
+            const user = userData.data.user;
+            
+            // Check if any required shipping information is missing
+            if (!user.address || !user.city || !user.state || !user.zip_code || !user.country) {
+                // Show error notification instead of success
+                this.showIncompleteInfoNotification();
+                
+                // Redirect to settings page after a short delay
+                setTimeout(() => {
+                    window.location.href = 'SettingsPage.html';
+                }, 3000);
+                
+                return;
+            }
+
             const totals = this.calculateTotals();
             const orderData = {
                 total_price: parseFloat(totals.total),
@@ -287,6 +310,68 @@ export default class CheckoutSummary {
             console.error('Error completing purchase:', error);
             alert('Failed to complete purchase: ' + error.message);
         }
+    }
+
+    // Add this new method to show incomplete information notification
+    showIncompleteInfoNotification() {
+        const animContainer = document.createElement('div');
+        animContainer.className = 'success-animation-container';
+        animContainer.innerHTML = `
+            <div class="success-animation error">
+                <i class='bx bx-x'></i>
+            </div>
+        `;
+        
+        document.body.appendChild(animContainer);
+        
+        // Add active class after a small delay
+        setTimeout(() => {
+            animContainer.classList.add('active');
+        }, 10);
+        
+        // Create and show an error message
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'notification fade-in';
+        errorMessage.innerHTML = `
+            <div class="notification-content">
+                <i class='bx bx-error-circle notification-icon' style="color: #e53935"></i>
+                <div class="notification-text">
+                    <p>Shipping information incomplete. Redirecting to settings...</p>
+                </div>
+            </div>
+        `;
+        
+        // Create or get notification container
+        let container = document.querySelector('.global-notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'notification-container global-notification-container';
+            document.body.appendChild(container);
+        }
+        
+        container.appendChild(errorMessage);
+        
+        // Hide animation after a delay
+        setTimeout(() => {
+            animContainer.classList.remove('active');
+            setTimeout(() => {
+                if (animContainer.parentElement) {
+                    animContainer.remove();
+                }
+            }, 300);
+        }, 2000);
+        
+        // Remove notification after a delay
+        setTimeout(() => {
+            errorMessage.classList.remove('fade-in');
+            errorMessage.classList.add('fade-out');
+            
+            setTimeout(() => {
+                if (errorMessage.parentElement) {
+                    errorMessage.remove();
+                }
+            }, 300);
+        }, 3000);
     }
 
     show() {
