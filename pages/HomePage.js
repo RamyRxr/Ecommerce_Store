@@ -1,6 +1,6 @@
-import Sidebar from '../components/SideBar.js';
-import RightSidebar from '../components/RightSideBar.js';
-import MainContent from '../components/MainContent.js';
+import Sidebar from '../components/Sidebar/sidebar.js';
+import RightSidebar from '../components/Home/rightSidebar.js';
+import MainContent from '../components/Home/mainContent.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = new Sidebar('app');  

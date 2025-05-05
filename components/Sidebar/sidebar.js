@@ -4,13 +4,35 @@ export default class SideBar {
         this.isCollapsed = false;
         this.isDarkMode = localStorage.getItem('darkMode') === 'true';
         this.activeMenuItem = activeMenuItem;
+        this.isAdmin = false; // Default to false
         this.init();
     }
 
-    init() {
+    async init() {
+        // Force synchronous execution to ensure admin status is set before rendering
+        this.checkAdminStatus();
+        console.log('Sidebar init - isAdmin:', this.isAdmin);
         this.render();
         this.setupEventListeners();
         this.applyTheme();
+        this.postRenderCleanup();
+    }
+
+    checkAdminStatus() {
+        try {
+            const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+            this.isAdmin = Boolean(user.is_admin);
+            console.log('Admin status check (Sidebar):', this.isAdmin ? 'Administrator' : 'Regular User');
+
+            // Also store in localStorage as a backup for page refreshes
+            localStorage.setItem('isAdmin', this.isAdmin);
+
+            return this.isAdmin;
+        } catch (error) {
+            console.error('Error checking admin status:', error);
+            this.isAdmin = false;
+            return false;
+        }
     }
 
     render() {
@@ -154,6 +176,7 @@ export default class SideBar {
                 </div>
 
                 <ul class="menu">
+                    <!-- Common items -->
                     <li class="${this.activeMenuItem === 'home' ? 'active' : ''}">
                         <a href="../HTML-Pages/Home.html">
                             <i class='bx bx-home'></i>
@@ -166,24 +189,34 @@ export default class SideBar {
                             <span class="links_name">Explore</span>
                         </a>
                     </li>
-                    <li class="${this.activeMenuItem === 'saved' ? 'active' : ''}">
+                    
+                    <!-- Customer-only items -->
+                    ${!this.isAdmin ? `
+                    <li class="${this.activeMenuItem === 'saved' ? 'active' : ''} customer-only-item">
                         <a href="../HTML-Pages/SavedPage.html">
                             <i class='bx bx-heart'></i>
                             <span class="links_name">Saved</span>
                         </a>
                     </li>
-                    <li class="${this.activeMenuItem === 'cart' ? 'active' : ''}">
+                    <li class="${this.activeMenuItem === 'cart' ? 'active' : ''} customer-only-item">
                         <a href="../HTML-Pages/CartPage.html">
                             <i class='bx bx-cart'></i>
                             <span class="links_name">Cart</span>
                         </a>
                     </li>
-                    <li class="${this.activeMenuItem === 'selling' ? 'active' : ''}">
+                    ` : ''}
+                    
+                    <!-- Admin-only items -->
+                    ${this.isAdmin ? `
+                    <li class="${this.activeMenuItem === 'selling' ? 'active' : ''} admin-only-item">
                         <a href="../HTML-Pages/SellingPage.html">
                             <i class='bx bx-store'></i>
                             <span class="links_name">Selling</span>
                         </a>
                     </li>
+                    ` : ''}
+                    
+                    <!-- Common items again -->
                     <li class="${this.activeMenuItem === 'purchase_history' ? 'active' : ''}">
                         <a href="../HTML-Pages/HistoryPage.html">
                             <i class='bx bx-history'></i>
@@ -208,8 +241,8 @@ export default class SideBar {
                     <div class="profile-details">
                         <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR">
                         <div class="info">
-                            <span>RamyRxr</span>
-                            <small>Developer</small>
+                            <span id="username-display">RamyRxr</span>
+                            <small id="role-display">${this.isAdmin ? 'Administrator' : 'Customer'}</small>
                         </div>
                     </div>
                     <div class="logout-wrapper">
@@ -218,7 +251,7 @@ export default class SideBar {
                                 <i class='bx ${this.isDarkMode ? 'bx-sun' : 'bx-moon'}'></i>
                             </div>
                         </a>
-                        <a href="../HTML-Pages/login.html">
+                        <a href="#" id="logout-link">
                             <i class='bx bx-log-out'></i>
                         </a>
                     </div>
@@ -230,13 +263,62 @@ export default class SideBar {
         const sidebarContainer = document.createElement('div');
         sidebarContainer.id = 'sidebar-container';
         sidebarContainer.innerHTML = sidebarHTML;
-        
+
         // Check if sidebar already exists
         const existingSidebar = document.querySelector('.sidebar');
         if (existingSidebar) {
             existingSidebar.replaceWith(sidebarContainer.firstElementChild);
         } else {
             this.container.appendChild(sidebarContainer);
+        }
+
+        // Update user info
+        this.updateUserInfo();
+    }
+
+    postRenderCleanup() {
+        if (this.isAdmin) {
+            // Hide customer-only items using CSS as a fallback
+            const customerOnlyItems = document.querySelectorAll('.customer-only-item');
+            customerOnlyItems.forEach(item => {
+                item.style.display = 'none';
+            });
+
+            // Show admin-only items
+            const adminOnlyItems = document.querySelectorAll('.admin-only-item');
+            adminOnlyItems.forEach(item => {
+                item.style.display = 'block';
+            });
+        } else {
+            // Hide admin-only items
+            const adminOnlyItems = document.querySelectorAll('.admin-only-item');
+            adminOnlyItems.forEach(item => {
+                item.style.display = 'none';
+            });
+
+            // Show customer-only items
+            const customerOnlyItems = document.querySelectorAll('.customer-only-item');
+            customerOnlyItems.forEach(item => {
+                item.style.display = 'block';
+            });
+        }
+    }
+
+    updateUserInfo() {
+        try {
+            const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+            const usernameDisplay = document.getElementById('username-display');
+            const roleDisplay = document.getElementById('role-display');
+
+            if (usernameDisplay && user.username) {
+                usernameDisplay.textContent = user.username;
+            }
+
+            if (roleDisplay) {
+                roleDisplay.textContent = this.isAdmin ? 'Administrator' : 'Customer';
+            }
+        } catch (error) {
+            console.error('Error updating user info:', error);
         }
     }
 
@@ -262,7 +344,7 @@ export default class SideBar {
                             activeDropdown.classList.remove('active');
                         }
                     });
-                    
+
                     // Toggle the clicked dropdown
                     dropdown.classList.toggle('active');
                     e.stopPropagation();
@@ -278,7 +360,7 @@ export default class SideBar {
                 document.querySelectorAll('.menu li').forEach(li => {
                     li.classList.remove('active');
                 });
-                
+
                 // Add active class to the clicked menu item's parent li
                 item.parentElement.classList.add('active');
             });
@@ -288,8 +370,18 @@ export default class SideBar {
         // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
+            themeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.toggleTheme();
+            });
+        }
+
+        // Logout functionality
+        const logoutLink = document.getElementById('logout-link');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.logout();
             });
         }
 
@@ -305,9 +397,9 @@ export default class SideBar {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const target = item.getAttribute('data-target');
-                
+
                 // Navigate to the corresponding page based on target
-                switch(target) {
+                switch (target) {
                     case 'orders-received':
                         window.location.href = './orders-received.html';
                         break;
@@ -323,6 +415,31 @@ export default class SideBar {
                 }
             });
         });
+
+        // Search functionality
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const query = searchInput.value.trim();
+                    if (query) {
+                        window.location.href = `../HTML-Pages/ExplorePage.html?search=${encodeURIComponent(query)}`;
+                    }
+                }
+            });
+        }
+    }
+
+    logout() {
+        // Clear session storage
+        sessionStorage.removeItem('user');
+
+        // Call logout API to clear server-side session
+        fetch('../backend/api/auth/logout.php')
+            .finally(() => {
+                // Redirect to login page
+                window.location.href = '../HTML-Pages/login.html';
+            });
     }
 
     toggleSidebar() {

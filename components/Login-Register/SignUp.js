@@ -451,42 +451,45 @@ export default class SignUp {
         signupBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Creating Account...</span>';
         signupBtn.disabled = true;
 
-        // Create form data
-        const formData = new FormData();
-        formData.append('username', document.getElementById('username').value);
-        formData.append('email', document.getElementById('email').value);
-        formData.append('password', document.getElementById('password').value);
-        formData.append('confirm_password', document.getElementById('confirmPassword').value);
-        formData.append('first_name', document.getElementById('firstName').value);
-        formData.append('last_name', document.getElementById('lastName').value);
-        formData.append('phone', document.getElementById('phoneNumber').value);
+        // Get form data
+        const userData = {
+            username: document.getElementById('username').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            first_name: document.getElementById('firstName').value,
+            last_name: document.getElementById('lastName').value,
+            phone: document.getElementById('phoneNumber').value
+        };
 
         fetch('../backend/api/auth/register.php', {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.message || 'Registration failed');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                alert('Registration successful! Please log in.');
-                window.location.href = './login.html?registered=true';
-            } else {
-                throw new Error(data.message || 'Registration failed');
-            }
-        })
-        .catch(error => {
-            console.error('Registration error:', error);
-            this.showError(error.message || 'Registration failed. Please try again.');
-            signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
-            signupBtn.disabled = false;
-        });
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Registration failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Registration successful! Please log in.');
+                    window.location.href = './login.html?registered=true';
+                } else {
+                    throw new Error(data.message || 'Registration failed');
+                }
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                this.showError(error.message || 'Registration failed. Please try again.');
+                signupBtn.innerHTML = '<i class="bx bx-user-plus"></i><span>Create Account</span>';
+                signupBtn.disabled = false;
+            });
     }
 
     showError(message) {

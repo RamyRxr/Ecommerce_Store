@@ -1,6 +1,6 @@
-import SideBar2 from '../components/SideBar2.js';
-import FilterSidebar from '../components/FilterSidebar.js';
-import ExploreContents from '../components/ExploreContents.js';
+import SideBar2 from '../components/Sidebar/SideBar2.js';
+import FilterSidebar from '../components/Explore/FilterSidebar.js';
+import ExploreContents from '../components/Explore/ExploreContents.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // First initialize the specialized sidebar that's always collapsed

@@ -1,6 +1,6 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -15,6 +15,24 @@
 
     <!-- Boxicons CDN Link -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- Admin Check Script -->
+    <script>
+        // Check if user is admin before page fully loads
+        (function checkAdminAccess() {
+            try {
+                const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+                if (!user.is_admin) {
+                    // Not admin, redirect to home with access denied message
+                    alert('Access denied: This page is only available to administrators');
+                    window.location.href = 'Home.html';
+                }
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                window.location.href = 'Home.html';
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -22,6 +40,6 @@
 
     <!-- JavaScript Modules -->
     <script type="module" src="../pages/SellingPage.js"></script>
+    <script src="../assets/js/admin-check.js"></script>
 </body>
-
 </html>

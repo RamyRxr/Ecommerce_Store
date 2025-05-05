@@ -1,64 +1,57 @@
 <?php
 header('Content-Type: application/json');
 session_start();
+
 require_once '../../config/database.php';
 
 try {
+    // Check if user is logged in
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
         throw new Exception('User not logged in');
     }
-
-    $userId = $_SESSION['user']['id'];
-
+    
+    // Check if the user is an admin
+    if (!isset($_SESSION['user']['is_admin']) || !$_SESSION['user']['is_admin']) {
+        throw new Exception('Unauthorized access. Admin privileges required.');
+    }
+    
     $db = new Database();
     $conn = $db->getConnection();
-
-    // Get all listings for the current user
-    $sql = "SELECT p.*, 
-            GROUP_CONCAT(pi.image_url) as image_urls
-            FROM products p 
-            LEFT JOIN product_images pi ON p.id = pi.product_id 
-            WHERE p.seller_id = :seller_id
-            GROUP BY p.id 
-            ORDER BY p.created_at DESC";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':seller_id', $userId);
-    $stmt->execute();
-
-    $listings = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Format the listings
-    $formattedListings = array_map(function($listing) {
-        return [
-            'id' => $listing['id'],
-            'title' => $listing['title'],
-            'description' => $listing['description'],
-            'price' => $listing['price'],
-            'category' => $listing['category'],
-            'condition' => $listing['condition'],
-            'brand' => $listing['brand'],
-            'model' => $listing['model'],
-            'shipping' => $listing['shipping'],
-            'local_pickup' => $listing['local_pickup'],
-            'created_at' => $listing['created_at'],
-            'views' => $listing['views'],
-            'status' => $listing['status'],
-            'images' => $listing['image_urls'] ? explode(',', $listing['image_urls']) : []
-        ];
-    }, $listings);
-
+    
+    // Get user ID
+    $userId = $_SESSION['user']['id'];
+    
+    // Get all products created by this admin
+    $stmt = $conn->prepare("SELECT * FROM products WHERE seller_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$userId]);
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Prepare result array
+    $listings = [];
+    
+    foreach ($products as $product) {
+        // Get product images
+        $imgStmt = $conn->prepare("SELECT image_url FROM product_images WHERE product_id = ? ORDER BY display_order ASC");
+        $imgStmt->execute([$product['id']]);
+        $images = $imgStmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        // Format the product with images
+        $product['images'] = $images;
+        $listings[] = $product;
+    }
+    
     echo json_encode([
         'success' => true,
         'data' => [
-            'listings' => $formattedListings
+            'listings' => $listings
         ]
     ]);
-
+    
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
 }
+?>

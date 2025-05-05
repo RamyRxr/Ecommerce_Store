@@ -1,85 +1,86 @@
 <?php
-session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Set error handling to capture all errors as exceptions
+set_error_handler(function($severity, $message, $file, $line) {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
 
 header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Content-Type");
-
-require_once '../../config/database.php'; 
+session_start();
 
 try {
-    // Get and sanitize POST data
-    $username = $_POST['username'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-    $first_name = $_POST['first_name'] ?? '';
-    $last_name = $_POST['last_name'] ?? '';
-    $phone = $_POST['phone'] ?? '';
+    // Include database connection
+    require_once '../../config/database.php';
 
-    // Validate input
-    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-        throw new Exception('All fields are required');
+    // Get JSON post data instead of form data
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    // Validate required fields
+    $requiredFields = ['username', 'email', 'password', 'first_name', 'last_name'];
+    foreach ($requiredFields as $field) {
+        if (!isset($data[$field]) || empty($data[$field])) {
+            echo json_encode([
+                'success' => false,
+                'message' => "Field '$field' is required"
+            ]);
+            exit;
+        }
     }
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        throw new Exception('Invalid email format');
-    }
-
-    if ($password !== $confirm_password) {
-        throw new Exception('Passwords do not match');
-    }
-
-    if (strlen($password) < 8) {
-        throw new Exception('Password must be at least 8 characters long');
-    }
-
-    // Create database connection
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Check if username already exists
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
-    $stmt->execute([$username]);
-    if ($stmt->fetchColumn() > 0) {
-        throw new Exception('Username already taken');
+    // Check if username or email already exists
+    $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+    $stmt->execute([$data['username'], $data['email']]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Username or email already in use'
+        ]);
+        exit;
     }
-    
-    // Check if email already exists
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    if ($stmt->fetchColumn() > 0) {
-        throw new Exception('Email already registered');
-    }
-    
-    // Hash password
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    
-    // Insert user
-    $stmt = $conn->prepare("INSERT INTO users (username, email, password, first_name, last_name, phone, created_at) 
-                           VALUES (?, ?, ?, ?, ?, ?, NOW())");
+
+    // Insert new user (all new registrations are regular users, not admins)
+    $stmt = $conn->prepare("
+        INSERT INTO users (username, email, password, first_name, last_name, is_admin, phone)
+        VALUES (?, ?, ?, ?, ?, 0, ?)
+    ");
     
     $stmt->execute([
-        $username,
-        $email,
-        $hashed_password,
-        $first_name,
-        $last_name,
-        $phone
+        $data['username'],
+        $data['email'],
+        $data['password'], // In a real app, hash this password
+        $data['first_name'],
+        $data['last_name'],
+        $data['phone'] ?? null
     ]);
-    
+
+    $userId = $conn->lastInsertId();
+
+    // Create default user settings
+    $stmt = $conn->prepare("
+        INSERT INTO user_settings (user_id, order_updates, promotions, newsletter, product_updates)
+        VALUES (?, 1, 1, 0, 1)
+    ");
+    $stmt->execute([$userId]);
+
     echo json_encode([
         'success' => true,
-        'message' => 'Registration successful'
+        'message' => 'Registration successful',
+        'user_id' => $userId
     ]);
-    
-} catch(Exception $e) {
-    http_response_code(400);
+
+} catch (PDOException $e) {
+    error_log("Database error: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => 'Database error: ' . $e->getMessage()
+    ]);
+} catch (Exception $e) {
+    error_log("Error: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error: ' . $e->getMessage()
     ]);
 }
+?>

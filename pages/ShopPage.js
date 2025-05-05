@@ -1,4 +1,4 @@
-import SideBar from '../components/sidebar.js';
+import SideBar from '../components/Sidebar/SideBar2.js';
 import ProductLoader from '../components/ProductLoader.js';
 
 document.addEventListener('DOMContentLoaded', () => {

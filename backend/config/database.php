@@ -1,23 +1,22 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "ecommerce_store";  // Make sure this matches your database name
-    private $username = "Ramy";            // Default XAMPP username
-    private $password = "Ramy2024";                // Default XAMPP password (empty)
-    private $conn = null;
+    private $db_name = "ecommerce_store";
+    private $username = "Ramy";
+    private $password = "Ramy2024";
+    private $conn;
 
     public function getConnection() {
+        $this->conn = null;
+
         try {
-            $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
-                $this->username,
-                $this->password
-            );
+            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name, $this->username, $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $this->conn;
         } catch(PDOException $e) {
-            echo "Connection error: " . $e->getMessage();
-            return null;
+            // Instead of echoing directly, throw the exception to be caught by caller
+            throw new PDOException("Connection error: " . $e->getMessage());
         }
     }
 }
+?>

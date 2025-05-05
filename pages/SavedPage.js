@@ -1,5 +1,5 @@
-import SideBar2 from '../components/SideBar2.js';
-import SavedItems from '../components/SavedItems.js';
+import SideBar2 from '../components/Sidebar/SideBar2.js';
+import SavedItems from '../components/Save/SavedItems.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Get the tab parameter from URL

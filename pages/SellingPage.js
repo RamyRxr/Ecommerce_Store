@@ -1,12 +1,11 @@
-import SideBar2 from '../components/SideBar2.js';
-import SellingContents from '../components/SellingContents.js';
+import SideBar2 from '../components/Sidebar/SideBar2.js';
+import SellingContents from '../components/Sellings/SellingContents.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize the sidebar with selling as active item
+// Initialize page components
+document.addEventListener('DOMContentLoaded', function() {
+    // Init sidebar with selling as active
     const sidebar = new SideBar2('app', 'selling');
-
-    // Initialize the selling contents component
+    
+    // Create selling contents
     const sellingContents = new SellingContents('app');
-
-    console.log('Selling page initialized');
 });

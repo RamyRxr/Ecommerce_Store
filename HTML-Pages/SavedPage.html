@@ -9,6 +9,27 @@
     <link rel="stylesheet" href="../assets/css/sidebarStyle.css">
     <link rel="stylesheet" href="../assets/css/SidebarStyle-2.css">
     <link rel="stylesheet" href="../assets/css/SavedItemsStyle.css">
+
+    <script>
+        // Check if user is admin before page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            function checkCustomerAccess() {
+                try {
+                    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+                    if (user.is_admin) {
+                        // Admin trying to access customer pages
+                        alert('This page is only available to customers');
+                        window.location.href = 'Home.html';
+                    }
+                } catch (error) {
+                    console.error('Error checking user status:', error);
+                }
+            }
+            
+            checkCustomerAccess();
+        });
+    </script>
+
 </head>
 <body>
     <div id="app">

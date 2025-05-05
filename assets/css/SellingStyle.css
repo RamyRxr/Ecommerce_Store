@@ -1,3 +1,39 @@
+/* Fix sidebar positioning */
+.sidebar {
+    left: 0 !important; /* Force left position to be 0 */
+    position: fixed !important;
+}
+
+/* Ensure proper container layout */
+.app-container {
+    display: flex;
+    padding-left: 0; /* Remove any left padding */
+}
+
+/* Make sure the main content respects the sidebar width */
+.selling-container {
+    margin-left: 80px; /* For collapsed sidebar */
+    width: calc(100% - 80px);
+    transition: margin-left 0.3s ease;
+}
+
+/* Adjust when sidebar is expanded */
+.sidebar:not(.collapsed) + .selling-container {
+    margin-left: 250px; /* For expanded sidebar */
+    width: calc(100% - 250px);
+}
+
+/* Fix for mobile */
+@media (max-width: 768px) {
+    .sidebar {
+        left: 0 !important;
+    }
+    
+    .selling-container {
+        width: 100%;
+    }
+}
+
 /* Selling Content Layout */
 .selling-content {
     position: fixed;

@@ -5,114 +5,122 @@ session_start();
 require_once '../../config/database.php';
 
 try {
+    // Check if user is logged in
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
         throw new Exception('User not logged in');
     }
-
-    $userId = $_SESSION['user']['id'];
+    
+    // Check if the user is an admin
+    if (!isset($_SESSION['user']['is_admin']) || !$_SESSION['user']['is_admin']) {
+        throw new Exception('Unauthorized access. Admin privileges required.');
+    }
+    
+    // Get listing ID
     $listingId = $_POST['listing_id'] ?? null;
-
+    
     if (!$listingId) {
         throw new Exception('Listing ID is required');
     }
-
+    
+    // Get form data
+    $title = $_POST['title'] ?? null;
+    $description = $_POST['description'] ?? null;
+    $price = $_POST['price'] ?? null;
+    $category = $_POST['category'] ?? null;
+    $condition = $_POST['condition'] ?? null;
+    $brand = $_POST['brand'] ?? null;
+    $model = $_POST['model'] ?? null;
+    $shipping = isset($_POST['shipping']) && $_POST['shipping'] === 'true' ? 1 : 0;
+    $localPickup = isset($_POST['localPickup']) && $_POST['localPickup'] === 'true' ? 1 : 0;
+    $status = $_POST['status'] ?? 'active';
+    
+    // Connect to database
     $db = new Database();
     $conn = $db->getConnection();
-
-    // Verify user owns this listing
-    $stmt = $conn->prepare("SELECT seller_id FROM products WHERE id = ?");
-    $stmt->execute([$listingId]);
-    $listing = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$listing || $listing['seller_id'] != $userId) {
-        throw new Exception('Unauthorized access');
+    
+    // Verify the product exists and belongs to this admin
+    $verifyStmt = $conn->prepare("SELECT id FROM products WHERE id = ? AND seller_id = ?");
+    $verifyStmt->execute([$listingId, $_SESSION['user']['id']]);
+    
+    if (!$verifyStmt->fetch()) {
+        throw new Exception('You do not have permission to edit this listing');
     }
-
-    // Begin transaction
-    $conn->beginTransaction();
-
-    // Update product details
-    $sql = "UPDATE products SET 
-            title = ?,
-            description = ?,
-            price = ?,
-            category = ?,
-            `condition` = ?,
-            brand = ?,
-            model = ?,
-            shipping = ?,
-            local_pickup = ?,
-            status = ?,
-            updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?";
-
-    $stmt = $conn->prepare($sql);
+    
+    // Update product using backticks for 'condition' as it's a reserved word
+    $stmt = $conn->prepare("UPDATE products SET
+                title = ?, description = ?, price = ?, category = ?, 
+                `condition` = ?, brand = ?, model = ?, shipping = ?, 
+                local_pickup = ?, status = ?
+            WHERE id = ?");
+            
     $stmt->execute([
-        $_POST['title'],
-        $_POST['description'],
-        $_POST['price'],
-        $_POST['category'],
-        $_POST['condition'],
-        $_POST['brand'],
-        $_POST['model'],
-        $_POST['shipping'] === 'true' ? 1 : 0,
-        $_POST['localPickup'] === 'true' ? 1 : 0,
-        $_POST['status'],
-        $listingId
+        $title, $description, $price, $category,
+        $condition, $brand, $model, $shipping,
+        $localPickup, $status, $listingId
     ]);
-
-    // Handle images
-    if (isset($_FILES['image'])) {
-        // Upload directory
-        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Project-Web/backend/uploads/products/';
+    
+    // Handle new image uploads
+    $uploadedImages = [];
+    
+    if (!empty($_FILES['image']) && is_array($_FILES['image']['name'])) {
+        // Create directory if it doesn't exist
+        $uploadDir = '../../uploads/products/';
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
-
-        // Remove existing images if new ones are uploaded
-        $stmt = $conn->prepare("DELETE FROM product_images WHERE product_id = ?");
-        $stmt->execute([$listingId]);
-
-        // Upload new images
-        foreach ($_FILES['image']['tmp_name'] as $key => $tmp_name) {
-            if ($_FILES['image']['error'][$key] === UPLOAD_ERR_OK) {
-                $filename = uniqid() . '_' . basename($_FILES['image']['name'][$key]);
-                $destination = $uploadDir . $filename;
+        
+        // Prepare image insert statement
+        $imageStmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, ?)");
+        
+        // Get count of existing images for display order
+        $countStmt = $conn->prepare("SELECT COUNT(*) FROM product_images WHERE product_id = ?");
+        $countStmt->execute([$listingId]);
+        $displayOrder = $countStmt->fetchColumn();
+        
+        for ($i = 0; $i < count($_FILES['image']['name']); $i++) {
+            if ($_FILES['image']['error'][$i] == 0) {
+                $fileName = time() . '_' . $_FILES['image']['name'][$i];
+                $filePath = $uploadDir . $fileName;
                 
-                if (move_uploaded_file($tmp_name, $destination)) {
-                    $imageUrl = 'backend/uploads/products/' . $filename;
-                    
-                    $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url) VALUES (?, ?)");
-                    $stmt->execute([$listingId, $imageUrl]);
+                // Move uploaded file
+                if (move_uploaded_file($_FILES['image']['tmp_name'][$i], $filePath)) {
+                    $imageUrl = 'backend/uploads/products/' . $fileName;
+                    $imageStmt->execute([$listingId, $imageUrl, $displayOrder + $i]);
+                    $uploadedImages[] = $imageUrl;
                 }
             }
         }
     }
-
-    // Keep existing images
-    if (isset($_POST['existing_images'])) {
-        foreach ($_POST['existing_images'] as $imageUrl) {
-            $stmt = $conn->prepare("INSERT INTO product_images (product_id, image_url) VALUES (?, ?)");
-            $stmt->execute([$listingId, $imageUrl]);
+    
+    // Handle existing images - if not specified in existing_images, delete them
+    if (isset($_POST['existing_images']) && is_array($_POST['existing_images'])) {
+        $existingImages = $_POST['existing_images'];
+        
+        // Get all current images
+        $currentImagesStmt = $conn->prepare("SELECT id, image_url FROM product_images WHERE product_id = ?");
+        $currentImagesStmt->execute([$listingId]);
+        $currentImages = $currentImagesStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Delete images that are not in the existing_images list
+        $deleteImageStmt = $conn->prepare("DELETE FROM product_images WHERE id = ?");
+        
+        foreach ($currentImages as $image) {
+            if (!in_array($image['image_url'], $existingImages)) {
+                $deleteImageStmt->execute([$image['id']]);
+            }
         }
     }
-
-    // Commit transaction
-    $conn->commit();
-
+    
     echo json_encode([
         'success' => true,
         'message' => 'Listing updated successfully'
     ]);
-
-} catch (Exception $e) {
-    if (isset($conn)) {
-        $conn->rollBack();
-    }
     
-    http_response_code(500);
+} catch (Exception $e) {
+    http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
 }
+?>

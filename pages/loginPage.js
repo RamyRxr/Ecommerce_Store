@@ -1,4 +1,4 @@
-import LoginPage from '../components/logIn.js';
+import LoginPage from '../components/Login-Register/logIn.js';
 
 // Initialize login page when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {

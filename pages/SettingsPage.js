@@ -1,5 +1,5 @@
-import SideBar2 from '../components/SideBar2.js';
-import Settings from '../components/Settings.js';
+import SideBar2 from '../components/Sidebar/SideBar2.js';
+import Settings from '../components/Settings/Settings.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize the sidebar with settings as active item

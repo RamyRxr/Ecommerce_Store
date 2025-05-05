@@ -89,7 +89,7 @@ export default class LogIn {
                         </div>
                         
                         <div class="register-link">
-                            Don't have an account ? <a href="../HTML-Pages/signup.html" id="signup-link">Sign up</a>
+                            Don't have an account? <a href="../HTML-Pages/signup.html" id="signup-link">Sign up</a>
                         </div>
                     </div>
                 </div>
@@ -184,35 +184,46 @@ export default class LogIn {
     }
 
     login(username, password, remember) {
-        // Show loading state
         const loginBtn = document.querySelector('.btn-login');
-        loginBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Signing in...</span>';
+        loginBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Logging in...</span>';
         loginBtn.disabled = true;
 
-        // Create FormData instead of JSON
-        const formData = new FormData();
-        formData.append('username', username);
-        formData.append('password', password);
+        // Prepare data for sending to server
+        const data = {
+            username: username,
+            password: password
+        };
 
+        // Send login request to server
         fetch('../backend/api/auth/login.php', {
             method: 'POST',
-            body: formData  // Send as FormData instead of JSON
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Store user data
+                // Store user data in sessionStorage
+                sessionStorage.setItem('user', JSON.stringify({
+                    id: data.user.id,
+                    username: data.user.username,
+                    email: data.user.email,
+                    first_name: data.user.first_name,
+                    last_name: data.user.last_name,
+                    is_admin: data.user.is_admin // Store admin status
+                }));
+
+                // If remember me is checked, store username in localStorage
                 if (remember) {
                     localStorage.setItem('rememberedUser', username);
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('userData', JSON.stringify(data.data));
                 } else {
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    sessionStorage.setItem('userData', JSON.stringify(data.data));
+                    localStorage.removeItem('rememberedUser');
                 }
-                
+
                 // Redirect to home page
-                window.location.href = 'home.html';
+                window.location.href = 'Home.html';
             } else {
                 throw new Error(data.message || 'Login failed');
             }

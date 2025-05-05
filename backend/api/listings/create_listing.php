@@ -9,116 +9,92 @@ try {
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
         throw new Exception('User not logged in');
     }
-
-    $userId = $_SESSION['user']['id'];
-
-    // Create upload directory if it doesn't exist
-    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/Project-Web/backend/uploads/products/';
-    if (!file_exists($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
+    
+    // Check if the user is an admin
+    if (!isset($_SESSION['user']['is_admin']) || !$_SESSION['user']['is_admin']) {
+        throw new Exception('Unauthorized access. Admin privileges required.');
     }
-
+    
     // Get form data
-    $title = $_POST['title'] ?? '';
-    $description = $_POST['description'] ?? '';
-    $price = floatval($_POST['price'] ?? 0);
-    $category = $_POST['category'] ?? '';
-    $brand = $_POST['brand'] ?? '';
-    $condition = $_POST['condition'] ?? '';
-    $model = $_POST['model'] ?? '';
-    $shipping = isset($_POST['shipping']) ? filter_var($_POST['shipping'], FILTER_VALIDATE_BOOLEAN) : true;
-    $localPickup = isset($_POST['localPickup']) ? filter_var($_POST['localPickup'], FILTER_VALIDATE_BOOLEAN) : false;
-
+    $title = $_POST['title'] ?? null;
+    $description = $_POST['description'] ?? null;
+    $price = $_POST['price'] ?? null;
+    $category = $_POST['category'] ?? null;
+    $condition = $_POST['condition'] ?? null;
+    $brand = $_POST['brand'] ?? null;
+    $model = $_POST['model'] ?? null;
+    $shipping = isset($_POST['shipping']) && $_POST['shipping'] === 'true' ? 1 : 0;
+    $localPickup = isset($_POST['localPickup']) && $_POST['localPickup'] === 'true' ? 1 : 0;
+    $status = $_POST['status'] ?? 'active';
+    
     // Validate required fields
-    if (empty($title) || empty($description) || $price <= 0 || empty($category) || empty($brand)) {
-        throw new Exception("Missing required fields");
+    if (!$title || !$price || !$category || !$condition || !$brand || !$model) {
+        throw new Exception('All required fields must be filled');
     }
-
-    // Handle image uploads
-    $imageUrls = [];
-    if (isset($_FILES['image'])) {
-        $files = $_FILES['image'];
-        foreach ($files['tmp_name'] as $key => $tmp_name) {
-            if ($files['error'][$key] === UPLOAD_ERR_OK) {
-                $filename = uniqid() . '_' . basename($files['name'][$key]);
-                $destination = $uploadDir . $filename;
-                
-                if (move_uploaded_file($tmp_name, $destination)) {
-                    // Store the URL path relative to the Project-Web root
-                    $imageUrls[] = 'backend/uploads/products/' . $filename;
-                }
-            }
-        }
-    }
-
+    
     // Connect to database
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Begin transaction
-    $conn->beginTransaction();
-
-    // Insert product
-    $sql = "INSERT INTO products (
-        title, description, price, category, `condition`,
-        brand, model, shipping, local_pickup, status,
-        seller_id, created_at
-    ) VALUES (
-        :title, :description, :price, :category, :condition,
-        :brand, :model, :shipping, :local_pickup, :status,
-        :seller_id, NOW()
-    )";
-
-    $stmt = $conn->prepare($sql);
+    // Using backticks for 'condition' since it's a reserved word in MySQL
+    $stmt = $conn->prepare("INSERT INTO products (
+                title, description, price, category, 
+                `condition`, brand, model, shipping, 
+                local_pickup, seller_id, status, created_at
+            ) VALUES (
+                ?, ?, ?, ?,
+                ?, ?, ?, ?,
+                ?, ?, ?, NOW()
+            )");
+            
+    $stmt->execute([
+        $title, $description, $price, $category,
+        $condition, $brand, $model, $shipping,
+        $localPickup, $_SESSION['user']['id'], $status
+    ]);
     
-    $status = 'active';
-
-    $stmt->bindParam(':title', $title);
-    $stmt->bindParam(':description', $description);
-    $stmt->bindParam(':price', $price);
-    $stmt->bindParam(':category', $category);
-    $stmt->bindParam(':condition', $condition);
-    $stmt->bindParam(':brand', $brand);
-    $stmt->bindParam(':model', $model);
-    $stmt->bindParam(':shipping', $shipping, PDO::PARAM_BOOL);
-    $stmt->bindParam(':local_pickup', $localPickup, PDO::PARAM_BOOL);
-    $stmt->bindParam(':status', $status);
-    $stmt->bindParam(':seller_id', $userId);
-
-    $stmt->execute();
     $productId = $conn->lastInsertId();
-
-    // Insert images
-    if (!empty($imageUrls)) {
-        $imageSql = "INSERT INTO product_images (product_id, image_url, display_order) 
-                     VALUES (:product_id, :image_url, :display_order)";
-        $imageStmt = $conn->prepare($imageSql);
-
-        foreach ($imageUrls as $index => $url) {
-            $imageStmt->bindParam(':product_id', $productId);
-            $imageStmt->bindParam(':image_url', $url);
-            $imageStmt->bindParam(':display_order', $index);
-            $imageStmt->execute();
+    
+    // Handle image uploads
+    $uploadedImages = [];
+    
+    if (!empty($_FILES['image']) && is_array($_FILES['image']['name'])) {
+        // Create directory if it doesn't exist
+        $uploadDir = '../../uploads/products/';
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        // Prepare image insert statement
+        $imageStmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, ?)");
+        
+        for ($i = 0; $i < count($_FILES['image']['name']); $i++) {
+            if ($_FILES['image']['error'][$i] == 0) {
+                $fileName = time() . '_' . $_FILES['image']['name'][$i];
+                $filePath = $uploadDir . $fileName;
+                
+                // Move uploaded file
+                if (move_uploaded_file($_FILES['image']['tmp_name'][$i], $filePath)) {
+                    $imageUrl = 'backend/uploads/products/' . $fileName;
+                    $imageStmt->execute([$productId, $imageUrl, $i]);
+                    $uploadedImages[] = $imageUrl;
+                }
+            }
         }
     }
-
-    // Commit transaction
-    $conn->commit();
-
+    
     echo json_encode([
         'success' => true,
-        'message' => 'Listing created successfully',
-        'productId' => $productId
+        'product_id' => $productId,
+        'images' => $uploadedImages,
+        'message' => 'Product created successfully'
     ]);
-
-} catch (Exception $e) {
-    if (isset($conn)) {
-        $conn->rollBack();
-    }
     
-    http_response_code(500);
+} catch (Exception $e) {
+    http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
 }
+?>

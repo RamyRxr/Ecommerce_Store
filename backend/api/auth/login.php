@@ -2,59 +2,58 @@
 header('Content-Type: application/json');
 session_start();
 
+// Include database connection
 require_once '../../config/database.php';
 
+// Get JSON post data
+$data = json_decode(file_get_contents('php://input'), true);
+
+if (!isset($data['username']) || !isset($data['password'])) {
+    echo json_encode(['success' => false, 'message' => 'Username and password are required']);
+    exit;
+}
+
 try {
-    // Get POST data
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-
-    if (empty($username) || empty($password)) {
-        throw new Exception('Username and password are required');
-    }
-
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Check if username exists
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
-    $stmt->execute([$username, $username]);
+    // Prepare query to check for username or email match
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1");
+    $stmt->execute([$data['username'], $data['username']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user) {
-        throw new Exception('Invalid username or password');
+    if ($user) {
+        // Verify password (in a real app, use password_verify with hashed passwords)
+        if ($data['password'] === $user['password']) {
+            // Ensure is_admin is properly cast to boolean for clarity
+            $isAdmin = (bool)$user['is_admin'];
+            
+            // Set session data
+            $_SESSION['user'] = [
+                'id' => $user['id'],
+                'username' => $user['username'],
+                'email' => $user['email'],
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'is_admin' => $isAdmin // Cast to boolean
+            ];
+
+            // Return success with user data (excluding password)
+            unset($user['password']);
+            $user['is_admin'] = $isAdmin; // Ensure boolean type for client
+            
+            echo json_encode([
+                'success' => true, 
+                'user' => $user,
+                'message' => 'Login successful'
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'User not found']);
     }
-
-    // Verify password
-    if (!password_verify($password, $user['password'])) {
-        throw new Exception('Invalid username or password');
-    }
-
-    // Set session
-    $_SESSION['user'] = [
-        'id' => $user['id'],
-        'username' => $user['username'],
-        'email' => $user['email'],
-        'first_name' => $user['first_name'],
-        'last_name' => $user['last_name']
-    ];
-
-    // Return success response
-    echo json_encode([
-        'success' => true,
-        'data' => [
-            'id' => $user['id'],
-            'username' => $user['username'],
-            'email' => $user['email'],
-            'first_name' => $user['first_name'],
-            'last_name' => $user['last_name']
-        ]
-    ]);
-
-} catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
+} catch (PDOException $e) {
+    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }
+?>

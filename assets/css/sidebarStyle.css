@@ -500,6 +500,31 @@ body.dark-mode .saved-badge {
 }
 
 /*** MENU ITEMS ***/
+.menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-height: calc(100vh - 200px);
+    padding: 10px 0;
+    overflow-y: auto;
+}
+
+@media (min-height: 700px) {
+    .sidebar .menu {
+        justify-content: space-evenly;
+    }
+}
+
+@media (max-height: 600px) {
+    .menu {
+        justify-content: flex-start;
+    }
+    
+    .menu li {
+        margin: 2px 0;
+    }
+}
+
 .menu li {
     list-style: none;
     margin: 4px 8px;

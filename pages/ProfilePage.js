@@ -1,5 +1,5 @@
-import SideBar2 from '../components/SideBar2.js';
-import Profile from '../components/Profile.js';
+import SideBar2 from '../components/Sidebar/SideBar2.js';
+import Profile from '../components/Profile/Profile.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
