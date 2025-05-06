@@ -25,19 +25,24 @@ export default class CartItem2 {
             const data = await response.json();
             if (data.success) {
                 // Format cart items with proper image paths
-                this.cartItems = data.data.map(item => ({
-                    ...item,
-                    image: item.images[0] 
-                        ? `${item.images[0].includes('uploads/') 
-                            ? '../' + item.images[0] 
-                            : '../backend/uploads/products/' + item.images[0]}`
-                        : console.log(error),
-                    images: item.images.map(img =>
-                        `${img.includes('uploads/') 
-                            ? '../' + img 
-                            : '../backend/uploads/products/' + img}`
-                    )
-                }));
+                this.cartItems = data.data.map(item => {
+                    // Safely handle the images array
+                    const images = item.images || [];
+
+                    return {
+                        ...item,
+                        image: images.length > 0 && images[0]
+                            ? `${images[0].includes('uploads/')
+                                ? '../' + images[0]
+                                : '../backend/uploads/products/' + images[0]}`
+                            : '../assets/images/products-images/placeholder.svg',
+                        images: images.map(img =>
+                            `${img.includes('uploads/')
+                                ? '../' + img
+                                : '../backend/uploads/products/' + img}`
+                        )
+                    };
+                });
             } else {
                 throw new Error(data.message || 'Failed to load cart items');
             }
@@ -56,13 +61,13 @@ export default class CartItem2 {
             <i class='bx bx-error-circle'></i>
             <span>${message}</span>
         `;
-        
+
         // Remove any existing error message
         const existingError = document.querySelector('.error-message');
         if (existingError) {
             existingError.remove();
         }
-        
+
         // Add the new error message
         const cartHeader = document.querySelector('.cart-header');
         if (cartHeader) {
@@ -282,7 +287,7 @@ export default class CartItem2 {
             });
 
             if (!response.ok) throw new Error('Failed to update quantity');
-            
+
             const data = await response.json();
             if (data.success) {
                 await this.loadCartItems();
@@ -491,7 +496,7 @@ export default class CartItem2 {
         // Remove any existing notification container
         const existingContainer = document.querySelector('.global-notification-container');
         if (existingContainer) return;
-        
+
         // Create a new container appended to body
         const container = document.createElement('div');
         container.className = 'notification-container global-notification-container';
@@ -512,7 +517,7 @@ export default class CartItem2 {
             });
 
             const data = await response.json();
-            
+
             if (data.success) {
                 await this.loadCartItems();
                 this.render();

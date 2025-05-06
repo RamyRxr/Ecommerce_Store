@@ -275,11 +275,11 @@ body.dark-mode .search-button:hover {
 /*** PRODUCTS GRID ***/
 .products-grid {
     display: grid;
-    /* Use fr units instead of fixed pixel widths to utilize all available space */
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     padding: 20px;
     justify-content: stretch;
+    flex-grow: 1;
 }
 
 /* Define specific column counts for different viewport sizes */
@@ -722,18 +722,11 @@ body.dark-mode .product-image img {
 
 /*** PAGINATION ***/
 .pagination-container {
-    position: relative; /* Change from absolute to relative */
-    width: 100%;
-    padding: 8px 15px;
-    margin-top: 20px; /* Add margin-top to create space between products and pagination */
-    background: var(--light-bg);
-    border-radius: 0 0 var(--section-radius) var(--section-radius);
-    border-top: 2px solid var(--dark-bg);
+    padding: 9px 30px;
     display: flex;
     justify-content: center;
-    align-items: center;
-    transition: var(--transition-normal);
-    z-index: 1000;
+    margin-top: auto;
+    border-top: 2px solid var(--dark-bg);
 }
 
 
