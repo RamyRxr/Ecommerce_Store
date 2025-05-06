@@ -1,8 +1,18 @@
 export default class FilterSidebar {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.categories = ['Headphones', 'Smartphones', 'Laptops', 'Tablets', 'Cameras', 'Accessories'];
-        this.brands = ['Apple', 'Samsung', 'Sony', 'LG', 'Dell', 'HP', 'Lenovo', 'JBL', 'Canon'];
+        this.categories = [
+            'Smartphones', 'Laptops', 'Tablets', 'Desktops',
+            'Monitors', 'Headphones', 'Speakers', 'Cameras',
+            'Gaming Consoles', 'Smart Home', 'Wearables', 'Accessories',
+            'Audio', 'Storage', 'Components', 'Networking'
+        ];
+        this.brands = [
+            'Apple', 'Samsung', 'Sony', 'Microsoft', 'Google',
+            'Dell', 'HP', 'Lenovo', 'LG', 'Asus', 'Acer',
+            'Logitech', 'Bose', 'JBL', 'Canon', 'Nikon',
+            'Intel', 'AMD', 'Nvidia', 'Western Digital', 'SanDisk'
+        ];
         this.minPrice = 0;
         this.maxPrice = 10000; // Increased to 10,000 for high-end electronics
         this.currentMinPrice = 0;
@@ -11,7 +21,8 @@ export default class FilterSidebar {
         this.init();
     }
 
-    init() {
+    async init() {
+        // We'll skip the dynamic fetch and use our predefined lists
         this.render();
         this.setupEventListeners();
     }
@@ -30,8 +41,8 @@ export default class FilterSidebar {
                     
                     ${this.categories.map(category => `
                         <div>
-                            <input type="checkbox" id="category-${category.toLowerCase()}" name="category" value="${category.toLowerCase()}"> 
-                            <label for="category-${category.toLowerCase()}">${category}</label>
+                            <input type="checkbox" id="category-${category.toLowerCase().replace(/\s+/g, '-')}" name="category" value="${category}"> 
+                            <label for="category-${category.toLowerCase().replace(/\s+/g, '-')}">${category}</label>
                         </div>
                     `).join('')}
                 </div>
@@ -77,8 +88,8 @@ export default class FilterSidebar {
 
                     ${this.brands.map(brand => `
                         <div>
-                            <input type="checkbox" id="brand-${brand.toLowerCase()}" name="brand" value="${brand.toLowerCase()}"> 
-                            <label for="brand-${brand.toLowerCase()}">${brand}</label>
+                            <input type="checkbox" id="brand-${brand.toLowerCase().replace(/\s+/g, '-')}" name="brand" value="${brand}"> 
+                            <label for="brand-${brand.toLowerCase().replace(/\s+/g, '-')}">${brand}</label>
                         </div>
                     `).join('')}
                 </div>
@@ -270,26 +281,25 @@ export default class FilterSidebar {
                     rating: document.querySelector('input[name="rating"]:checked')?.value || 0,
                     price: {
                         min: parseInt(document.getElementById('min-price').value) || 0,
-                        max: document.getElementById('unlimited-price').checked ? 'unlimited' : 
-                             parseInt(document.getElementById('max-price').value)
+                        max: document.getElementById('unlimited-price').checked ? 'unlimited' :
+                            parseInt(document.getElementById('max-price').value)
                     }
                 };
 
                 try {
-                    const response = await fetch('/Project-Web/backend/api/explore/filter_products.php', {
+                    const response = await fetch('../backend/api/explore/filter_products.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(filters)
                     });
 
                     const data = await response.json();
-                    
+
                     if (data.success) {
-                        // Dispatch event with filtered products and currentUserId
+                        // Dispatch event with filtered products
                         document.dispatchEvent(new CustomEvent('filtersApplied', {
-                            detail: { 
-                                products: data.data.listings,
-                                currentUserId: data.data.currentUserId // Add this line
+                            detail: {
+                                products: data.data.products
                             }
                         }));
                     } else {
@@ -301,11 +311,6 @@ export default class FilterSidebar {
                 }
             });
         }
-
-        // Listen for reset all filters event from product grid
-        document.addEventListener('resetAllFilters', () => {
-            this.resetAllFilters();
-        });
     }
 
     resetAllFilters() {

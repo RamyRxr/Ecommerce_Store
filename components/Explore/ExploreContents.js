@@ -50,27 +50,16 @@ export default class ExploreContents {
             const data = await response.json();
 
             if (data.success) {
-                this.products = data.data.listings.map(listing => 
-                    this.formatProductData(listing)
-                );
-
-                this.filteredProducts = [...this.products];
-                this.sortProducts('newest');
+                this.products = data.data.listings.map(listing => this.formatProductData(listing));
+                this.filteredProducts = [...this.products]; // Create a copy for filtering
             } else {
                 throw new Error(data.message || 'Failed to load products');
             }
         } catch (error) {
             console.error('Error fetching products:', error);
-            // Show error message to user
-            const productsGrid = document.querySelector('.products-grid');
-            if (productsGrid) {
-                productsGrid.innerHTML = `
-                    <div class="error-message">
-                        <i class='bx bx-error-circle'></i>
-                        <p>Failed to load products. Please try again later.</p>
-                    </div>
-                `;
-            }
+            // Use empty arrays as fallback
+            this.products = [];
+            this.filteredProducts = [];
         }
     }
 
@@ -82,7 +71,7 @@ export default class ExploreContents {
             const data = await response.json();
             if (data.success) {
                 const savedIds = data.data.map(item => item.product_id); // Changed from id to product_id
-                
+
                 // Update isSaved flag for products
                 this.products.forEach(product => {
                     product.isSaved = savedIds.includes(product.id);
@@ -560,11 +549,36 @@ export default class ExploreContents {
             });
         }
 
+        // Listen for filter events
+        document.addEventListener('filtersApplied', async (event) => {
+            if (event.detail && event.detail.products) {
+                // Update products with filtered results from the server
+                this.products = event.detail.products.map(product => {
+                    // Create formatted product with all required properties
+                    const formattedProduct = this.formatProductData(product);
+                    // Make sure to keep the saved state from the API response
+                    formattedProduct.isSaved = product.isSaved || false;
+                    return formattedProduct;
+                });
+                
+                this.filteredProducts = [...this.products];
+                this.currentPage = 1;
+                this.render();
+            }
+        });
+
+        document.addEventListener('filtersReset', async () => {
+            // Reset to original products
+            await this.fetchProducts();
+            this.currentPage = 1;
+            this.render();
+        });
+
         // Listen to filter application from sidebar
         document.addEventListener('filtersApplied', (event) => {
             if (event.detail && event.detail.products) {
                 const currentUserId = event.detail.currentUserId;
-                
+
                 // Filter out current user's products and map remaining ones
                 this.filteredProducts = event.detail.products
                     .filter(product => product.seller_id != currentUserId)
@@ -572,7 +586,7 @@ export default class ExploreContents {
 
                 // Reset to first page
                 this.currentPage = 1;
-                
+
                 // Update display
                 this.updateProductCards();
                 this.updatePagination();
@@ -687,11 +701,11 @@ export default class ExploreContents {
             });
 
             const data = await response.json();
-            
+
             if (data.success) {
                 // Only update the state and UI after successful API call
                 product.isSaved = !currentSavedState;
-                
+
                 // Update UI for this specific product card
                 const saveBtn = document.querySelector(`.product-card[data-id="${product.id}"] .save-btn`);
                 if (saveBtn) {
@@ -705,10 +719,10 @@ export default class ExploreContents {
                         saveBtn.innerHTML = '<i class="bx bx-heart"></i>';
                     }
                 }
-                
+
                 // Trigger badge update
                 document.dispatchEvent(new CustomEvent('updateSavedBadge'));
-                
+
                 // Refresh saved items list if we're on the saved page
                 const savedItemsInstance = window.savedItemsInstance;
                 if (savedItemsInstance) {
@@ -754,10 +768,10 @@ export default class ExploreContents {
             if (data.success) {
                 // Show visual confirmation
                 this.showAddedToCartConfirmation(product.id);
-                
+
                 // Update cart badge
                 document.dispatchEvent(new CustomEvent('updateCartBadge'));
-                
+
                 console.log(`Added ${product.title} to cart`);
             } else {
                 throw new Error(data.message || 'Failed to add item to cart');

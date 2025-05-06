@@ -23,10 +23,10 @@ export default class SideBar2 {
             const user = JSON.parse(sessionStorage.getItem('user') || '{}');
             this.isAdmin = Boolean(user.is_admin);
             console.log('Admin status check (SideBar2):', this.isAdmin ? 'Administrator' : 'Regular User');
-            
+
             // Also store in localStorage as a backup for page refreshes
             localStorage.setItem('isAdmin', this.isAdmin);
-            
+
             return this.isAdmin;
         } catch (error) {
             console.error('Error checking admin status:', error);
@@ -39,7 +39,7 @@ export default class SideBar2 {
         // Double-check admin status
         const user = JSON.parse(sessionStorage.getItem('user') || '{}');
         this.isAdmin = Boolean(user.is_admin);
-        
+
         console.log('SideBar2 render - isAdmin:', this.isAdmin);
 
         const sidebarHTML = `
@@ -151,7 +151,7 @@ export default class SideBar2 {
         // Update user info
         this.updateUserInfo();
     }
-    
+
     postRenderCleanup() {
         if (this.isAdmin) {
             // Hide customer-only items using CSS as a fallback
@@ -159,7 +159,7 @@ export default class SideBar2 {
             customerOnlyItems.forEach(item => {
                 item.style.display = 'none';
             });
-            
+
             // Show admin-only items
             const adminOnlyItems = document.querySelectorAll('.admin-only-item');
             adminOnlyItems.forEach(item => {
@@ -171,13 +171,13 @@ export default class SideBar2 {
             adminOnlyItems.forEach(item => {
                 item.style.display = 'none';
             });
-            
+
             // Show customer-only items
             const customerOnlyItems = document.querySelectorAll('.customer-only-item');
             customerOnlyItems.forEach(item => {
                 item.style.display = 'block';
             });
-            
+
             // Update cart and saved counts for customers
             this.updateCartCount();
             this.updateSavedCount();
@@ -233,6 +233,15 @@ export default class SideBar2 {
                 }
             });
         }
+
+        // Add event listeners for badge updates
+        document.addEventListener('updateCartBadge', () => {
+            this.updateCartCount();
+        });
+
+        document.addEventListener('updateSavedBadge', () => {
+            this.updateSavedCount();
+        });
     }
 
     logout() {
@@ -273,16 +282,24 @@ export default class SideBar2 {
         if (this.isAdmin) return; // Skip for admin users
 
         try {
+            // Get cart items count from database
             const response = await fetch('../backend/api/cart/get_cart.php');
+            if (!response.ok) throw new Error('Failed to fetch cart items');
+
             const data = await response.json();
+            const cartItems = data.success ? data.data : [];
 
-            if (data.success && Array.isArray(data.items)) {
-                const count = data.items.length;
-                const cartBadge = document.querySelector('.cart-badge');
+            // Calculate total items
+            const itemCount = cartItems.reduce((total, item) => total + parseInt(item.quantity || 1), 0);
 
-                if (cartBadge) {
-                    cartBadge.textContent = count;
-                    cartBadge.style.display = count > 0 ? 'block' : 'none';
+            // Update the badge
+            const cartBadge = document.querySelector('.cart-badge');
+            if (cartBadge) {
+                if (itemCount > 0) {
+                    cartBadge.textContent = itemCount;
+                    cartBadge.style.display = 'flex';
+                } else {
+                    cartBadge.style.display = 'none';
                 }
             }
         } catch (error) {
@@ -294,16 +311,21 @@ export default class SideBar2 {
         if (this.isAdmin) return; // Skip for admin users
 
         try {
+            // Get saved items count from database
             const response = await fetch('../backend/api/saved/get_saved_items.php');
+            if (!response.ok) throw new Error('Failed to fetch saved items');
+
             const data = await response.json();
+            const savedItems = data.success ? data.data : [];
 
-            if (data.success && Array.isArray(data.items)) {
-                const count = data.items.length;
-                const savedBadge = document.querySelector('.saved-badge');
-
-                if (savedBadge) {
-                    savedBadge.textContent = count;
-                    savedBadge.style.display = count > 0 ? 'block' : 'none';
+            // Update the badge
+            const savedBadge = document.querySelector('.saved-badge');
+            if (savedBadge) {
+                if (savedItems.length > 0) {
+                    savedBadge.textContent = savedItems.length;
+                    savedBadge.style.display = 'flex';
+                } else {
+                    savedBadge.style.display = 'none';
                 }
             }
         } catch (error) {
@@ -318,19 +340,19 @@ export default class SideBar2 {
         console.log('Active Menu Item:', this.activeMenuItem);
         console.log('Is Collapsed:', this.isCollapsed);
         console.log('Is Dark Mode:', this.isDarkMode);
-        
+
         const savedMenuItem = document.querySelector('.sidebar li a i.bx-heart')?.parentElement.parentElement;
         const cartMenuItem = document.querySelector('.sidebar li a i.bx-cart')?.parentElement.parentElement;
         const sellingMenuItem = document.querySelector('.sidebar li a i.bx-store')?.parentElement.parentElement;
-        
+
         console.log('Saved Menu Item Present:', !!savedMenuItem);
         console.log('Cart Menu Item Present:', !!cartMenuItem);
         console.log('Selling Menu Item Present:', !!sellingMenuItem);
-        
+
         if (savedMenuItem) console.log('Saved Display:', savedMenuItem.style.display);
         if (cartMenuItem) console.log('Cart Display:', cartMenuItem.style.display);
         if (sellingMenuItem) console.log('Selling Display:', sellingMenuItem.style.display);
-        
+
         const userData = JSON.parse(sessionStorage.getItem('user') || '{}');
         console.log('User Data in Session:', userData);
         console.groupEnd();

@@ -15,7 +15,7 @@ try {
     
     // Basic query to get products
     $sql = "SELECT p.*, 
-            GROUP_CONCAT(pi.image_url) as image_urls,
+            GROUP_CONCAT(pi.image_url) as images,
             u.username as seller_name,
             u.id as seller_id
             FROM products p 
@@ -38,17 +38,19 @@ try {
         $params = array_merge($params, $data['brands']);
     }
 
-    if (!empty($data['price']['min'])) {
-        $sql .= " AND p.price >= ?";
-        $params[] = $data['price']['min'];
+    if (!empty($data['price'])) {
+        if (isset($data['price']['min']) && is_numeric($data['price']['min'])) {
+            $sql .= " AND p.price >= ?";
+            $params[] = $data['price']['min'];
+        }
+        
+        if (isset($data['price']['max']) && $data['price']['max'] !== 'unlimited' && is_numeric($data['price']['max'])) {
+            $sql .= " AND p.price <= ?";
+            $params[] = $data['price']['max'];
+        }
     }
 
-    if (!empty($data['price']['max']) && $data['price']['max'] !== 'unlimited') {
-        $sql .= " AND p.price <= ?";
-        $params[] = $data['price']['max'];
-    }
-
-    if (!empty($data['rating'])) {
+    if (!empty($data['rating']) && is_numeric($data['rating']) && $data['rating'] > 0) {
         $sql .= " AND p.rating >= ?";
         $params[] = $data['rating'];
     }
@@ -59,32 +61,38 @@ try {
     $stmt->execute($params);
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Get saved items for the current user (if logged in)
+    $savedItems = [];
+    if ($currentUserId) {
+        $savedStmt = $conn->prepare("SELECT product_id FROM saved_items WHERE user_id = ?");
+        $savedStmt->execute([$currentUserId]);
+        $savedItems = $savedStmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     // Format the products
     $filteredProducts = [];
     foreach ($products as $product) {
-        $filteredProducts[] = [
-            'id' => $product['id'],
-            'title' => $product['title'],
-            'price' => floatval($product['price']),
-            'original_price' => $product['original_price'],
-            'description' => $product['description'],
-            'category' => $product['category'],
-            'brand' => $product['brand'],
-            'condition' => $product['condition'],
-            'rating' => $product['rating'],
-            'rating_count' => $product['rating_count'],
-            'seller_id' => $product['seller_id'],
-            'seller_name' => $product['seller_name'],
-            'created_at' => $product['created_at'],
-            'images' => $product['image_urls'] ? explode(',', $product['image_urls']) : []
-        ];
+        // Convert comma-separated image URLs to array
+        $product['images'] = $product['images'] ? explode(',', $product['images']) : [];
+        
+        // Set default rating if not provided
+        if (!isset($product['rating'])) {
+            $product['rating'] = 0;
+        }
+        if (!isset($product['rating_count'])) {
+            $product['rating_count'] = 0;
+        }
+        
+        // Mark as saved if in saved items
+        $product['isSaved'] = in_array($product['id'], $savedItems);
+        
+        $filteredProducts[] = $product;
     }
 
     echo json_encode([
         'success' => true,
         'data' => [
-            'listings' => $filteredProducts,
-            'currentUserId' => $currentUserId
+            'products' => $filteredProducts
         ]
     ]);
 
@@ -95,3 +103,4 @@ try {
         'message' => $e->getMessage()
     ]);
 }
+?>

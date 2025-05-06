@@ -37,25 +37,34 @@ export default class SavedItems {
             const data = await response.json();
             
             if (data.success) {
-                this.savedItems = data.data.map(item => ({
-                    id: item.id,
-                    name: item.title,
-                    description: item.description,
-                    price: parseFloat(item.price),
-                    originalPrice: item.original_price ? parseFloat(item.original_price) : null,
-                    rating: parseFloat(item.rating || 0),
-                    ratingCount: parseInt(item.rating_count || 0),
-                    image: item.images[0] 
-                        ? `${item.images[0].includes('uploads/') 
-                            ? '../' + item.images[0] 
-                            : '../backend/uploads/products/' + item.images[0]}`
-                        : '/Project-Web/assets/images/products-images/placeholder.svg',
-                    images: item.images.map(img =>
-                        `${img.includes('uploads/') 
-                            ? '../' + img 
-                            : '../backend/uploads/products/' + img}`
-                    )
-                }));
+                this.savedItems = data.data.map(item => {
+                    // Check if images array exists and has elements
+                    const hasImages = item.images && Array.isArray(item.images) && item.images.length > 0;
+                    
+                    return {
+                        id: item.id,
+                        name: item.title,
+                        description: item.description || '',
+                        price: parseFloat(item.price || 0),
+                        originalPrice: item.original_price ? parseFloat(item.original_price) : null,
+                        rating: parseFloat(item.rating || 0),
+                        ratingCount: parseInt(item.rating_count || 0),
+                        // Safely access image URL with fallback - using correct placeholder path
+                        image: hasImages && item.images[0] 
+                            ? `${item.images[0].includes('uploads/') 
+                                ? '../' + item.images[0] 
+                                : '../backend/uploads/products/' + item.images[0]}`
+                            : '../assets/images/placeholder.svg', // Fixed placeholder path
+                        // Safely map image array with fallback to empty array
+                        images: hasImages
+                            ? item.images.map(img =>
+                                `${img.includes('uploads/') 
+                                    ? '../' + img 
+                                    : '../backend/uploads/products/' + img}`
+                            )
+                            : []
+                    };
+                });
 
                 console.log('Loaded saved items:', this.savedItems);
             } else {

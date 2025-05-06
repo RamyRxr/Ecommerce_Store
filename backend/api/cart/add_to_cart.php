@@ -5,47 +5,63 @@ session_start();
 require_once '../../config/database.php';
 
 try {
+    // Check if user is logged in
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
-        throw new Exception('Please login to add items to cart');
+        throw new Exception('User not logged in');
     }
-
-    $userId = $_SESSION['user']['id'];
-    $data = json_decode(file_get_contents('php://input'), true);
     
-    if (!isset($data['product_id'])) {
+    // Get request data
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!isset($input['product_id'])) {
         throw new Exception('Product ID is required');
     }
-
-    $productId = $data['product_id'];
-    $quantity = $data['quantity'] ?? 1;
-
+    
+    if (!isset($input['quantity']) || $input['quantity'] < 1) {
+        throw new Exception('Valid quantity is required');
+    }
+    
+    $userId = $_SESSION['user']['id'];
+    $productId = $input['product_id'];
+    $quantity = $input['quantity'];
+    
     $db = new Database();
     $conn = $db->getConnection();
-
-    // Check if product already exists in cart
-    $stmt = $conn->prepare("SELECT id, quantity FROM cart_items WHERE user_id = ? AND product_id = ?");
-    $stmt->execute([$userId, $productId]);
-    $existingItem = $stmt->fetch(PDO::FETCH_ASSOC);
-
+    
+    // Check if item is already in cart
+    $checkStmt = $conn->prepare("SELECT quantity FROM cart_items WHERE user_id = ? AND product_id = ?");
+    $checkStmt->execute([$userId, $productId]);
+    $existingItem = $checkStmt->fetch(PDO::FETCH_ASSOC);
+    
     if ($existingItem) {
-        // Update quantity if item exists
-        $stmt = $conn->prepare("UPDATE cart_items SET quantity = quantity + ? WHERE id = ?");
-        $stmt->execute([$quantity, $existingItem['id']]);
+        // Update quantity
+        $newQuantity = $existingItem['quantity'] + $quantity;
+        $stmt = $conn->prepare("UPDATE cart_items SET quantity = ? WHERE user_id = ? AND product_id = ?");
+        $stmt->execute([$newQuantity, $userId, $productId]);
+        $message = 'Cart item quantity updated';
     } else {
-        // Insert new item
+        // Add new item
         $stmt = $conn->prepare("INSERT INTO cart_items (user_id, product_id, quantity) VALUES (?, ?, ?)");
         $stmt->execute([$userId, $productId, $quantity]);
+        $message = 'Item added to cart';
     }
-
+    
+    // Get current cart count for badge
+    $countStmt = $conn->prepare("SELECT COUNT(*) FROM cart_items WHERE user_id = ?");
+    $countStmt->execute([$userId]);
+    $cartCount = $countStmt->fetchColumn();
+    
     echo json_encode([
         'success' => true,
-        'message' => 'Item added to cart successfully'
+        'message' => $message,
+        'cartCount' => $cartCount
     ]);
-
+    
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
 }
+?>
