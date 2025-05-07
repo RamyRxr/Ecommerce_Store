@@ -4,6 +4,8 @@ export default class PurchaseHistory {
         this.activeTab = 'all';
         this.orders = [];
         this.placeholderImage = '/Project-Web/assets/images/products-images/placeholder.svg';
+        this.user = JSON.parse(sessionStorage.getItem('user') || '{}'); // Get user from session
+        this.isAdmin = Boolean(this.user.is_admin); // Check if admin
         this.init();
     }
 
@@ -21,23 +23,31 @@ export default class PurchaseHistory {
             const data = await response.json();
 
             if (data.success) {
+                this.isAdmin = Boolean(data.is_admin);
                 this.orders = data.orders.map(order => {
-                    // Process base order data
                     const processedOrder = {
                         id: order.id,
                         date: order.date,
                         status: order.status,
                         totalAmount: parseFloat(order.totalAmount || 0),
-                        shippingAddress: order.shippingAddress || {},
-                        paymentMethod: order.paymentMethod || '',
+                        // shippingAddress object is built from order's specific fields
+                        shippingAddress: {
+                            street: order.shipping_address || order.shippingAddress?.street || 'N/A',
+                            city: order.shipping_city || order.shippingAddress?.city || 'N/A',
+                            state: order.shipping_state || order.shippingAddress?.state || '',
+                            zip: order.shipping_zip || order.shipping_postal_code || order.shippingAddress?.zip || 'N/A',
+                            country: order.shipping_country || order.shippingAddress?.country || 'N/A'
+                        },
+                        paymentMethod: order.paymentMethod || order.payment_method || '',
                         estimatedDelivery: order.estimatedDelivery,
                         actualDelivery: order.actualDelivery,
                         rated: order.rated || false,
                         cancellationDate: order.cancellationDate,
-                        cancellationReason: order.cancellationReason
+                        cancellationReason: order.cancellationReason,
+                        username: this.isAdmin ? (order.username || 'N/A') : null,
+                        user_id: this.isAdmin ? order.user_id : null
                     };
 
-                    // Process order items with EXACTLY the same image handling logic as CartItem.js
                     processedOrder.items = Array.isArray(order.items) ? order.items.map(item => ({
                         id: item.id,
                         product_id: item.product_id,
@@ -45,22 +55,12 @@ export default class PurchaseHistory {
                         price: parseFloat(item.price || 0),
                         quantity: parseInt(item.quantity || 1),
                         total: parseFloat(item.total || 0),
-                        image: item.images[0]
-                            ? `${item.images[0].includes('uploads/')
-                                ? '../' + item.images[0]
-                                : '../backend/uploads/products/' + item.images[0]}`
-                            : this.placeholderImage,
-                        images: item.images.map(img =>
-                            `${img.includes('uploads/')
-                                ? '../' + img
-                                : '../backend/uploads/products/' + img}`
-                        )
+                        image: this.getFirstValidItemImage(item), // Use helper for item image
+                        // images array can be processed similarly if needed by other parts
                     })) : [];
-
                     return processedOrder;
                 });
-
-                console.log("Orders loaded:", this.orders);
+                // console.log("Orders loaded:", this.orders, "IsAdmin:", this.isAdmin);
             } else {
                 throw new Error(data.message || 'Failed to load orders');
             }
@@ -71,25 +71,23 @@ export default class PurchaseHistory {
         }
     }
 
-    // Helper method to get first valid image
-    getFirstValidImage(item) {
+    // Helper method to get first valid image for an item
+    getFirstValidItemImage(item) {
+        // Check if item.images is an array and has content
+        if (Array.isArray(item.images) && item.images.length > 0 && item.images[0]) {
+            const imgPath = item.images[0];
+            return imgPath.includes('uploads/') ? `../${imgPath}` : `../backend/uploads/products/${imgPath}`;
+        }
+        // Fallback for a single image property if item.images is not as expected
         if (item.image) {
-            return item.image.includes('uploads/')
-                ? `../${item.image}`
-                : `../backend/uploads/products/${item.image}`;
+             const imgPath = item.image;
+             return imgPath.includes('uploads/') ? `../${imgPath}` : `../backend/uploads/products/${imgPath}`;
         }
-
-        if (Array.isArray(item.images) && item.images.length > 0) {
-            const img = item.images[0];
-            if (img) {
-                return img.includes('uploads/')
-                    ? `../${img}`
-                    : `../backend/uploads/products/${img}`;
-            }
-        }
-
-        return console.log('rami error 3');
+        return this.placeholderImage; // Default placeholder
     }
+
+    // Remove the old getFirstValidImage method if it's redundant
+    // getFirstValidImage(item) { ... } // This one had console.log('rami error 3');
 
     showError(message) {
         const errorDiv = document.createElement('div');
@@ -172,12 +170,7 @@ export default class PurchaseHistory {
     renderTabContent() {
         const filteredOrders = this.activeTab === 'all'
             ? this.orders
-            : this.orders.filter(order => {
-                if (this.activeTab === 'pending') {
-                    return order.status === 'pending';
-                }
-                return order.status === this.activeTab;
-            });
+            : this.orders.filter(order => order.status === this.activeTab); // Simplified filter
 
         if (filteredOrders.length === 0) {
             return this.renderEmptyState();
@@ -232,70 +225,61 @@ export default class PurchaseHistory {
     }
 
     renderOrder(order) {
-        // Format the date
         const orderDate = new Date(order.date);
         const formattedDate = orderDate.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+            year: 'numeric', month: 'long', day: 'numeric'
         });
-
-        // Get status display info
         const statusInfo = this.getStatusInfo(order.status);
-
-        // Ensure items is always an array
         const items = Array.isArray(order.items) ? order.items : [];
-
-        // Show only first 3 items in the preview
         const visibleItems = items.slice(0, 3);
         const hiddenItemCount = Math.max(0, items.length - 3);
 
-        // Determine the bottom action based on status
         let bottomAction = '';
+        let adminActions = '';
 
-        switch (order.status) {
-            case 'delivered':
-                bottomAction = order.rated
-                    ? `<button class="rated-btn" disabled><i class='bx bxs-star'></i> Rated</button>`
-                    : `<button class="rate-order-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Order</button>`;
-                break;
-            case 'shipped':
-                if (order.estimatedDelivery) {
-                    const estimatedDate = new Date(order.estimatedDelivery);
-                    const formattedEstimatedDate = estimatedDate.toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric'
-                    });
-                    bottomAction = `
-                        <div class="delivery-estimate">
-                            <i class='bx bx-truck'></i>
-                            <span>Estimated delivery: ${formattedEstimatedDate}</span>
-                        </div>
-                    `;
-                }
-                break;
-            case 'pending':
-                bottomAction = `
-                    <button class="cancel-order-btn" data-id="${order.id}">
-                        <i class='bx bx-x'></i> Cancel Order
+        if (this.isAdmin) {
+            if (order.status === 'pending') {
+                adminActions = `
+                    <button class="admin-action-btn mark-shipped-btn" data-id="${order.id}">
+                        <i class='bx bx-send'></i> Mark Shipped
+                    </button>
+                    <button class="admin-action-btn admin-cancel-btn" data-id="${order.id}">
+                        <i class='bx bx-x-circle'></i> Cancel Order
                     </button>
                 `;
-                break;
-            case 'cancelled':
-                const cancellationDate = order.cancellationDate ? new Date(order.cancellationDate) : orderDate;
-                const formattedCancellationDate = cancellationDate.toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric'
-                });
-                bottomAction = `
-                    <div class="cancellation-info">
-                        <i class='bx bx-info-circle'></i>
-                        <span>Cancelled on ${formattedCancellationDate}${order.cancellationReason ? ': ' + order.cancellationReason : ''}</span>
-                    </div>
+            } else if (order.status === 'shipped') {
+                adminActions = `
+                    <button class="admin-action-btn mark-delivered-btn" data-id="${order.id}">
+                        <i class='bx bx-check-double'></i> Mark Delivered
+                    </button>
                 `;
-                break;
+            }
+            // No specific admin actions for 'delivered' or 'cancelled' in this flow, but can be added.
+        } else { // Customer view
+            switch (order.status) {
+                case 'delivered':
+                    bottomAction = order.rated
+                        ? `<button class="rated-btn" disabled><i class='bx bxs-star'></i> Rated</button>`
+                        : `<button class="rate-order-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Order</button>`;
+                    break;
+                case 'shipped':
+                    if (order.estimatedDelivery) {
+                        const estimatedDate = new Date(order.estimatedDelivery);
+                        const formattedEstimatedDate = estimatedDate.toLocaleDateString('en-US', {
+                            month: 'long', day: 'numeric', year: 'numeric'
+                        });
+                        bottomAction = `<div class="delivery-estimate"><i class='bx bx-truck'></i><span>Est. delivery: ${formattedEstimatedDate}</span></div>`;
+                    }
+                    break;
+                case 'pending':
+                    bottomAction = `<button class="cancel-order-btn" data-id="${order.id}"><i class='bx bx-x'></i> Cancel Order</button>`;
+                    break;
+                case 'cancelled':
+                    const cancellationDate = order.cancellationDate ? new Date(order.cancellationDate) : orderDate;
+                    const formattedCancellationDate = cancellationDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                    bottomAction = `<div class="cancellation-info"><i class='bx bx-info-circle'></i><span>Cancelled on ${formattedCancellationDate}${order.cancellationReason ? ': ' + order.cancellationReason : ''}</span></div>`;
+                    break;
+            }
         }
 
         return `
@@ -303,6 +287,7 @@ export default class PurchaseHistory {
                 <div class="order-header">
                     <div class="order-info">
                         <h3 class="order-id">Order #${order.id}</h3>
+                        ${this.isAdmin && order.username ? `<p class="order-customer">Customer: ${order.username} (User ID: ${order.user_id})</p>` : ''}
                         <p class="order-date">Ordered on ${formattedDate}</p>
                     </div>
                     <div class="order-status ${order.status}">
@@ -310,36 +295,27 @@ export default class PurchaseHistory {
                         <span>${statusInfo.label}</span>
                     </div>
                 </div>
-                
                 <div class="order-items">
                     ${visibleItems.map(item => `
                         <div class="order-item">
-                            <div class="item-image">
-                                <img src="${item.image}" alt="${item.product_name}">
-                            </div>
+                            <div class="item-image"><img src="${item.image}" alt="${item.product_name}"></div>
                             <div class="item-details">
                                 <div class="item-name">${item.product_name}</div>
                                 <div class="item-quantity">Qty: ${item.quantity}</div>
                             </div>
-                            <div class="item-price">$${item.total.toFixed(2)}</div>
+                            <div class="item-price">$${parseFloat(item.total).toFixed(2)}</div>
                         </div>
                     `).join('')}
-                    ${hiddenItemCount > 0 ?
-                `<div class="more-items">+ ${hiddenItemCount} more item${hiddenItemCount > 1 ? 's' : ''}</div>`
-                : ''}
+                    ${hiddenItemCount > 0 ? `<div class="more-items">+ ${hiddenItemCount} more item${hiddenItemCount > 1 ? 's' : ''}</div>` : ''}
                 </div>
-                
                 <div class="order-footer">
-                    <button class="view-details-btn" data-id="${order.id}">
-                        <i class='bx bx-receipt'></i>
-                        View Details
-                    </button>
+                    <button class="view-details-btn" data-id="${order.id}"><i class='bx bx-receipt'></i> View Details</button>
                     <div class="order-total">
                         <span class="total-label">Order Total:</span>
                         <span class="total-amount">$${parseFloat(order.totalAmount).toFixed(2)}</span>
                     </div>
                     <div class="order-action">
-                        ${bottomAction}
+                        ${this.isAdmin ? adminActions : bottomAction}
                     </div>
                 </div>
             </div>
@@ -362,133 +338,161 @@ export default class PurchaseHistory {
     }
 
     setupEventListeners() {
-        // Tab switching
-        document.addEventListener('click', e => {
+        document.addEventListener('click', async e => { // Make async if handlers are async
             const tabButton = e.target.closest('.tab-button');
             if (tabButton) {
                 this.activeTab = tabButton.dataset.tab;
-                this.render();
+                this.render(); // Re-render for tab change
+                return; // Prevent other handlers on the same click
             }
 
-            // View order details - this handles the click event on the view details button
             if (e.target.closest('.view-details-btn')) {
                 const orderId = e.target.closest('.view-details-btn').dataset.id;
                 this.viewOrderDetails(orderId);
+                return;
             }
 
-            // Rate order
-            if (e.target.closest('.rate-order-btn')) {
-                const orderId = e.target.closest('.rate-order-btn').dataset.id;
-                this.rateOrder(orderId);
+            // Customer actions
+            if (!this.isAdmin) {
+                if (e.target.closest('.rate-order-btn')) {
+                    const orderId = e.target.closest('.rate-order-btn').dataset.id;
+                    this.rateOrder(orderId);
+                    return;
+                }
+                if (e.target.closest('.cancel-order-btn')) {
+                    const orderId = e.target.closest('.cancel-order-btn').dataset.id;
+                    this.cancelOrder(orderId); // Customer cancel
+                    return;
+                }
             }
 
-            // Cancel order
-            if (e.target.closest('.cancel-order-btn')) {
-                const orderId = e.target.closest('.cancel-order-btn').dataset.id;
-                this.cancelOrder(orderId);
+            // Admin actions
+            if (this.isAdmin) {
+                if (e.target.closest('.mark-shipped-btn')) {
+                    const orderId = e.target.closest('.mark-shipped-btn').dataset.id;
+                    await this.adminUpdateOrderStatus(orderId, 'shipped');
+                    return;
+                }
+                if (e.target.closest('.mark-delivered-btn')) {
+                    const orderId = e.target.closest('.mark-delivered-btn').dataset.id;
+                    await this.adminUpdateOrderStatus(orderId, 'delivered');
+                    return;
+                }
+                if (e.target.closest('.admin-cancel-btn')) {
+                    const orderId = e.target.closest('.admin-cancel-btn').dataset.id;
+                    // You might want a prompt for reason here
+                    if (confirm('Are you sure you want to cancel this order as an admin?')) {
+                        await this.adminUpdateOrderStatus(orderId, 'cancelled', 'Cancelled by Admin');
+                    }
+                    return;
+                }
             }
         });
     }
 
-    async viewOrderDetails(orderId) {
+    async adminUpdateOrderStatus(orderId, newStatus, reason = null) {
         try {
-            // Fetch detailed info for this specific order
-            const response = await fetch(`../backend/api/orders/get_order_details.php?id=${orderId}`);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const payload = { order_id: orderId, status: newStatus };
+            if (reason) {
+                payload.reason = reason;
+            }
+
+            const response = await fetch('../backend/api/orders/admin_update_order_status.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
 
             const data = await response.json();
-            if (!data.order) throw new Error(data.message || 'Failed to load order details');
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to update order status');
+            }
+
+            alert(`Order ${orderId} successfully updated to ${newStatus}.`);
+            await this.loadOrders();
+            this.render();
+
+        } catch (error) {
+            console.error(`Error updating order to ${newStatus}:`, error);
+            this.showError(`Failed to update order to ${newStatus}. ${error.message}`);
+        }
+    }
+
+    async viewOrderDetails(orderId) {
+        try {
+            const response = await fetch(`../backend/api/orders/get_order_details.php?id=${orderId}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({})); // Try to parse error
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (!data.success || !data.order) {
+                throw new Error(data.message || 'Failed to load order details');
+            }
 
             const order = data.order;
 
-            // Also fetch current user data to get shipping address and payment info
-            const userResponse = await fetch('../backend/api/get_user_settings.php');
-            const userData = await userResponse.json();
-
-            if (!userData.success) {
-                throw new Error(userData.message || 'Failed to load user data');
-            }
-
-            const user = userData.data.user;
-
-            // Enhance order with user's shipping address if available
-            if (user) {
-                order.shippingAddress = {
-                    street: user.address || order.shippingAddress?.street || 'N/A',
-                    city: user.city || order.shippingAddress?.city || 'N/A',
-                    state: user.state || order.shippingAddress?.state || '',
-                    zip: user.zip_code || order.shippingAddress?.zip || 'N/A',
-                    country: user.country || order.shippingAddress?.country || 'N/A'
-                };
-            }
-
-            // Function to convert country codes to names
-            const getCountryName = (countryCode) => {
-                const countries = {
-                    'us': 'United States',
-                    'ca': 'Canada',
-                    'uk': 'United Kingdom',
-                    'gb': 'United Kingdom',
-                    'au': 'Australia',
-                    'de': 'Germany',
-                    'fr': 'France',
-                    'it': 'Italy',
-                    'es': 'Spain',
-                    'jp': 'Japan',
-                    'cn': 'China',
-                    'in': 'India',
-                    'br': 'Brazil',
-                    'mx': 'Mexico',
-                    // Add more countries as needed
-                };
-
-                // If country code is found in our map, return the name, otherwise return the code itself
-                return countries[countryCode.toLowerCase()] || countryCode;
+            // Ensure shippingAddress object is properly formed
+            order.shippingAddress = {
+                street: order.shipping_address || order.shippingAddress?.street || 'N/A',
+                city: order.shipping_city || order.shippingAddress?.city || 'N/A',
+                state: order.shipping_state || order.shippingAddress?.state || '',
+                zip: order.shipping_zip || order.shipping_postal_code || order.shippingAddress?.zip || 'N/A',
+                country: order.shipping_country || order.shippingAddress?.country || 'N/A'
             };
+            
+            // Standardize payment method display
+            let paymentMethodDisplay = order.payment_method || 'N/A';
+            if (order.payment_details) {
+                 paymentMethodDisplay = `${order.payment_details.card_type || 'Card'} ending in ${order.payment_details.last_four || '****'}`;
+            } else if (String(order.payment_method).toLowerCase().includes('card') && (!order.payment_details || !order.payment_details.last_four)) {
+                // Fallback if it's a card but no specific details in the order data
+                // This previously fetched admin's card details, which is incorrect for an order's payment snapshot.
+                // Best practice: `get_order_details.php` should provide a snapshot of payment info used for THAT order.
+                // If not available, a generic message is better.
+                paymentMethodDisplay = "Card (details unavailable)";
+            }
 
-            // Process images using the SAME logic as in loadOrders
+
+            // Process item images and ensure numeric types
             if (Array.isArray(order.items)) {
                 order.items = order.items.map(item => ({
                     ...item,
-                    image: item.images[0]
-                        ? `${item.images[0].includes('uploads/')
-                            ? '../' + item.images[0]
-                            : '../backend/uploads/products/' + item.images[0]}`
-                        : this.placeholderImage,
-                    images: item.images.map(img =>
-                        `${img.includes('uploads/')
-                            ? '../' + img
-                            : '../backend/uploads/products/' + img}`
-                    )
+                    price: parseFloat(item.price || 0),
+                    quantity: parseInt(item.quantity || 1),
+                    total: parseFloat(item.total || (parseFloat(item.price || 0) * parseInt(item.quantity || 1))),
+                    product_name: item.product_title || item.product_name || 'Product Name Unavailable',
+                    image: this.getFirstValidItemImage(item)
                 }));
+            } else {
+                order.items = [];
             }
 
-            // Format dates
-            const orderDate = new Date(order.date);
-            const formattedDate = orderDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+            const orderDate = new Date(order.created_at || order.date);
+            const formattedModalDate = orderDate.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
             });
 
-            // Get payment method in more user-friendly format if possible
-            let paymentMethodDisplay = order.paymentMethod || 'N/A';
+            // Helper function for country name (can be moved to class level if used elsewhere)
+            const getCountryName = (countryCode) => {
+                if (!countryCode) return 'N/A';
+                const countries = {
+                    'us': 'United States', 'ca': 'Canada', 'gb': 'United Kingdom', 'uk': 'United Kingdom',
+                    'au': 'Australia', 'de': 'Germany', 'fr': 'France', 'it': 'Italy', 'es': 'Spain',
+                    'jp': 'Japan', 'cn': 'China', 'in': 'India', 'br': 'Brazil', 'mx': 'Mexico',
+                };
+                return countries[String(countryCode).toLowerCase()] || countryCode;
+            };
+            
+            // Default order.rated if not provided by backend, to prevent issues with button logic
+            order.rated = order.rated || false;
 
-            // If it's a credit card, format it nicely
-            if (order.paymentMethod && order.paymentMethod.includes('card')) {
-                // First try to get payment method from order data
-                if (order.paymentDetails) {
-                    paymentMethodDisplay = `${order.paymentDetails.card_type || ''} card ending in ${order.paymentDetails.last_four || '****'}`;
-                } else if (userData.data.paymentMethods && userData.data.paymentMethods.length > 0) {
-                    // If not in order, get default payment method from user data
-                    const defaultPayment = userData.data.paymentMethods[0];
-                    paymentMethodDisplay = `${defaultPayment.card_type || ''} card ending in ${defaultPayment.last_four || '****'}`;
-                }
-            }
-
-            // Build the modal HTML with all order details
             const modalHTML = `
                 <div class="modal-backdrop">
                     <div class="order-details-modal">
@@ -498,173 +502,100 @@ export default class PurchaseHistory {
                                 <i class='bx bx-x'></i>
                             </button>
                         </div>
-                        
                         <div class="modal-body">
                             <div class="order-summary-section">
-                                <div class="summary-item">
-                                    <span class="summary-label">Order Date:</span>
-                                    <span class="summary-value">${formattedDate}</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span class="summary-label">Status:</span>
-                                    <span class="summary-value status-badge ${order.status}">${this.getStatusInfo(order.status).label}</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span class="summary-label">Total Amount:</span>
-                                    <span class="summary-value">$${parseFloat(order.totalAmount).toFixed(2)}</span>
-                                </div>
-                                ${order.estimatedDelivery ? `
-                                    <div class="summary-item">
-                                        <span class="summary-label">Estimated Delivery:</span>
-                                        <span class="summary-value">${new Date(order.estimatedDelivery).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            })}</span>
-                                    </div>
-                                ` : ''}
-                                ${order.actualDelivery ? `
-                                    <div class="summary-item">
-                                        <span class="summary-label">Delivered On:</span>
-                                        <span class="summary-value">${new Date(order.actualDelivery).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            })}</span>
-                                    </div>
-                                ` : ''}
-                                ${order.cancellationDate ? `
-                                    <div class="summary-item">
-                                        <span class="summary-label">Cancelled On:</span>
-                                        <span class="summary-value">${new Date(order.cancellationDate).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            })}</span>
-                                    </div>
-                                    <div class="summary-item">
-                                        <span class="summary-label">Reason:</span>
-                                        <span class="summary-value">${order.cancellationReason || "Not specified"}</span>
-                                    </div>
+                                <div class="summary-item"><span class="summary-label">Order Date:</span><span class="summary-value">${formattedModalDate}</span></div>
+                                <div class="summary-item"><span class="summary-label">Status:</span><span class="summary-value status-badge ${order.status}">${this.getStatusInfo(order.status).label}</span></div>
+                                <div class="summary-item"><span class="summary-label">Total Amount:</span><span class="summary-value">$${parseFloat(order.total_price || order.totalAmount || 0).toFixed(2)}</span></div>
+                                ${order.estimatedDelivery ? `<div class="summary-item"><span class="summary-label">Estimated Delivery:</span><span class="summary-value">${new Date(order.estimatedDelivery).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>` : ''}
+                                ${order.actualDelivery ? `<div class="summary-item"><span class="summary-label">Delivered On:</span><span class="summary-value">${new Date(order.actualDelivery).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>` : ''}
+                                ${order.status === 'cancelled' && (order.cancellationDate || order.updated_at) ? `
+                                    <div class="summary-item"><span class="summary-label">Cancelled On:</span><span class="summary-value">${new Date(order.cancellationDate || order.updated_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>
+                                    <div class="summary-item"><span class="summary-label">Reason:</span><span class="summary-value">${order.cancellationReason || "Not specified"}</span></div>
                                 ` : ''}
                             </div>
-                            
                             <div class="address-payment-section">
                                 <div class="shipping-address">
                                     <h3>Shipping Address</h3>
-                                    <p>${order.shippingAddress?.street || 'N/A'}</p>
-                                    <p>${order.shippingAddress?.city || 'N/A'}, ${order.shippingAddress?.state || ''} ${order.shippingAddress?.zip || 'N/A'}</p>
-                                    <p>${order.shippingAddress?.country ? getCountryName(order.shippingAddress.country) : 'N/A'}</p>
+                                    <p>${order.shippingAddress.street}</p>
+                                    <p>${order.shippingAddress.city}${order.shippingAddress.state ? ', ' + order.shippingAddress.state : ''} ${order.shippingAddress.zip}</p>
+                                    <p>${getCountryName(order.shippingAddress.country)}</p>
                                 </div>
-                                
                                 <div class="payment-method">
                                     <h3>Payment Method</h3>
                                     <p>${paymentMethodDisplay}</p>
                                 </div>
                             </div>
-                            
                             <div class="order-items-section">
                                 <h3>Items in Your Order</h3>
                                 <div class="order-items-table">
-                                    <div class="order-items-header">
-                                        <div class="item-col">Item</div>
-                                        <div class="price-col">Price</div>
-                                        <div class="qty-col">Qty</div>
-                                        <div class="total-col">Total</div>
-                                    </div>
-                                    ${Array.isArray(order.items) ? order.items.map(item => `
+                                    <div class="order-items-header"><div class="item-col">Item</div><div class="price-col">Price</div><div class="qty-col">Qty</div><div class="total-col">Total</div></div>
+                                    ${order.items.map(item => `
                                         <div class="order-item-row">
                                             <div class="item-col">
-                                                <div class="item-image">
-                                                    <img src="${item.image}" alt="${item.product_name || 'Product'}">
-                                                </div>
-                                                <div class="item-name">${item.product_name || 'Product'}</div>
+                                                <div class="item-image"><img src="${item.image}" alt="${item.product_name}"></div>
+                                                <div class="item-name">${item.product_name}</div>
                                             </div>
-                                            <div class="price-col">$${parseFloat(item.price || 0).toFixed(2)}</div>
-                                            <div class="qty-col">${item.quantity || 1}</div>
-                                            <div class="total-col">$${parseFloat(item.total || 0).toFixed(2)}</div>
+                                            <div class="price-col">$${item.price.toFixed(2)}</div>
+                                            <div class="qty-col">${item.quantity}</div>
+                                            <div class="total-col">$${item.total.toFixed(2)}</div>
                                         </div>
-                                    `).join('') : ''}
+                                    `).join('')}
+                                    ${order.items.length === 0 ? '<p class="no-items-message">No items found for this order.</p>' : ''}
                                 </div>
                                 <div class="order-totals">
-                                    <div class="subtotal">
-                                        <span>Subtotal:</span>
-                                        <span>$${parseFloat(order.totalAmount || 0).toFixed(2)}</span>
-                                    </div>
-                                    <div class="shipping">
-                                        <span>Shipping:</span>
-                                        <span>Free</span>
-                                    </div>
-                                    <div class="tax">
-                                        <span>Tax:</span>
-                                        <span>Included</span>
-                                    </div>
-                                    <div class="grand-total">
-                                        <span>Grand Total:</span>
-                                        <span>$${parseFloat(order.totalAmount || 0).toFixed(2)}</span>
-                                    </div>
+                                    <div class="subtotal"><span>Subtotal:</span><span>$${parseFloat(order.subtotal_price || order.total_price || order.totalAmount || 0).toFixed(2)}</span></div>
+                                    <div class="shipping"><span>Shipping:</span><span>${parseFloat(order.shipping_cost || 0) > 0 ? '$' + parseFloat(order.shipping_cost).toFixed(2) : 'Free'}</span></div>
+                                    <div class="grand-total"><span>Grand Total:</span><span>$${parseFloat(order.total_price || order.totalAmount || 0).toFixed(2)}</span></div>
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="modal-footer">
-                            ${order.status === 'pending' ? `
-                                <button class="cancel-order-btn" data-id="${order.id}">
-                                    <i class='bx bx-x'></i> Cancel Order
-                                </button>
-                            ` : ''}
-                            ${order.status === 'delivered' && !order.rated ? `
-                                <button class="rate-order-btn" data-id="${order.id}">
-                                    <i class='bx bx-star'></i> Rate Order
-                                </button>
-                            ` : ''}
-                            <button class="close-details-btn">Close</button>
+                            ${!this.isAdmin && order.status === 'pending' ? `<button class="action-btn cancel-order-modal-btn" data-id="${order.id}"><i class='bx bx-x'></i> Cancel Order</button>` : ''}
+                            ${!this.isAdmin && order.status === 'delivered' && !order.rated ? `<button class="action-btn rate-order-modal-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Products</button>` : ''}
+                            <button class="action-btn close-details-btn">Close</button>
                         </div>
                     </div>
                 </div>
             `;
-
-            // Add modal to the DOM
+            
             const modalContainer = document.createElement('div');
             modalContainer.innerHTML = modalHTML;
             document.body.appendChild(modalContainer.firstElementChild);
 
-            // Add event listeners for modal interactions
-            const closeButtons = document.querySelectorAll('.close-modal-btn, .close-details-btn');
-            closeButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelector('.modal-backdrop').remove();
-                });
-            });
+            const modalElement = document.querySelector('.modal-backdrop');
 
-            // Close modal when clicking on backdrop
-            document.querySelector('.modal-backdrop').addEventListener('click', (e) => {
-                if (e.target.classList.contains('modal-backdrop')) {
-                    document.querySelector('.modal-backdrop').remove();
+            modalElement.querySelector('.close-modal-btn').addEventListener('click', () => modalElement.remove());
+            modalElement.querySelector('.close-details-btn').addEventListener('click', () => modalElement.remove());
+            
+            modalElement.addEventListener('click', (e) => {
+                if (e.target === modalElement) {
+                     modalElement.remove();
                 }
             });
 
-            // Handle cancel order from modal
-            const cancelBtn = document.querySelector('.modal-footer .cancel-order-btn');
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', () => {
-                    document.querySelector('.modal-backdrop').remove();
-                    this.cancelOrder(orderId);
+            const cancelBtnModal = modalElement.querySelector('.cancel-order-modal-btn');
+            if (cancelBtnModal) {
+                cancelBtnModal.addEventListener('click', () => {
+                    modalElement.remove();
+                    this.cancelOrder(orderId); 
                 });
             }
 
-            // Handle rate order from modal
-            const rateBtn = document.querySelector('.modal-footer .rate-order-btn');
-            if (rateBtn) {
-                rateBtn.addEventListener('click', () => {
-                    document.querySelector('.modal-backdrop').remove();
-                    this.rateOrder(orderId);
+            const rateBtnModal = modalElement.querySelector('.rate-order-modal-btn');
+            if (rateBtnModal) {
+                rateBtnModal.addEventListener('click', () => {
+                    modalElement.remove();
+                    // If rating is per product, this should ideally pass item info or redirect
+                    // For now, it calls the generic rateOrder which was for the whole order.
+                    // You might want to change this to a "Rate Products" flow.
+                    this.rateOrder(orderId); // This was for order rating. Adjust if product rating is different.
                 });
             }
 
         } catch (error) {
             console.error('Error loading order details:', error);
-            this.showError('Failed to load order details. Please try again later.');
+            this.showError(`Failed to load order details. ${error.message}`);
         }
     }
 
@@ -833,7 +764,7 @@ export default class PurchaseHistory {
     async cancelOrder(orderId) {
         if (confirm('Are you sure you want to cancel this order?')) {
             try {
-                const response = await fetch('../backend/api/orders/update_order_status.php', {
+                const response = await fetch('../backend/api/orders/update_order_status.php', { // Uses the original endpoint
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -841,7 +772,7 @@ export default class PurchaseHistory {
                     body: JSON.stringify({
                         order_id: orderId,
                         status: 'cancelled',
-                        reason: 'Cancelled by customer'
+                        reason: 'Cancelled by customer' // Specific reason for customer
                     })
                 });
 
@@ -850,10 +781,7 @@ export default class PurchaseHistory {
                 const data = await response.json();
                 if (!data.success) throw new Error(data.message || 'Failed to cancel order');
 
-                // Show confirmation
                 alert('Order cancelled successfully');
-
-                // Reload orders and refresh UI
                 await this.loadOrders();
                 this.render();
 

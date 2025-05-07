@@ -1149,3 +1149,160 @@ body.dark-mode .browse-products-btn:hover {
         width: 100%;
     }
 }
+
+
+
+.admin-action-btn:hover {
+    transform: translateY(-1px);
+}
+
+.mark-shipped-btn {
+    background-color: #e3f2fd; /* Light blue */
+    color: #2196f3; /* Blue */
+}
+.mark-shipped-btn:hover {
+    background-color: #d1eafd;
+}
+
+.mark-delivered-btn {
+    background-color: #e8f5e9; /* Light green */
+    color: #4caf50; /* Green */
+}
+.mark-delivered-btn:hover {
+    background-color: #dcf0dd;
+}
+
+.admin-cancel-btn {
+    background-color: #feecec; /* Light red */
+    color: #f44336; /* Red */
+}
+.admin-cancel-btn:hover {
+    background-color: #fdd9d7;
+}
+
+.order-customer {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 2px;
+    margin-bottom: 5px;
+}
+
+.admin-action-btn {
+    padding: 8px 15px; /* Slightly more padding */
+    border: 1px solid transparent; /* Base border */
+    margin-right: 10px; /* Space between buttons */
+    border-radius: 8px; /* More rounded */
+    cursor: pointer;
+    font-size: 13px; /* Adjust as needed */
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
+    transition: all 0.2s ease-in-out; /* Smooth transition for all properties */
+    text-transform: capitalize;
+}
+
+.admin-action-btn i {
+    font-size: 18px; /* Icon size */
+}
+
+.admin-action-btn:hover {
+    transform: translateY(-2px); /* Subtle lift effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow on hover */
+}
+
+.admin-action-btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Specific Admin Button Styles */
+.admin-action-btn.mark-shipped-btn {
+    background-color: #e0f2fe; /* Lighter, softer blue */
+    color: #0ea5e9; /* Sky blue */
+    border-color: #bae6fd;
+}
+.admin-action-btn.mark-shipped-btn:hover {
+    background-color: #bae6fd;
+    color: #0284c7;
+}
+
+.admin-action-btn.mark-delivered-btn {
+    background-color: #dcfce7; /* Lighter, softer green */
+    color: #22c55e; /* Emerald green */
+    border-color: #bbf7d0;
+}
+.admin-action-btn.mark-delivered-btn:hover {
+    background-color: #bbf7d0;
+    color: #16a34a;
+}
+
+.admin-action-btn.admin-cancel-btn {
+    background-color: #ffe4e6; /* Lighter, softer red */
+    color: #ef4444; /* Red */
+    border-color: #fecdd3;
+}
+.admin-action-btn.admin-cancel-btn:hover {
+    background-color: #fecdd3;
+    color: #dc2626;
+}
+
+/* Ensure customer-facing buttons also have a nice style if not already */
+.order-action .rate-order-btn,
+.order-action .cancel-order-btn,
+.order-action .rated-btn {
+    padding: 8px 15px;
+    border: 1px solid #e2e8f0; /* Light gray border */
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease-in-out;
+    background-color: #ffffff;
+    color: #334155; /* Dark gray text */
+}
+
+.order-action .rate-order-btn:hover,
+.order-action .cancel-order-btn:hover {
+    background-color: #f8fafc; /* Very light gray background on hover */
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.order-action .rated-btn {
+    background-color: #f1f5f9; /* Light gray for disabled/rated */
+    color: #64748b;
+    cursor: not-allowed;
+}
+.order-action .rated-btn i {
+    color: #facc15; /* Yellow star */
+}
+
+.order-action .cancel-order-btn {
+    color: #ef4444; /* Red text for cancel */
+    border-color: #fecdd3;
+}
+.order-action .cancel-order-btn:hover {
+    background-color: #ffe4e6;
+    border-color: #ef4444;
+}
+
+
+/* Status Badges in Modal */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+.status-badge.pending { background-color: #ffedd5; color: #f97316; }
+.status-badge.shipped { background-color: #dbeafe; color: #3b82f6; }
+.status-badge.delivered { background-color: #dcfce7; color: #22c55e; }
+.status-badge.cancelled { background-color: #fee2e2; color: #ef4444; }
+
+/* ...other styles... */

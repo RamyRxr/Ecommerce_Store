@@ -5,62 +5,80 @@ session_start();
 require_once '../../config/database.php';
 
 try {
-    // Check if user is logged in
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
         throw new Exception('User not logged in');
     }
 
     $userId = $_SESSION['user']['id'];
+    $isAdmin = isset($_SESSION['user']['is_admin']) && $_SESSION['user']['is_admin'];
+
     $db = new Database();
     $conn = $db->getConnection();
+    // Ensure PDO throws exceptions for easier debugging
+    // $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Recommended
 
-    // Get all orders for the current user
-    $sql = "SELECT o.id, o.shipping_method, o.total_price as totalAmount, 
-            o.created_at as date, o.status,
-            o.shipping_address, o.shipping_city, o.shipping_zip as shipping_postal_code, 
-            o.shipping_country, o.payment_method
-            FROM orders o
-            WHERE o.user_id = :user_id
-            ORDER BY o.created_at DESC";
+    if ($isAdmin) {
+        $sql = "SELECT o.id, o.user_id, u.username, o.shipping_method, o.total_price as totalAmount, 
+                o.created_at as date, o.status,
+                o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip as shipping_postal_code, 
+                o.shipping_country, o.payment_method,
+                o.updated_at as cancellationDate, o.status as cancellationReason
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                ORDER BY o.created_at DESC";
+        $stmt = $conn->prepare($sql);
+    } else {
+        $sql = "SELECT o.id, o.user_id, o.shipping_method, o.total_price as totalAmount, 
+                o.created_at as date, o.status,
+                o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip as shipping_postal_code, 
+                o.shipping_country, o.payment_method,
+                o.updated_at as cancellationDate, o.status as cancellationReason
+                FROM orders o
+                WHERE o.user_id = :user_id
+                ORDER BY o.created_at DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':user_id', $userId);
+    }
     
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':user_id', $userId);
+    if (!$stmt) {
+        throw new Exception("Failed to prepare statement: " . implode(" ", $conn->errorInfo()));
+    }
+    
     $stmt->execute();
-    
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Process each order
     foreach ($orders as &$order) {
-        // Format shipping address for display
         $order['shippingAddress'] = [
-            'street' => $order['shipping_address'],
-            'city' => $order['shipping_city'],
-            'zip' => $order['shipping_postal_code'],
-            'country' => $order['shipping_country']
+            'street' => $order['shipping_address'] ?? 'N/A',
+            'city' => $order['shipping_city'] ?? 'N/A',
+            'state' => $order['shipping_state'] ?? '',
+            'zip' => $order['shipping_postal_code'] ?? 'N/A',
+            'country' => $order['shipping_country'] ?? 'N/A'
         ];
         
-        // Add payment method
-        $order['paymentMethod'] = $order['payment_method'];
+        $order['paymentMethod'] = $order['payment_method'] ?? 'N/A';
         
-        // Add estimated or actual delivery date
         if ($order['status'] === 'shipped') {
             $orderDate = new DateTime($order['date']);
             $estimatedDelivery = clone $orderDate;
-            $estimatedDelivery->modify('+7 days');
+            $estimatedDelivery->modify('+' . rand(3, 7) . ' days');
             $order['estimatedDelivery'] = $estimatedDelivery->format('Y-m-d H:i:s');
         } elseif ($order['status'] === 'delivered') {
             $orderDate = new DateTime($order['date']);
             $actualDelivery = clone $orderDate;
-            $actualDelivery->modify('+' . rand(3, 6) . ' days');
+            $actualDelivery->modify('+' . rand(5, 10) . ' days'); 
             $order['actualDelivery'] = $actualDelivery->format('Y-m-d H:i:s');
-            
-            // Add random rating status for delivered orders
-            $order['rated'] = (rand(0, 1) === 1);
+            // Order rating logic removed. Product ratings are separate.
+            // If you need a placeholder for 'rated' for UI consistency, you can add:
+            // $order['rated'] = false; // Or determine based on product reviews if applicable
+        }
+
+        if ($order['status'] === 'cancelled') {
+             $order['cancellationDate'] = $order['cancellationDate'] ?? $order['updated_at']; 
+             $order['cancellationReason'] = $order['cancellationReason'] ?? "Order Cancelled"; 
         }
         
-        // Get items for this order
-        $itemsSql = "SELECT oi.id, oi.product_id, oi.price, oi.quantity, 
-                     p.title as product_name,
+        $itemsSql = "SELECT oi.id, oi.product_id, oi.price, oi.quantity, oi.product_title,
                      (oi.price * oi.quantity) as total,
                      GROUP_CONCAT(pi.image_url) as images
                      FROM order_items oi
@@ -70,37 +88,34 @@ try {
                      GROUP BY oi.id";
         
         $itemsStmt = $conn->prepare($itemsSql);
+        if (!$itemsStmt) {
+             throw new Exception("Failed to prepare items statement: " . implode(" ", $conn->errorInfo()));
+        }
         $itemsStmt->bindParam(':order_id', $order['id']);
         $itemsStmt->execute();
-        
         $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Format the response data for each item (EXACTLY like get_cart.php)
         foreach ($items as &$item) {
             $item['images'] = $item['images'] ? explode(',', $item['images']) : [];
+            $item['product_name'] = $item['product_title'] ?? 'Product Name Unavailable';
         }
-        
-        // Add items to order
         $order['items'] = $items;
         
-        // Clean up response
-        unset($order['shipping_address']);
-        unset($order['shipping_city']);
-        unset($order['shipping_postal_code']);
-        unset($order['shipping_country']);
-        unset($order['payment_method']);
+        unset($order['shipping_address'], $order['shipping_city'], $order['shipping_state'], $order['shipping_postal_code'], $order['shipping_country']);
     }
     
     echo json_encode([
         'success' => true,
-        'orders' => $orders
+        'orders' => $orders,
+        'is_admin' => $isAdmin
     ]);
 
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'Server error: ' . $e->getMessage()
+        'message' => 'Server error in get_user_orders.php: ' . $e->getMessage(),
+        'trace' => $e->getTraceAsString() // Optional: for more detailed debugging during development
     ]);
 }
 ?>

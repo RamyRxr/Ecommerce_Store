@@ -24,13 +24,15 @@ export default class CartItem2 {
 
             const data = await response.json();
             if (data.success) {
-                // Format cart items with proper image paths
                 this.cartItems = data.data.map(item => {
-                    // Safely handle the images array
                     const images = item.images || [];
-
                     return {
-                        ...item,
+                        id: item.id, // cart_item_id
+                        product_id: item.product_id,
+                        name: item.name,
+                        price: parseFloat(item.price),
+                        quantity: parseInt(item.quantity), // Current quantity in cart
+                        available_stock: parseInt(item.available_stock), // Max available stock
                         image: images.length > 0 && images[0]
                             ? `${images[0].includes('uploads/')
                                 ? '../' + images[0]
@@ -158,27 +160,26 @@ export default class CartItem2 {
         const cartItemsList = document.querySelector('.cart-items-list');
         if (!cartItemsList) return;
 
-        // If there are no cart items, show the empty cart message (already handled in render)
         if (this.cartItems.length === 0) {
+            // Handled by render method's empty cart display
             return;
         }
 
-        // Keep the notification container but clear other content
         const notificationContainer = cartItemsList.querySelector('.notification-container');
-        cartItemsList.innerHTML = '';
+        cartItemsList.innerHTML = ''; // Clear previous items
         if (notificationContainer) {
-            cartItemsList.appendChild(notificationContainer);
+            cartItemsList.appendChild(notificationContainer); // Re-add notification container
         } else {
             const newNotificationContainer = document.createElement('div');
             newNotificationContainer.className = 'notification-container';
             cartItemsList.appendChild(newNotificationContainer);
         }
 
-        // Add each item to the list
+
         this.cartItems.forEach(item => {
             const itemRow = document.createElement('div');
             itemRow.className = 'cart-item';
-            itemRow.dataset.id = item.id;
+            itemRow.dataset.id = item.id; // cart_item.id
 
             itemRow.innerHTML = `
                 <div class="item-image">
@@ -191,10 +192,11 @@ export default class CartItem2 {
                             <i class='bx bx-minus'></i>
                         </button>
                         <span class="quantity">${item.quantity}</span>
-                        <button class="qty-btn increase-qty">
+                        <button class="qty-btn increase-qty" ${item.quantity >= item.available_stock ? 'disabled' : ''}>
                             <i class='bx bx-plus'></i>
                         </button>
                     </div>
+                    ${item.quantity >= item.available_stock ? '<small class="stock-limit-msg">Max stock reached</small>' : ''}
                 </div>
                 <div class="item-price-actions">
                     <span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>
@@ -274,6 +276,13 @@ export default class CartItem2 {
     }
 
     async updateItemQuantity(itemId, change) {
+        const item = this.cartItems.find(i => i.id === itemId);
+        if (!item) return;
+
+        // Optimistic UI update for disabling button can be done here,
+        // but backend is the source of truth.
+        // The button disabling in render/updateCartItemsList is key.
+
         try {
             const response = await fetch('../backend/api/cart/update_quantity.php', {
                 method: 'POST',
@@ -281,22 +290,37 @@ export default class CartItem2 {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    item_id: itemId,
+                    item_id: itemId, // cart_item.id
                     quantity_change: change
                 })
             });
 
-            if (!response.ok) throw new Error('Failed to update quantity');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({})); // Try to parse error
+                throw new Error(errorData.message || 'Failed to update quantity');
+            }
 
             const data = await response.json();
             if (data.success) {
-                await this.loadCartItems();
-                this.render();
+                // Reload cart items to get the true state from the backend,
+                // including potentially capped quantities.
+                await this.loadCartItems(); 
+                this.render(); // Re-render the whole cart
                 document.dispatchEvent(new CustomEvent('updateCartBadge'));
+                if (data.message && data.message !== 'Quantity updated successfully') {
+                    // Optionally, show a specific message if quantity was capped
+                    // For example, using a small, non-intrusive notification
+                    console.log("Server message:", data.message);
+                }
+            } else {
+                throw new Error(data.message || 'Failed to update quantity');
             }
         } catch (error) {
             console.error('Error updating quantity:', error);
-            this.showErrorMessage('Failed to update quantity');
+            this.showErrorMessage(error.message || 'Failed to update quantity');
+            // Revert optimistic UI or reload to be safe
+            await this.loadCartItems();
+            this.render();
         }
     }
 
