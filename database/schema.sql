@@ -38,6 +38,7 @@ CREATE TABLE products (
     `condition` VARCHAR(50) NOT NULL, -- Fixed: backticks around reserved keyword
     brand VARCHAR(50) NOT NULL,
     model VARCHAR(50) NOT NULL,
+    quantity INT DEFAULT 1, -- Added quantity field
     status VARCHAR(20) DEFAULT 'active', -- active, draft, sold
     shipping BOOLEAN DEFAULT TRUE,
     local_pickup BOOLEAN DEFAULT FALSE,

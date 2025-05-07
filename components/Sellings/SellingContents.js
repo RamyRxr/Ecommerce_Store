@@ -33,6 +33,7 @@ export default class SellingContents {
                     condition: listing.condition,
                     brand: listing.brand,
                     model: listing.model,
+                    quantity: parseInt(listing.quantity) || 1, // Added quantity
                     image: listing.images[0] ? `${listing.images[0].includes('uploads/') ? '../' + listing.images[0] : '../backend/uploads/products/' + listing.images[0]}` : '/Project-Web/assets/images/products-images/placeholder.svg',
                     images: listing.images.map(img =>
                         `${img.includes('uploads/') ? '../' + img : '../backend/uploads/products/' + img}`
@@ -287,6 +288,10 @@ export default class SellingContents {
                             <div class="form-group">
                                 <label for="product-model">Model</label>
                                 <input type="text" id="product-model" placeholder="Enter model name/number" value="${isEditing && editingListing ? editingListing.model : ''}">
+                            </div>
+                             <div class="form-group"> 
+                                <label for="product-quantity">Quantity</label>
+                                <input type="number" id="product-quantity" placeholder="1" min="1" step="1" value="${isEditing && editingListing ? editingListing.quantity : '1'}">
                             </div>
                         </div>
                     </div>
@@ -773,6 +778,7 @@ export default class SellingContents {
         formData.append('title', document.getElementById('product-title').value);
         formData.append('description', document.getElementById('product-description').value);
         formData.append('price', document.getElementById('product-price').value);
+        formData.append('quantity', document.getElementById('product-quantity').value); // Added quantity
         
         // Get category value
         const categoryOption = document.querySelector('#category-options .fancy-option.selected');
@@ -821,8 +827,8 @@ export default class SellingContents {
         // Basic validation
         if (!formData.get('title') || !formData.get('category') || !formData.get('condition') ||
             !formData.get('description') || !formData.get('price') || !formData.get('brand') || 
-            !formData.get('model')) {
-            alert('Please fill in all required fields');
+            !formData.get('model') || !formData.get('quantity') || parseInt(formData.get('quantity')) < 1) { // Added quantity validation
+            alert('Please fill in all required fields and ensure quantity is at least 1.');
             return;
         }
 
@@ -876,6 +882,7 @@ export default class SellingContents {
 
         const description = document.getElementById('product-description').value;
         const price = parseFloat(document.getElementById('product-price').value);
+        const quantity = parseInt(document.getElementById('product-quantity').value); // Added quantity
 
         // Get brand from fancy select
         const brandOption = document.querySelector('#brand-options .fancy-option.selected');
@@ -896,8 +903,8 @@ export default class SellingContents {
 
         // Basic validation
         if (!title || !category || !condition ||
-            !description || isNaN(price) || price <= 0 || !brand || !model) {
-            alert('Please fill in all required fields');
+            !description || isNaN(price) || price <= 0 || !brand || !model || isNaN(quantity) || quantity < 1) { // Added quantity validation
+            alert('Please fill in all required fields and ensure quantity is at least 1.');
             return;
         }
 
@@ -911,6 +918,7 @@ export default class SellingContents {
         formData.append('condition', condition);
         formData.append('brand', brand);
         formData.append('model', model);
+        formData.append('quantity', quantity); // Added quantity
         formData.append('shipping', shipping);
         formData.append('localPickup', localPickup);
         formData.append('status', asDraft ? 'draft' : 'active');

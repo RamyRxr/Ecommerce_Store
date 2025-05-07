@@ -23,13 +23,14 @@ try {
     $condition = $_POST['condition'] ?? null;
     $brand = $_POST['brand'] ?? null;
     $model = $_POST['model'] ?? null;
+    $quantity = $_POST['quantity'] ?? 1; // Ensure quantity is an integer
     $shipping = isset($_POST['shipping']) && $_POST['shipping'] === 'true' ? 1 : 0;
     $localPickup = isset($_POST['localPickup']) && $_POST['localPickup'] === 'true' ? 1 : 0;
     $status = $_POST['status'] ?? 'active';
     
     // Validate required fields
-    if (!$title || !$price || !$category || !$condition || !$brand || !$model) {
-        throw new Exception('All required fields must be filled');
+    if (!$title || !$price || !$category || !$condition || !$brand || !$model || !isset($_POST['quantity']) || intval($_POST['quantity']) < 1) {
+        throw new Exception('All required fields must be filled, and quantity must be at least 1');
     }
     
     // Connect to database
@@ -39,17 +40,17 @@ try {
     // Using backticks for 'condition' since it's a reserved word in MySQL
     $stmt = $conn->prepare("INSERT INTO products (
                 title, description, price, category, 
-                `condition`, brand, model, shipping, 
+                `condition`, brand, model, quantity, shipping, 
                 local_pickup, seller_id, status, created_at
             ) VALUES (
                 ?, ?, ?, ?,
-                ?, ?, ?, ?,
+                ?, ?, ?, ?, ?,
                 ?, ?, ?, NOW()
             )");
             
     $stmt->execute([
         $title, $description, $price, $category,
-        $condition, $brand, $model, $shipping,
+        $condition, $brand, $model, (int)$quantity, $shipping,
         $localPickup, $_SESSION['user']['id'], $status
     ]);
     

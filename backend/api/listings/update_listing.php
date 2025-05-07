@@ -30,6 +30,7 @@ try {
     $condition = $_POST['condition'] ?? null;
     $brand = $_POST['brand'] ?? null;
     $model = $_POST['model'] ?? null;
+    $quantity = $_POST['quantity'] ?? null; // Add quantity
     $shipping = isset($_POST['shipping']) && $_POST['shipping'] === 'true' ? 1 : 0;
     $localPickup = isset($_POST['localPickup']) && $_POST['localPickup'] === 'true' ? 1 : 0;
     $status = $_POST['status'] ?? 'active';
@@ -46,19 +47,35 @@ try {
         throw new Exception('You do not have permission to edit this listing');
     }
     
+    // Validate required fields
+    if (!$listingId || !$title || !$price || !$category || !$condition || !$brand || !$model || !isset($_POST['quantity']) || intval($_POST['quantity']) < 1) { // Add quantity validation
+        throw new Exception('All required fields must be filled, and quantity must be at least 1');
+    }
+
     // Update product using backticks for 'condition' as it's a reserved word
-    $stmt = $conn->prepare("UPDATE products SET
-                title = ?, description = ?, price = ?, category = ?, 
-                `condition` = ?, brand = ?, model = ?, shipping = ?, 
-                local_pickup = ?, status = ?
-            WHERE id = ?");
-            
+    $sql = "UPDATE products SET 
+                title = ?, 
+                description = ?, 
+                price = ?, 
+                category = ?, 
+                `condition` = ?, 
+                brand = ?, 
+                model = ?, 
+                quantity = ?, -- Add quantity here
+                shipping = ?, 
+                local_pickup = ?, 
+                status = ?, 
+                updated_at = NOW() 
+            WHERE id = ? AND seller_id = ?";
+
+    $stmt = $conn->prepare($sql);
     $stmt->execute([
         $title, $description, $price, $category,
-        $condition, $brand, $model, $shipping,
-        $localPickup, $status, $listingId
+        $condition, $brand, $model, (int)$quantity, // Add quantity to execute parameters
+        $shipping, $localPickup, $status,
+        $listingId, $_SESSION['user']['id']
     ]);
-    
+
     // Handle new image uploads
     $uploadedImages = [];
     
