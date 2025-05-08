@@ -469,9 +469,9 @@ export default class ExploreContents {
 
         // Check if we should focus the search input
         if (sessionStorage.getItem('focusSearch') === 'true') {
-            const searchInput = document.getElementById('main-search');
-            if (searchInput) {
-                searchInput.focus();
+            const searchInputOnExplorePage = document.getElementById('main-search'); // Or the correct ID for Explore page's search input
+            if (searchInputOnExplorePage) {
+                searchInputOnExplorePage.focus();
                 // Clear the flag after focusing
                 sessionStorage.removeItem('focusSearch');
             }

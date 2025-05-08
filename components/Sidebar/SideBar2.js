@@ -222,15 +222,39 @@ export default class SideBar2 {
         }
 
         // Search functionality
-        const searchInput = document.getElementById('search-input');
+        const searchInput = document.getElementById('search-input'); // The input field in the sidebar
         if (searchInput) {
+            // Handles search submission when Enter is pressed in the sidebar search input
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     const query = searchInput.value.trim();
                     if (query) {
+                        // If there's a query, navigate with it
                         window.location.href = `../HTML-Pages/ExplorePage.html?search=${encodeURIComponent(query)}`;
+                    } else {
+                        // If no query, just go to Explore page and signal focus
+                        sessionStorage.setItem('focusSearch', 'true');
+                        window.location.href = '../HTML-Pages/ExplorePage.html';
                     }
                 }
+            });
+        }
+
+        // Event listener for the whole search box container click
+        const searchBox = document.querySelector('.sidebar .search-box');
+        if (searchBox) {
+            searchBox.addEventListener('click', (e) => {
+                // If the click target is the input field itself, do nothing.
+                // This allows the input to be focused, and the user can type.
+                // The 'keypress' event listener on 'search-input' will handle search submission.
+                if (e.target.id === 'search-input') {
+                    return;
+                }
+
+                // For any other click within the search-box (e.g., on the icon or the div's padding),
+                // set the sessionStorage flag and navigate to the Explore page.
+                sessionStorage.setItem('focusSearch', 'true');
+                window.location.href = '../HTML-Pages/ExplorePage.html';
             });
         }
 
@@ -245,13 +269,9 @@ export default class SideBar2 {
     }
 
     logout() {
-        // Clear session storage
         sessionStorage.removeItem('user');
-
-        // Call logout API to clear server-side session
         fetch('../backend/api/auth/logout.php')
             .finally(() => {
-                // Redirect to login page
                 window.location.href = '../HTML-Pages/login.html';
             });
     }
@@ -261,7 +281,6 @@ export default class SideBar2 {
         localStorage.setItem('darkMode', this.isDarkMode);
         this.applyTheme();
 
-        // Update theme toggle icon
         const themeIcon = document.querySelector('.dark-light i');
         if (themeIcon) {
             themeIcon.className = this.isDarkMode ? 'bx bx-sun' : 'bx bx-moon';
@@ -279,10 +298,9 @@ export default class SideBar2 {
     }
 
     async updateCartCount() {
-        if (this.isAdmin) return; // Skip for admin users
+        if (this.isAdmin) return;
 
         try {
-            // Get cart items count from database
             const response = await fetch('../backend/api/cart/get_cart.php');
             if (!response.ok) throw new Error('Failed to fetch cart items');
 
@@ -333,7 +351,6 @@ export default class SideBar2 {
         }
     }
 
-    // Add a method to help with debugging
     debugSidebar() {
         console.group('SideBar2 Debug Info');
         console.log('Is Admin:', this.isAdmin);
