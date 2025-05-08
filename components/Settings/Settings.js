@@ -24,7 +24,7 @@ export default class Settings {
     // Add this new method
     async loadGeneralSettings() {
         try {
-            const response = await fetch('../backend/api/get_general_settings.php');
+            const response = await fetch('../backend/api/Settings/get_general_settings.php');
             const data = await response.json();
             
             if (data.success) {
@@ -44,7 +44,7 @@ export default class Settings {
 
     async loadUserData() {
         try {
-            const response = await fetch('../backend/api/get_user_settings.php');
+            const response = await fetch('../backend/api/Settings/get_user_settings.php');
             const data = await response.json();
             
             if (data.success) {
@@ -64,7 +64,7 @@ export default class Settings {
 
     async loadPaymentMethods() {
         try {
-            const response = await fetch('../backend/api/get_payment_methods.php');
+            const response = await fetch('../backend/api/Settings/get_payment_methods.php');
             const data = await response.json();
             
             if (data.success) {
@@ -755,7 +755,7 @@ export default class Settings {
         formData.append('action', 'update_personal');
 
         try {
-            const response = await fetch('../backend/api/update_account.php', {
+            const response = await fetch('../backend/api/Settings/update_account.php', {
                 method: 'POST',
                 body: formData
             });
@@ -806,7 +806,7 @@ export default class Settings {
         formData.append('action', 'update_shipping');
 
         try {
-            const response = await fetch('../backend/api/update_account.php', {
+            const response = await fetch('../backend/api/Settings/update_account.php', {
                 method: 'POST',
                 body: formData
             });
@@ -845,7 +845,7 @@ export default class Settings {
 
     async savePaymentMethod(formData, isEditing = false) {
         try {
-            const response = await fetch('../backend/api/manage_payment_method.php', {
+            const response = await fetch('../backend/api/Settings/manage_payment_method.php', {
                 method: 'POST',
                 body: formData
             });
@@ -878,7 +878,7 @@ export default class Settings {
         formData.append('payment_id', paymentId);
 
         try {
-            const response = await fetch('../backend/api/manage_payment_method.php', {
+            const response = await fetch('../backend/api/Settings/manage_payment_method.php', {
                 method: 'POST',
                 body: formData
             });
@@ -963,7 +963,7 @@ export default class Settings {
                 formData.append('new_password', newPassword.value);
 
                 try {
-                    const response = await fetch('../backend/api/update_password.php', {
+                    const response = await fetch('../backend/api/Settings/update_password.php', {
                         method: 'POST',
                         body: formData
                     });
@@ -1425,7 +1425,6 @@ export default class Settings {
         const inputs = container.querySelectorAll('.code-input');
         
         inputs.forEach((input, index) => {
-            // Auto-focus next input after entry
             input.addEventListener('input', () => {
                 if (input.value && index < inputs.length - 1) {
                     inputs[index + 1].focus();
@@ -1481,7 +1480,6 @@ export default class Settings {
             element.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }, 1000);
         
-        // Store the interval ID for cleanup if needed
         element.dataset.intervalId = interval;
     }
     
@@ -1630,7 +1628,6 @@ export default class Settings {
         }, 600);
     }
     
-    // Function to display success animation
     showSuccessAnimation() {
         const animContainer = document.createElement('div');
         animContainer.className = 'success-animation-container';
@@ -1751,7 +1748,7 @@ export default class Settings {
         });
 
         try {
-            const response = await fetch('../backend/api/update_general_settings.php', {
+            const response = await fetch('../backend/api/Settings/update_general_settings.php', {
                 method: 'POST',
                 body: formData
             });
@@ -1791,7 +1788,7 @@ export default class Settings {
         formData.append('timezone', form.querySelector('#timezone').value);
 
         try {
-            const response = await fetch('../backend/api/update_general_settings.php', {
+            const response = await fetch('../backend/api/Settings/update_general_settings.php', {
                 method: 'POST',
                 body: formData
             });
