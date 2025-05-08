@@ -8,6 +8,8 @@ DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS payment_methods;
 DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS sold_items;
 -- Create users table
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -162,6 +164,24 @@ CREATE TABLE user_settings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Create sold_items table
+CREATE TABLE sold_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_item_id INT NOT NULL, -- Reference to the specific item in an order
+    product_id INT NOT NULL,
+    order_id VARCHAR(20) NOT NULL,
+    seller_id INT NOT NULL,
+    buyer_id INT NOT NULL,
+    sold_price DECIMAL(10, 2) NOT NULL,
+    quantity_sold INT NOT NULL,
+    sold_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Records when it was marked as part of a delivered order
+    FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE, -- Consider ON DELETE SET NULL if products can be deleted but sales history should remain
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Add indexes for performance

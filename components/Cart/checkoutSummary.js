@@ -41,7 +41,7 @@ export default class CheckoutSummary {
     calculateTotals() {
         let subtotal = 0;
         let itemCount = 0;
-        
+
         // Check if cartItems exists and is an array
         if (Array.isArray(this.cartItems)) {
             this.cartItems.forEach(item => {
@@ -51,11 +51,11 @@ export default class CheckoutSummary {
                 }
             });
         }
-        
+
         const shippingCost = itemCount > 0 ? this.shippingRates[this.shippingMethod] : 0;
         const discount = this.promoDiscount || 0;
         const total = subtotal - discount + shippingCost;
-        
+
         return {
             subtotal: subtotal.toFixed(2),
             shipping: shippingCost.toFixed(2),
@@ -77,7 +77,7 @@ export default class CheckoutSummary {
         const totals = this.calculateTotals();
         const summaryContainer = document.createElement('div');
         summaryContainer.className = 'checkout-summary-container';
-        
+
         const summaryHTML = `
             <div class="checkout-summary">
                 <div class="summary-header">
@@ -152,10 +152,10 @@ export default class CheckoutSummary {
                 </button>
             </div>
         `;
-        
+
         summaryContainer.innerHTML = summaryHTML;
         this.container.appendChild(summaryContainer);
-        
+
         setTimeout(() => {
             summaryContainer.classList.add('visible');
         }, 10);
@@ -186,18 +186,18 @@ export default class CheckoutSummary {
 
     updateShippingMethod(method) {
         if (this.shippingMethod === method) return;
-        
+
         this.shippingMethod = method;
-        
+
         const options = document.querySelectorAll('.shipping-option');
         options.forEach(option => {
             const isSelected = option.dataset.shipping === method;
             option.classList.toggle('selected', isSelected);
             option.querySelector('.radio-dot').classList.toggle('selected', isSelected);
         });
-        
+
         const totals = this.calculateTotals();
-        
+
         document.querySelector('.shipping-value').textContent = `$${totals.shipping}`;
         document.querySelector('.total-value').textContent = `$${totals.total}`;
     }
@@ -210,25 +210,34 @@ export default class CheckoutSummary {
             }
 
             // Check if user shipping information is complete first
-            const userResponse = await fetch('../backend/api/get_user_settings.php');
+            // Use a path from the domain root
+            const userResponse = await fetch('/Project-Web/backend/api/Settings/get_user_settings.php');
+
+            if (!userResponse.ok) {
+                let errorMsg = `Failed to load user data. Status: ${userResponse.status}`;
+                try {
+                    // Try to parse error response if server sends JSON error
+                    const errorData = await userResponse.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch (e) {
+                    // If parsing errorData as JSON fails, use the original errorMsg
+                }
+                throw new Error(errorMsg);
+            }
             const userData = await userResponse.json();
-            
+
             if (!userData.success) {
                 throw new Error(userData.message || 'Failed to load user data');
             }
 
             const user = userData.data.user;
-            
-            // Check if any required shipping information is missing
+
             if (!user.address || !user.city || !user.state || !user.zip_code || !user.country) {
-                // Show error notification instead of success
                 this.showIncompleteInfoNotification();
-                
-                // Redirect to settings page after a short delay
                 setTimeout(() => {
-                    window.location.href = 'SettingsPage.html';
+                    // Use a path from the domain root for navigation as well
+                    window.location.href = '/Project-Web/HTML-Pages/SettingsPage.html';
                 }, 3000);
-                
                 return;
             }
 
@@ -238,10 +247,15 @@ export default class CheckoutSummary {
                 shipping_method: this.shippingMethod,
                 shipping_cost: this.shippingRates[this.shippingMethod],
                 payment_method: 'credit_card',
-                items: this.cartItems
+                items: this.cartItems.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
             };
 
-            const response = await fetch('../backend/api/orders/create_order.php', {
+            // Use a path from the domain root
+            const response = await fetch('/Project-Web/backend/api/orders/create_order.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -250,11 +264,18 @@ export default class CheckoutSummary {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                let errorMsg = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch (e) {
+                    // If parsing errorData as JSON fails, use the original errorMsg
+                }
+                throw new Error(errorMsg);
             }
 
             const data = await response.json();
-            
+
             if (data.success) {
                 // Show success animation
                 const animContainer = document.createElement('div');
@@ -264,31 +285,31 @@ export default class CheckoutSummary {
                         <i class='bx bx-check'></i>
                     </div>
                 `;
-                
+
                 document.body.appendChild(animContainer);
-                
+
                 // Add active class after a small delay
                 setTimeout(() => {
                     animContainer.classList.add('active');
                 }, 10);
-                
+
                 // Hide animation and update UI
                 setTimeout(() => {
                     animContainer.classList.remove('active');
                     setTimeout(() => {
                         animContainer.remove();
-                        
+
                         // Hide checkout summary
                         this.hide();
-                        
+
                         // Clear cart items locally
                         this.cartItems = [];
-                        
+
                         // Update cart badge to show 0
                         document.dispatchEvent(new CustomEvent('updateCartBadge', {
                             detail: { count: 0 }
                         }));
-                        
+
                         // Update cart page content immediately
                         document.dispatchEvent(new CustomEvent('cartUpdated', {
                             detail: {
@@ -297,12 +318,12 @@ export default class CheckoutSummary {
                                     subtotal: "0.00",
                                     total: "0.00",
                                     itemCount: 0
+                                }
                             }
-                        }
-                    }));
+                        }));
 
-                }, 300);
-            }, 1500);
+                    }, 300);
+                }, 1500);
             } else {
                 throw new Error(data.message || 'Failed to create order');
             }
@@ -321,14 +342,14 @@ export default class CheckoutSummary {
                 <i class='bx bx-x'></i>
             </div>
         `;
-        
+
         document.body.appendChild(animContainer);
-        
+
         // Add active class after a small delay
         setTimeout(() => {
             animContainer.classList.add('active');
         }, 10);
-        
+
         // Create and show an error message
         const errorMessage = document.createElement('div');
         errorMessage.className = 'notification fade-in';
@@ -340,7 +361,7 @@ export default class CheckoutSummary {
                 </div>
             </div>
         `;
-        
+
         // Create or get notification container
         let container = document.querySelector('.global-notification-container');
         if (!container) {
@@ -348,9 +369,9 @@ export default class CheckoutSummary {
             container.className = 'notification-container global-notification-container';
             document.body.appendChild(container);
         }
-        
+
         container.appendChild(errorMessage);
-        
+
         // Hide animation after a delay
         setTimeout(() => {
             animContainer.classList.remove('active');
@@ -360,12 +381,12 @@ export default class CheckoutSummary {
                 }
             }, 300);
         }, 2000);
-        
+
         // Remove notification after a delay
         setTimeout(() => {
             errorMessage.classList.remove('fade-in');
             errorMessage.classList.add('fade-out');
-            
+
             setTimeout(() => {
                 if (errorMessage.parentElement) {
                     errorMessage.remove();

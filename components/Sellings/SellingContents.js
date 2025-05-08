@@ -1,28 +1,30 @@
 export default class SellingContents {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.activeTab = 'create';
-        this.listings = [];
-        this.soldItems = [];
-        this.editingListingId = null;
+        this.activeTab = 'active'; // Default to active listings
+        this.listings = []; // For active/draft listings
+        this.soldItems = []; // For sold items
+        this.editingListing = null;
+        this.isEditing = false;
+        this.imageFiles = []; // For create/edit form
         this.init();
     }
 
     async init() {
-        await this.loadListings();
+        await this.loadListings(); // Loads active/draft
+        await this.loadSoldItems(); // Load sold items
         this.render();
         this.setupEventListeners();
+        this.setupNotificationContainer(); // Ensure this is called
     }
 
     async loadListings() {
         try {
-            const response = await fetch('../backend/api/listings/get_listings.php');
+            const response = await fetch('../backend/api/listings/get_listings.php'); // Fetches seller's own listings
             if (!response.ok) {
                 throw new Error('Failed to fetch listings');
             }
-
             const data = await response.json();
-            
             if (data.success) {
                 this.listings = data.data.listings.map(listing => ({
                     id: listing.id,
@@ -33,33 +35,45 @@ export default class SellingContents {
                     condition: listing.condition,
                     brand: listing.brand,
                     model: listing.model,
-                    quantity: parseInt(listing.quantity) || 1, // Added quantity
-                    image: listing.images[0] ? `${listing.images[0].includes('uploads/') ? '../' + listing.images[0] : '../backend/uploads/products/' + listing.images[0]}` : '/Project-Web/assets/images/products-images/placeholder.svg',
-                    images: listing.images.map(img =>
-                        `${img.includes('uploads/') ? '../' + img : '../backend/uploads/products/' + img}`
-                    ),
-                    shipping: Boolean(listing.shipping),
-                    localPickup: Boolean(listing.local_pickup),
-                    dateAdded: listing.created_at,
+                    quantity: parseInt(listing.quantity) || 0, // Ensure quantity is a number
+                    status: listing.status || 'active', // Ensure status is present
                     views: parseInt(listing.views) || 0,
-                    status: listing.status
+                    dateListed: listing.created_at,
+                    images: Array.isArray(listing.images) ? listing.images.map(img =>
+                        `${img.includes('uploads/') ? '../' + img : '../backend/' + img}`
+                    ) : ['../assets/images/products-images/placeholder.svg'],
+                    shipping: listing.shipping,
+                    localPickup: listing.local_pickup
                 }));
             } else {
-                throw new Error(data.message || 'Failed to load listings');
+                throw new Error(data.message || 'Failed to parse listings data');
             }
-
         } catch (error) {
             console.error('Error loading listings:', error);
+            this.showNotification({ title: 'Error', message: 'Could not load your listings.', type: 'error' });
             this.listings = [];
-            
-            // If the server returns a session expired/not logged in error,
-            // redirect to login page
-            if (error.message === 'User not logged in') {
-                window.location.href = './login.html';
-            }
         }
     }
-    
+
+    async loadSoldItems() {
+        try {
+            const response = await fetch('../backend/api/listings/get_sold_items.php');
+            if (!response.ok) {
+                throw new Error('Failed to fetch sold items');
+            }
+            const data = await response.json();
+            if (data.success) {
+                this.soldItems = data.data; // Assuming data.data is the array of formatted sold items
+            } else {
+                throw new Error(data.message || 'Failed to parse sold items data');
+            }
+        } catch (error) {
+            console.error('Error loading sold items:', error);
+            this.showNotification({ title: 'Error', message: 'Could not load your sold items.', type: 'error' });
+            this.soldItems = [];
+        }
+    }
+
     render() {
         const sellingContentHTML = `
             <div class="selling-content">
@@ -392,42 +406,48 @@ export default class SellingContents {
     }
 
     renderActiveTab() {
-        if (this.listings.length === 0) {
+        const activeListings = this.listings.filter(listing => listing.status === 'active' || listing.status === 'sold_out');
+
+        if (activeListings.length === 0) {
             return `
                 <div class="no-listings">
                     <div class="no-listings-icon">
-                        <i class='bx bx-package'></i>
+                        <i class='bx bx-store-alt'></i>
                     </div>
                     <h3>No Active Listings</h3>
-                    <p>You don't have any active listings yet. Create a new listing to start selling.</p>
-                    <button class="create-listing-btn">
-                        <i class='bx bx-plus-circle'></i>
-                        Create New Listing
+                    <p>Items you list for sale will appear here.</p>
+                    <button class="create-listing-btn-empty" data-tab="create">
+                        <i class='bx bx-plus-circle'></i> Create New Listing
                     </button>
                 </div>
             `;
         }
+        // Sort to show 'sold_out' items at the end
+        activeListings.sort((a, b) => {
+            if (a.status === 'sold_out' && b.status !== 'sold_out') return 1;
+            if (a.status !== 'sold_out' && b.status === 'sold_out') return -1;
+            return new Date(b.dateListed) - new Date(a.dateListed); // Or other primary sort
+        });
+
 
         return `
             <div class="listings-grid">
-                ${this.listings.map(listing => {
-                    const dateAdded = new Date(listing.dateAdded);
-                    const formattedDate = dateAdded.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    });
+                ${activeListings.map(listing => {
+            const dateListed = new Date(listing.dateListed);
+            const formattedDate = dateListed.toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            });
 
-                    const statusBadge = listing.status === 'draft'
-                        ? `<div class="listing-status draft">Draft</div>`
-                        : `<div class="listing-status active">Active</div>`;
+            let statusBadge = listing.status === 'sold_out'
+                ? `<span class="listing-status sold-out-badge"><i class='bx bx-purchase-tag-alt'></i> Sold Out</span>`
+                : (listing.quantity <= 5 && listing.quantity > 0 ? `<span class="listing-status low-stock-badge"><i class='bx bx-error-circle'></i> Low Stock (${listing.quantity} left)</span>` : '');
 
-                    const imageUrl = listing.images.length > 0 
-                        ? listing.images[0] 
-                        : '../assets/images/products-images/placeholder.svg';
+            const imageUrl = listing.images && listing.images.length > 0
+                ? listing.images[0]
+                : '../assets/images/products-images/placeholder.svg';
 
-                    return `
-                        <div class="listing-card" data-id="${listing.id}">
+            return `
+                        <div class="listing-card ${listing.status === 'sold_out' ? 'sold-out-item' : ''}" data-id="${listing.id}">
                             <div class="listing-image">
                                 <img src="${imageUrl}" alt="${listing.title}">
                                 ${statusBadge}
@@ -439,30 +459,37 @@ export default class SellingContents {
                             <div class="listing-info">
                                 <h3 class="listing-title">${listing.title}</h3>
                                 <p class="listing-description">${listing.description.length > 52
-                                    ? listing.description.substring(0, 52) + '...'
-                                    : listing.description}</p>
+                    ? listing.description.substring(0, 52) + '...'
+                    : listing.description}</p>
                                 <div class="listing-price">$${parseFloat(listing.price).toFixed(2)}</div>
                                 <div class="listing-date">
                                     <i class='bx bx-calendar'></i>
                                     Listed on ${formattedDate}
                                 </div>
+                                ${listing.status !== 'sold_out' ? `
+                                <div class="listing-quantity">
+                                    <i class='bx bx-box'></i>
+                                    ${listing.quantity} in stock
+                                </div>
+                                ` : ''}
                                 <div class="listing-actions">
-                                    <button class="edit-btn" data-id="${listing.id}">
-                                        <i class='bx bx-edit'></i>
-                                        Edit
+                                    ${listing.status !== 'sold_out' ? `
+                                    <button class="edit-listing-btn" data-id="${listing.id}">
+                                        <i class='bx bx-edit'></i> Edit
                                     </button>
-                                    <button class="remove-btn" data-id="${listing.id}">
-                                        <i class='bx bx-trash'></i>
-                                        Remove
+                                    ` : `<button class="view-listing-btn" data-id="${listing.id}"><i class='bx bx-search-alt'></i> View</button>`}
+                                    <button class="delete-listing-btn" data-id="${listing.id}">
+                                        <i class='bx bx-trash'></i> Delete
                                     </button>
                                 </div>
                             </div>
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
     }
+
 
     renderSoldTab() {
         if (this.soldItems.length === 0) {
@@ -471,8 +498,8 @@ export default class SellingContents {
                     <div class="no-listings-icon">
                         <i class='bx bx-check-circle'></i>
                     </div>
-                    <h3>No Sold Items</h3>
-                    <p>Items you've sold will appear here.</p>
+                    <h3>No Sold Items Yet</h3>
+                    <p>Items you've successfully sold will appear here.</p>
                 </div>
             `;
         }
@@ -480,39 +507,46 @@ export default class SellingContents {
         return `
             <div class="listings-grid">
                 ${this.soldItems.map(item => {
-                    const dateSold = new Date(item.dateSold);
-                    const formattedDate = dateSold.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    });
+            const dateSold = new Date(item.dateSold);
+            const formattedDate = dateSold.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            const imageUrl = item.images && item.images.length > 0
+                ? item.images[0]
+                : '../assets/images/products-images/placeholder.svg';
 
-                    return `
-                        <div class="listing-card sold" data-id="${item.id}">
+            return `
+                        <div class="listing-card sold" data-id="${item.id}" data-product-id="${item.productId}">
                             <div class="listing-image">
-                                <img src="${item.images[0]}" alt="${item.title}">
-                                <span class="sold-tag">SOLD</span>
+                                <img src="${imageUrl}" alt="${item.title}">
+                                <span class="sold-tag"><i class='bx bx-dollar-circle'></i>SOLD</span>
                             </div>
                             <div class="listing-info">
                                 <h3 class="listing-title">${item.title}</h3>
-                                <p class="listing-description">${item.description.length > 52
+                                <p class="listing-description">${item.description && item.description.length > 52
                     ? item.description.substring(0, 52) + '...'
-                    : item.description}</p>
-                                <div class="listing-price">$${item.price.toFixed(2)}</div>
+                    : (item.description || 'No description.')}</p>
+                                <div class="listing-price">Sold for: $${parseFloat(item.price).toFixed(2)} (Qty: ${item.quantitySold})</div>
                                 <div class="listing-date">
-                                    <i class='bx bx-check-circle'></i>
+                                    <i class='bx bx-calendar-check'></i>
                                     Sold on ${formattedDate}
                                 </div>
+                                <div class="listing-buyer">
+                                    <i class='bx bx-user-check'></i>
+                                    Buyer: ${item.buyerUsername || 'N/A'}
+                                </div>
                                 <div class="listing-actions">
-                                    <button class="view-details-btn" data-id="${item.id}">
-                                        <i class='bx bx-show'></i>
-                                        View Details
+                                    <button class="view-order-btn" data-order-id="${item.orderId}">
+                                        <i class='bx bx-receipt'></i> View Order
                                     </button>
+                                    <!-- Add more actions if needed, e.g., contact buyer -->
                                 </div>
                             </div>
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
     }
@@ -549,6 +583,26 @@ export default class SellingContents {
             if (e.target.closest('.view-details-btn')) {
                 const itemId = parseInt(e.target.closest('.view-details-btn').dataset.id);
                 this.viewSoldItemDetails(itemId);
+            }
+
+            if (e.target.closest('.view-order-btn')) {
+                const orderId = e.target.closest('.view-order-btn').dataset.orderId;
+                // You'll need a way to show order details.
+                // This could be a new modal, or redirecting to a purchase history page with the order focused.
+                // For now, an alert or console log:
+                console.log("View Order ID:", orderId);
+                alert(`Placeholder: View details for Order ID: ${orderId}. You would typically open a modal or navigate.`);
+                // If you have a PurchaseHistory class instance available or a global way to show its modal:
+                // purchaseHistoryInstance.viewOrderDetails(orderId);
+            }
+
+            if (e.target.closest('.create-listing-btn-empty')) {
+                this.activeTab = 'create';
+                this.isEditing = false;
+                this.editingListing = null;
+                this.imageFiles = [];
+                this.render();
+                this.setupTabSpecificEventListeners();
             }
         });
     }
@@ -773,13 +827,13 @@ export default class SellingContents {
 
     async saveListing(type) {
         const formData = new FormData();
-        
+
         // Add text data
         formData.append('title', document.getElementById('product-title').value);
         formData.append('description', document.getElementById('product-description').value);
         formData.append('price', document.getElementById('product-price').value);
         formData.append('quantity', document.getElementById('product-quantity').value); // Added quantity
-        
+
         // Get category value
         const categoryOption = document.querySelector('#category-options .fancy-option.selected');
         let category = categoryOption ? categoryOption.dataset.value : '';
@@ -787,7 +841,7 @@ export default class SellingContents {
             category = document.getElementById('other-category').value;
         }
         formData.append('category', category);
-        
+
         // Get brand value
         const brandOption = document.querySelector('#brand-options .fancy-option.selected');
         let brand = brandOption ? brandOption.dataset.value : '';
@@ -795,24 +849,24 @@ export default class SellingContents {
             brand = document.getElementById('other-brand').value;
         }
         formData.append('brand', brand);
-        
+
         // Get condition value
         const conditionOption = document.querySelector('#condition-options .fancy-option.selected');
         const condition = conditionOption ? conditionOption.dataset.value : '';
         formData.append('condition', condition);
-        
+
         formData.append('model', document.getElementById('product-model').value);
-        
+
         // Get listing option
         const selectedListingOption = document.querySelector('.listing-option.selected');
         const listingOption = selectedListingOption ? selectedListingOption.dataset.option : 'shipping';
-        
+
         formData.append('shipping', listingOption === 'shipping' || listingOption === 'both');
         formData.append('localPickup', listingOption === 'pickup' || listingOption === 'both');
-        
+
         // Add status (draft or active)
         formData.append('status', type === 'draft' ? 'draft' : 'active');
-        
+
         // Add images
         const imagePreviews = document.querySelectorAll('#image-preview-container img');
         for (let i = 0; i < imagePreviews.length; i++) {
@@ -826,7 +880,7 @@ export default class SellingContents {
 
         // Basic validation
         if (!formData.get('title') || !formData.get('category') || !formData.get('condition') ||
-            !formData.get('description') || !formData.get('price') || !formData.get('brand') || 
+            !formData.get('description') || !formData.get('price') || !formData.get('brand') ||
             !formData.get('model') || !formData.get('quantity') || parseInt(formData.get('quantity')) < 1) { // Added quantity validation
             alert('Please fill in all required fields and ensure quantity is at least 1.');
             return;
@@ -839,11 +893,11 @@ export default class SellingContents {
             });
 
             const data = await response.json();
-            
+
             if (data.success) {
                 // Update local listings
                 await this.loadListings(); // Reload listings from server
-                
+
                 // Show confirmation
                 alert('Listing created successfully!');
 
@@ -944,11 +998,11 @@ export default class SellingContents {
             });
 
             const data = await response.json();
-            
+
             if (data.success) {
                 // Update local listing
                 await this.loadListings(); // Reload listings from server
-                
+
                 // Show confirmation
                 alert('Listing updated successfully!');
 

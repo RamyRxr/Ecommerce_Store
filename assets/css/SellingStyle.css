@@ -706,6 +706,54 @@
     z-index: 2;
 }
 
+.listing-status.sold-out-badge {
+    background-color: var(--danger-color, #dc3545); 
+    color: white;
+}
+
+.listing-status.low-stock-badge {
+    background-color: var(--warning-color, #ffc107); 
+    color: var(--dark-text, #212529);
+}
+
+.listing-card.sold-out-item .listing-image img {
+    filter: grayscale(80%) opacity(0.7);
+}
+
+.listing-card.sold-out-item .listing-info .listing-price {
+    text-decoration: line-through;
+    color: var(--text-muted, #6c757d);
+}
+
+.listing-card.sold-out-item .edit-listing-btn {
+    display: none; /* Hide edit button for sold out items */
+}
+.listing-card.sold-out-item .view-listing-btn { /* Style for a view button if you add one */
+    background-color: var(--secondary-color);
+    color: white;
+}
+.listing-card.sold-out-item .view-listing-btn:hover {
+    background-color: var(--secondary-dark);
+}
+
+.listing-quantity {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.listing-buyer {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 .listing-status.draft {
     background-color: #ff9800;
     color: white;
@@ -739,13 +787,15 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: #e53935;
+    background-color: var(--success-color, #28a745);
     color: white;
-    padding: 5px 12px;
+    padding: 6px 12px;
     border-radius: 4px;
-    font-size: 12px;
-    font-weight: 700;
-    z-index: 2;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .listing-info {
