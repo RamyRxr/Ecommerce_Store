@@ -3,9 +3,8 @@ export default class PurchaseHistory {
         this.container = document.getElementById(containerId);
         this.activeTab = 'all';
         this.orders = [];
-        this.placeholderImage = '/Project-Web/assets/images/products-images/placeholder.svg';
-        this.user = JSON.parse(sessionStorage.getItem('user') || '{}'); // Get user from session
-        this.isAdmin = Boolean(this.user.is_admin); // Check if admin
+        this.user = JSON.parse(sessionStorage.getItem('user') || '{}');
+        this.isAdmin = Boolean(this.user.is_admin);
         this.init();
     }
 
@@ -83,7 +82,6 @@ export default class PurchaseHistory {
              const imgPath = item.image;
              return imgPath.includes('uploads/') ? `../${imgPath}` : `../backend/uploads/products/${imgPath}`;
         }
-        return this.placeholderImage; // Default placeholder
     }
 
     // Remove the old getFirstValidImage method if it's redundant

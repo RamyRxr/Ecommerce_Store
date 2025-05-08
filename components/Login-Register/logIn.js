@@ -205,24 +205,21 @@ export default class LogIn {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Store user data in sessionStorage
                 sessionStorage.setItem('user', JSON.stringify({
                     id: data.user.id,
                     username: data.user.username,
                     email: data.user.email,
                     first_name: data.user.first_name,
                     last_name: data.user.last_name,
-                    is_admin: data.user.is_admin // Store admin status
+                    is_admin: data.user.is_admin 
                 }));
 
-                // If remember me is checked, store username in localStorage
                 if (remember) {
                     localStorage.setItem('rememberedUser', username);
                 } else {
                     localStorage.removeItem('rememberedUser');
                 }
 
-                // Redirect to home page
                 window.location.href = 'Home.html';
             } else {
                 throw new Error(data.message || 'Login failed');
@@ -230,10 +227,8 @@ export default class LogIn {
         })
         .catch(error => {
             console.error('Login error:', error);
-            // Reset button state
             loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Log In</span>';
             loginBtn.disabled = false;
-            // Show error to user
             this.showError(error.message || 'Login failed. Please try again.');
         });
     }

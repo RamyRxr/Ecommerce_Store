@@ -1,42 +1,21 @@
 export default class SideBar2 {
     constructor(containerId = 'app', activeMenuItem = 'explore') {
         this.container = document.getElementById(containerId);
-        this.isCollapsed = true; // Always collapsed
+        this.isCollapsed = true; 
         this.isDarkMode = localStorage.getItem('darkMode') === 'true';
         this.activeMenuItem = activeMenuItem;
-        this.isAdmin = false; // Default to false
+        this.isAdmin = false; 
         this.init();
     }
 
     async init() {
-        // Force synchronous execution to ensure admin status is set before rendering
-        this.checkAdminStatus();
-        console.log('SideBar2 init - isAdmin:', this.isAdmin);
         this.render();
         this.setupEventListeners();
         this.applyTheme();
         this.postRenderCleanup();
     }
 
-    checkAdminStatus() {
-        try {
-            const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-            this.isAdmin = Boolean(user.is_admin);
-            console.log('Admin status check (SideBar2):', this.isAdmin ? 'Administrator' : 'Regular User');
-
-            // Also store in localStorage as a backup for page refreshes
-            localStorage.setItem('isAdmin', this.isAdmin);
-
-            return this.isAdmin;
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-            this.isAdmin = false;
-            return false;
-        }
-    }
-
     render() {
-        // Double-check admin status
         const user = JSON.parse(sessionStorage.getItem('user') || '{}');
         this.isAdmin = Boolean(user.is_admin);
 
@@ -154,7 +133,6 @@ export default class SideBar2 {
 
     postRenderCleanup() {
         if (this.isAdmin) {
-            // Hide customer-only items using CSS as a fallback
             const customerOnlyItems = document.querySelectorAll('.customer-only-item');
             customerOnlyItems.forEach(item => {
                 item.style.display = 'none';

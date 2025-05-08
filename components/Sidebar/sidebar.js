@@ -4,7 +4,7 @@ export default class SideBar {
         this.isCollapsed = false;
         this.isDarkMode = localStorage.getItem('darkMode') === 'true';
         this.activeMenuItem = activeMenuItem;
-        this.isAdmin = false; // Default to false
+        this.isAdmin = false; 
         this.init();
     }
 
