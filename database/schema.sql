@@ -16,6 +16,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL, -- Will store hashed passwords
     first_name VARCHAR(50),
     last_name VARCHAR(50),
+    profile_image VARCHAR(255) DEFAULT NULL,
     address TEXT,
     city VARCHAR(100),
     state VARCHAR(50),
@@ -60,6 +61,21 @@ CREATE TABLE product_images (
     image_url VARCHAR(255) NOT NULL,
     display_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+-- Create reviews table
+CREATE TABLE reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review_text TEXT,
+    helpful_count INT DEFAULT 0,
+    is_verified BOOLEAN DEFAULT FALSE, -- For verified purchases, if you implement that
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
@@ -159,8 +175,9 @@ CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_payment_methods_user ON payment_methods(user_id);
 CREATE INDEX idx_user_settings_user ON user_settings(user_id);
+CREATE INDEX idx_reviews_user_product ON reviews(user_id, product_id);
 
--- Insert sample users for testing
+
 -- Ramy as admin
 INSERT INTO users (username, email, password, first_name, last_name, is_admin)
 VALUES ('Ramy', 'test@example.com', 'Ramy2024', 'Test', 'User', TRUE);

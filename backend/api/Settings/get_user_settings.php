@@ -13,7 +13,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Get user information from database
     $stmt = $conn->prepare("
         SELECT 
             id,
@@ -21,6 +20,7 @@ try {
             email,
             first_name,
             last_name,
+            profile_image, 
             phone,
             address,
             city,
@@ -42,14 +42,15 @@ try {
     echo json_encode([
         'success' => true,
         'data' => [
-            'user' => $userData
+            'user' => $userData  
         ]
     ]);
 
 } catch (Exception $e) {
-    http_response_code(500);
+    http_response_code(500); 
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
 }
+?>

@@ -14,6 +14,7 @@ try {
     $conn = $db->getConnection();
     
     $action = $_POST['action'] ?? '';
+    $response = ['success' => false];
 
     if ($action === 'update_personal') {
         // Validate required fields
@@ -23,68 +24,150 @@ try {
         }
 
         // Check if email is already used by another user
-        $stmt = $conn->prepare("
-            SELECT id FROM users 
-            WHERE email = ? AND id != ?
-        ");
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
         $stmt->execute([$_POST['email'], $userId]);
         if ($stmt->rowCount() > 0) {
-            throw new Exception('Email already in use');
+            throw new Exception('Email already in use by another account.');
+        }
+        
+        // Check if username is already used by another user
+        $stmtUser = $conn->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+        $stmtUser->execute([$_POST['username'], $userId]);
+        if ($stmtUser->rowCount() > 0) {
+            throw new Exception('Username already taken.');
+        }
+
+        $profileImagePath = null;
+        $oldProfileImagePath = null;
+
+        // Get current profile image path to delete later if a new one is uploaded
+        $stmtOldImage = $conn->prepare("SELECT profile_image FROM users WHERE id = ?");
+        $stmtOldImage->execute([$userId]);
+        $userRow = $stmtOldImage->fetch(PDO::FETCH_ASSOC);
+        if ($userRow && $userRow['profile_image']) {
+            $oldProfileImagePath = '../../' . $userRow['profile_image']; // Path relative to this script for deletion
+        }
+
+
+        // Handle profile image upload
+        if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == UPLOAD_ERR_OK) {
+            $uploadDir = '../../uploads/avatars/';
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $fileExtension = strtolower(pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION));
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+            if (!in_array($fileExtension, $allowedExtensions)) {
+                throw new Exception('Invalid image file type. Allowed types: JPG, JPEG, PNG, GIF.');
+            }
+
+            if ($_FILES['profile_image']['size'] > 2 * 1024 * 1024) { // Max 2MB
+                throw new Exception('Image file size exceeds 2MB limit.');
+            }
+            
+            $fileName = uniqid('avatar_', true) . '.' . $fileExtension;
+            $targetFilePath = $uploadDir . $fileName;
+
+            if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $targetFilePath)) {
+                $profileImagePath = 'uploads/avatars/' . $fileName; // Path to store in DB (relative to backend root)
+
+                // Delete old profile picture if a new one is successfully uploaded
+                if ($oldProfileImagePath && file_exists($oldProfileImagePath) && $oldProfileImagePath !== '../../' . $profileImagePath) {
+                    unlink($oldProfileImagePath);
+                }
+            } else {
+                throw new Exception('Failed to upload profile image.');
+            }
         }
 
         // Update personal information
-        $stmt = $conn->prepare("
-            UPDATE users 
-            SET username = ?,
-                first_name = ?,
-                last_name = ?,
-                email = ?,
-                phone = ?
-            WHERE id = ?
-        ");
+        $sql = "UPDATE users SET 
+                    username = :username, 
+                    first_name = :first_name, 
+                    last_name = :last_name, 
+                    email = :email, 
+                    phone = :phone";
+        
+        $params = [
+            ':username' => $_POST['username'],
+            ':first_name' => $_POST['first_name'],
+            ':last_name' => $_POST['last_name'],
+            ':email' => $_POST['email'],
+            ':phone' => $_POST['phone'] ?? null,
+            ':id' => $userId
+        ];
 
-        $stmt->execute([
-            $_POST['username'],
-            $_POST['first_name'],
-            $_POST['last_name'],
-            $_POST['email'],
-            $_POST['phone'] ?? '',
-            $userId
-        ]);
+        if ($profileImagePath !== null) {
+            $sql .= ", profile_image = :profile_image";
+            $params[':profile_image'] = $profileImagePath;
+        }
+        
+        $sql .= " WHERE id = :id";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+
+        if ($stmt->rowCount()) {
+            $response['success'] = true;
+            $response['message'] = 'Personal information updated successfully.';
+            $response['updated_user'] = [
+                'username' => $_POST['username'],
+                'profile_image' => $profileImagePath ?? ($userRow ? $userRow['profile_image'] : null)
+            ];
+        } else {
+            if ($profileImagePath === null && $stmt->errorInfo()[0] == "00000") {
+                    $response['success'] = true;
+                    $response['message'] = 'Personal information is already up to date.';
+                    $response['updated_user'] = [ // Still send back current username
+                        'username' => $_POST['username'],
+                        'profile_image' => $userRow ? $userRow['profile_image'] : null
+                ];
+            } else {
+                throw new Exception('Failed to update personal information or no changes were made.');
+            }
+        }
 
     } elseif ($action === 'update_shipping') {
-        // Update shipping address
-        $stmt = $conn->prepare("
-            UPDATE users 
-            SET address = ?,
-                city = ?,
-                state = ?,
-                zip_code = ?,
-                country = ?
-            WHERE id = ?
-        ");
+        // Validate required fields
+        if (empty($_POST['address']) || empty($_POST['city']) || 
+            empty($_POST['state']) || empty($_POST['zip_code']) || empty($_POST['country'])) {
+            throw new Exception('Required shipping fields are missing');
+        }
 
+        $stmt = $conn->prepare("UPDATE users SET 
+                                    address = :address, 
+                                    city = :city, 
+                                    state = :state, 
+                                    zip_code = :zip_code, 
+                                    country = :country 
+                                WHERE id = :id");
         $stmt->execute([
-            $_POST['address'] ?? '',
-            $_POST['city'] ?? '',
-            $_POST['state'] ?? '',
-            $_POST['zip_code'] ?? '',
-            $_POST['country'] ?? '',
-            $userId
+            ':address' => $_POST['address'],
+            ':city' => $_POST['city'],
+            ':state' => $_POST['state'],
+            ':zip_code' => $_POST['zip_code'],
+            ':country' => $_POST['country'],
+            ':id' => $userId
         ]);
+
+        if ($stmt->rowCount()) {
+            $response['success'] = true;
+            $response['message'] = 'Shipping address updated successfully.';
+        } else {
+            throw new Exception('Failed to update shipping address or no changes were made.');
+        }
     } else {
-        throw new Exception('Invalid action');
+        throw new Exception('Invalid action specified.');
     }
 
-    echo json_encode([
-        'success' => true,
-        'message' => 'Update successful'
-    ]);
-
+} catch (PDOException $e) {
+    $response['message'] = 'Database error: ' . $e->getMessage();
+    error_log("PDOException in update_account.php: " . $e->getMessage());
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
+    $response['message'] = $e->getMessage();
+    error_log("Exception in update_account.php: " . $e->getMessage());
 }
+
+echo json_encode($response);
+?>

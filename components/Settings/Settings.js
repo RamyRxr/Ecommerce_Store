@@ -8,25 +8,25 @@ export default class Settings {
         };
         this.userData = null;
         this.paymentMethods = [];
-        this.generalSettings = null; // Add this
+        this.generalSettings = null;
+        this.selectedProfileImageFile = null;
         this.init();
     }
 
     async init() {
         await this.loadUserData();
         await this.loadPaymentMethods();
-        await this.loadGeneralSettings(); // Add this
+        await this.loadGeneralSettings();
         this.render();
         this.setupEventListeners();
         this.setupNotificationContainer();
     }
 
-    // Add this new method
     async loadGeneralSettings() {
         try {
             const response = await fetch('../backend/api/Settings/get_general_settings.php');
             const data = await response.json();
-            
+
             if (data.success) {
                 this.generalSettings = data.data;
             } else {
@@ -46,7 +46,7 @@ export default class Settings {
         try {
             const response = await fetch('../backend/api/Settings/get_user_settings.php');
             const data = await response.json();
-            
+
             if (data.success) {
                 this.userData = data.data.user;
             } else {
@@ -66,7 +66,7 @@ export default class Settings {
         try {
             const response = await fetch('../backend/api/Settings/get_payment_methods.php');
             const data = await response.json();
-            
+
             if (data.success) {
                 this.paymentMethods = data.data;
             } else {
@@ -153,16 +153,37 @@ export default class Settings {
     renderAccountTab() {
         if (!this.userData) return '<div>Loading...</div>';
 
+        console.log('User Data for Profile Image (in Settings):', this.userData.profile_image); 
+
+        const profileImageSrc = this.userData.profile_image 
+            ? `../backend/${this.userData.profile_image}` 
+            : '../assets/images/general-image/RamyRxr.png';
+
         return `
             <div class="account-settings">
                 <div class="settings-section">
-                    <!-- Personal Information Section -->
                     <div class="section-header">
                         <h2>Personal Information</h2>
                     </div>
                     <p>Update your personal details here.</p>
                     
                     <form class="settings-form" id="personal-info-form">
+                        <div class="form-group profile-picture-section">
+                            <label>Profile Picture</label>
+                            <div class="profile-image-preview-container">
+                                <img id="profile-image-preview" src="${profileImageSrc}" alt="Profile Preview">
+                                ${this.editModes.personalInfo ? `
+                                    <label for="profile-image-input" class="change-photo-btn btn-animate">
+                                        <i class='bx bx-camera'></i> Change
+                                    </label>
+                                ` : ''}
+                            </div>
+                            ${this.editModes.personalInfo ? `
+                                <input type="file" id="profile-image-input" accept="image/*" style="display: none;">
+                                <small class="form-text text-muted">Recommended: Square image, max 2MB.</small>
+                            ` : ''}
+                        </div>
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="username">Username</label>
@@ -243,7 +264,6 @@ export default class Settings {
                 </div>
 
                 <div class="settings-section">
-                    <!-- Shipping Address Section -->
                     <div class="section-header">
                         <h2>Shipping Address</h2>
                     </div>
@@ -357,7 +377,7 @@ export default class Settings {
         const paymentCards = this.paymentMethods.map(card => {
             const cardType = card.type;
             const iconClass = cardType === 'visa' ? 'bxl-visa' : 'bxl-mastercard';
-            
+
             return `
                 <div class="payment-method-card" data-id="${card.id}">
                     <div class="card-icon">
@@ -606,7 +626,6 @@ export default class Settings {
     }
 
     setupEventListeners() {
-        // Tab switching - use event delegation for better performance
         document.addEventListener('click', e => {
             const tabButton = e.target.closest('.tab-button');
             if (tabButton) {
@@ -621,17 +640,33 @@ export default class Settings {
 
     setupTabSpecificEventListeners() {
         if (this.activeTab === 'account') {
-            // Personal Info Edit Button
             const personalInfoEditBtn = document.querySelector('#personal-info-form .edit-button');
             if (personalInfoEditBtn) {
                 personalInfoEditBtn.addEventListener('click', () => {
                     this.editModes.personalInfo = true;
+                    this.selectedProfileImageFile = null;
                     this.render();
                     this.setupTabSpecificEventListeners();
                 });
             }
 
-            // Shipping Address Edit Button
+            if (this.editModes.personalInfo) {
+                const profileImageInput = document.getElementById('profile-image-input');
+                if (profileImageInput) {
+                    profileImageInput.addEventListener('change', (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                            this.selectedProfileImageFile = file;
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                document.getElementById('profile-image-preview').src = e.target.result;
+                            }
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
+            }
+
             const shippingEditBtn = document.querySelector('#shipping-address-form .edit-button');
             if (shippingEditBtn) {
                 shippingEditBtn.addEventListener('click', () => {
@@ -641,12 +676,12 @@ export default class Settings {
                 });
             }
 
-            // Cancel Buttons
             document.querySelectorAll('.cancel-button').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const form = btn.closest('form');
                     if (form.id === 'personal-info-form') {
                         this.editModes.personalInfo = false;
+                        this.selectedProfileImageFile = null;
                     } else if (form.id === 'shipping-address-form') {
                         this.editModes.shippingAddress = false;
                     }
@@ -655,7 +690,6 @@ export default class Settings {
                 });
             });
 
-            // Personal info form submission
             const personalInfoForm = document.getElementById('personal-info-form');
             if (personalInfoForm) {
                 personalInfoForm.addEventListener('submit', async (e) => {
@@ -666,7 +700,6 @@ export default class Settings {
                 });
             }
 
-            // Shipping address form submission
             const shippingForm = document.getElementById('shipping-address-form');
             if (shippingForm) {
                 shippingForm.addEventListener('submit', async (e) => {
@@ -677,14 +710,10 @@ export default class Settings {
                 });
             }
         }
-        
-        // Personal information form validation
-        this.setupFormSubmitHandler('personal-info-form', 'Personal information updated');
 
-        // Shipping address form validation
+        this.setupFormSubmitHandler('personal-info-form', 'Personal information updated');
         this.setupFormSubmitHandler('shipping-address-form', 'Shipping address updated');
 
-        // Notification preferences form
         const notificationsForm = document.getElementById('notifications-form');
         if (notificationsForm) {
             notificationsForm.addEventListener('submit', async (e) => {
@@ -693,7 +722,6 @@ export default class Settings {
             });
         }
 
-        // Language form
         const languageForm = document.getElementById('language-form');
         if (languageForm) {
             languageForm.addEventListener('submit', async (e) => {
@@ -702,16 +730,13 @@ export default class Settings {
             });
         }
 
-        // Password form validation
         const passwordForm = document.getElementById('password-form');
         if (passwordForm) {
             this.setupPasswordFormHandlers(passwordForm);
         }
 
-        // Toggle password visibility
         this.setupPasswordToggles();
 
-        // Forgot password button
         const forgotPasswordButton = document.querySelector('.forgot-password-button');
         if (forgotPasswordButton) {
             forgotPasswordButton.addEventListener('click', () => {
@@ -719,7 +744,6 @@ export default class Settings {
             });
         }
 
-        // TFA button
         const tfaButton = document.querySelector('.tfa-button');
         if (tfaButton) {
             tfaButton.addEventListener('click', () => {
@@ -735,7 +759,6 @@ export default class Settings {
             });
         }
 
-        // Payment methods
         if (this.activeTab === 'payment') {
             this.setupPaymentMethodsActions();
         }
@@ -754,6 +777,10 @@ export default class Settings {
         formData.append('phone', document.getElementById('phone').value);
         formData.append('action', 'update_personal');
 
+        if (this.selectedProfileImageFile) {
+            formData.append('profile_image', this.selectedProfileImageFile);
+        }
+
         try {
             const response = await fetch('../backend/api/Settings/update_account.php', {
                 method: 'POST',
@@ -763,10 +790,8 @@ export default class Settings {
             const data = await response.json();
 
             if (data.success) {
-                // Show success animation
                 this.showSuccessAnimation();
-                
-                // Show notification
+
                 setTimeout(() => {
                     this.showNotification({
                         title: 'Success',
@@ -775,9 +800,20 @@ export default class Settings {
                     });
                 }, 1500);
 
-                // Reset edit mode and reload data
                 this.editModes.personalInfo = false;
+                this.selectedProfileImageFile = null;
                 await this.loadUserData();
+
+                if (data.updated_user) {
+                    const sessionUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+                    sessionUser.username = data.updated_user.username;
+                    if (data.updated_user.profile_image) {
+                        sessionUser.profile_image = data.updated_user.profile_image;
+                    }
+                    sessionStorage.setItem('user', JSON.stringify(sessionUser));
+                    document.dispatchEvent(new CustomEvent('userUpdated'));
+                }
+
                 this.render();
                 this.setupTabSpecificEventListeners();
             } else {
@@ -814,10 +850,7 @@ export default class Settings {
             const data = await response.json();
 
             if (data.success) {
-                // Show success animation
                 this.showSuccessAnimation();
-                
-                // Show notification
                 setTimeout(() => {
                     this.showNotification({
                         title: 'Success',
@@ -826,7 +859,6 @@ export default class Settings {
                     });
                 }, 1500);
 
-                // Reset edit mode and reload data
                 this.editModes.shippingAddress = false;
                 await this.loadUserData();
                 this.render();
@@ -914,7 +946,7 @@ export default class Settings {
                 if (this.validateForm(form)) {
                     this.animateSaveButton(e.submitter);
                     this.showSuccessAnimation();
-                    
+
                     setTimeout(() => {
                         this.showNotification({
                             title: successTitle,
@@ -931,13 +963,11 @@ export default class Settings {
         const currentPassword = form.querySelector('#current-password');
         const newPassword = form.querySelector('#new-password');
         const confirmPassword = form.querySelector('#confirm-password');
-        
-        // Live password strength update
+
         if (newPassword) {
             newPassword.addEventListener('input', () => this.updatePasswordStrength(newPassword.value));
         }
-        
-        // Live password match validation
+
         if (confirmPassword) {
             confirmPassword.addEventListener('input', () => {
                 const errorElem = confirmPassword.parentElement.nextElementSibling;
@@ -949,8 +979,7 @@ export default class Settings {
                 }
             });
         }
-        
-        // Form submission
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (this.validatePasswordForm(form)) {
@@ -973,7 +1002,7 @@ export default class Settings {
                     if (data.success) {
                         this.animateSaveButton(e.submitter);
                         this.showSuccessAnimation();
-                        
+
                         setTimeout(() => {
                             this.showNotification({
                                 title: 'Password updated',
@@ -981,8 +1010,6 @@ export default class Settings {
                                 type: 'success'
                             });
                         }, 1000);
-
-                        // Clear the form
                         form.reset();
                     } else {
                         throw new Error(data.message);
@@ -1003,7 +1030,7 @@ export default class Settings {
             btn.addEventListener('click', () => {
                 const passwordInput = btn.previousElementSibling;
                 const icon = btn.querySelector('i');
-                
+
                 if (passwordInput.type === 'password') {
                     passwordInput.type = 'text';
                     icon.className = 'bx bx-hide';
@@ -1016,40 +1043,27 @@ export default class Settings {
     }
 
     setupPaymentMethodsActions() {
-        // Delete payment method
         document.querySelectorAll('.payment-method-card .delete-btn').forEach(btn => {
             btn.addEventListener('click', e => {
                 const card = btn.closest('.payment-method-card');
                 const cardId = parseInt(card.dataset.id);
-                
-                // Store the card before removing it
                 const removedCard = this.paymentMethods.find(card => card.id === cardId);
-                
-                // Apply fade out animation
+
                 card.classList.add('fade-out');
-                
+
                 setTimeout(() => {
-                    // Remove from payment methods array - this is the key line that needs to work
                     this.paymentMethods = this.paymentMethods.filter(card => card.id !== cardId);
-                    
-                    // Store the removed card for potential undo
-                    const deletedCard = {...removedCard};
+                    const deletedCard = { ...removedCard };
                     this.deletedPaymentMethods.push(deletedCard);
-                    
                     card.remove();
-                    
                     this.showNotification({
                         title: 'Payment method removed',
                         message: 'Your payment method has been deleted.',
                         type: 'success',
                         hasUndo: true,
                         onUndo: () => {
-                            // Return a function that will restore the deleted card
                             return () => {
-                                // We need to push the exact same card (with the same ID) back
                                 this.paymentMethods.push(deletedCard);
-                                
-                                // Re-render to show restored card
                                 this.render();
                                 this.setupTabSpecificEventListeners();
                             };
@@ -1058,21 +1072,19 @@ export default class Settings {
                 }, 300);
             });
         });
-        
-        // Edit payment method
+
         document.querySelectorAll('.payment-method-card .edit-btn').forEach(btn => {
             btn.addEventListener('click', e => {
                 const card = btn.closest('.payment-method-card');
                 const cardId = parseInt(card.dataset.id);
                 const cardData = this.paymentMethods.find(card => card.id === cardId);
-                
+
                 if (cardData) {
                     this.showPaymentEditModal(cardData);
                 }
             });
         });
-        
-        // Add payment method button
+
         const addPaymentButton = document.querySelector('.add-payment-method');
         if (addPaymentButton) {
             addPaymentButton.addEventListener('click', () => {
@@ -1080,11 +1092,9 @@ export default class Settings {
             });
         }
     }
-    
+
     showPaymentEditModal(cardData = null) {
         const isEditing = !!cardData;
-        
-        // Create modal element
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.innerHTML = `
@@ -1115,19 +1125,19 @@ export default class Settings {
                             <div class="form-group">
                                 <label for="expiry-month">Expiration Month</label>
                                 <select id="expiry-month" required>
-                                    ${Array.from({length: 12}, (_, i) => {
-                                        const month = String(i + 1).padStart(2, '0');
-                                        return `<option value="${month}" ${isEditing && cardData.expiryMonth === month ? 'selected' : ''}>${month}</option>`;
-                                    }).join('')}
+                                    ${Array.from({ length: 12 }, (_, i) => {
+            const month = String(i + 1).padStart(2, '0');
+            return `<option value="${month}" ${isEditing && cardData.expiryMonth === month ? 'selected' : ''}>${month}</option>`;
+        }).join('')}
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="expiry-year">Expiration Year</label>
                                 <select id="expiry-year" required>
-                                    ${Array.from({length: 10}, (_, i) => {
-                                        const year = String(new Date().getFullYear() + i).slice(-2);
-                                        return `<option value="${year}" ${isEditing && cardData.expiryYear === year ? 'selected' : ''}>${year}</option>`;
-                                    }).join('')}
+                                    ${Array.from({ length: 10 }, (_, i) => {
+            const year = String(new Date().getFullYear() + i).slice(-2);
+            return `<option value="${year}" ${isEditing && cardData.expiryYear === year ? 'selected' : ''}>${year}</option>`;
+        }).join('')}
                                 </select>
                             </div>
                         </div>
@@ -1152,15 +1162,12 @@ export default class Settings {
             </div>
         `;
 
-        // Add modal to DOM
         document.body.appendChild(modal);
 
-        // Show modal with animation
         setTimeout(() => {
             modal.classList.add('active');
         }, 10);
 
-        // Close modal function
         const closeModal = () => {
             modal.classList.remove('active');
             setTimeout(() => {
@@ -1168,16 +1175,12 @@ export default class Settings {
             }, 300);
         };
 
-        // Modal event listeners
         modal.querySelector('.close-modal').addEventListener('click', closeModal);
         modal.querySelector('.cancel-btn').addEventListener('click', closeModal);
-        
-        // Handle outside click to close
         modal.addEventListener('click', e => {
             if (e.target === modal) closeModal();
         });
-        
-        // Update the save button click handler
+
         modal.querySelector('.save-payment-btn').addEventListener('click', async (e) => {
             const form = modal.querySelector('#payment-form');
             if (this.validateForm(form)) {
@@ -1188,31 +1191,28 @@ export default class Settings {
                 formData.append('expiry_month', form.querySelector('#expiry-month').value);
                 formData.append('expiry_year', form.querySelector('#expiry-year').value);
                 formData.append('card_holder', form.querySelector('#card-holder').value);
-                
+
                 if (isEditing) {
                     formData.append('payment_id', cardData.id);
                 }
 
                 this.animateSaveButton(e.target);
-                
                 const success = await this.savePaymentMethod(formData, isEditing);
-                
+
                 if (success) {
                     this.showSuccessAnimation();
                     closeModal();
-                    await this.loadPaymentMethods(); // Reload payment methods
+                    await this.loadPaymentMethods();
                     this.render();
                     this.setupTabSpecificEventListeners();
                 }
             }
         });
     }
-    
+
     showPasswordResetContainer() {
-        // Create container for reset password interface
         const modal = document.createElement('div');
         modal.className = 'modal';
-        
         const resetContainerHTML = `
             <div class="password-reset-container">
                 <div class="password-reset-icon">
@@ -1233,7 +1233,6 @@ export default class Settings {
                     </button>
                 </form>
                 
-                <!-- Verification code step (initially hidden) -->
                 <div class="verification-step" style="display: none;">
                     <p>Enter the 6-digit code sent to your email</p>
                     <div class="verification-code-container">
@@ -1254,49 +1253,39 @@ export default class Settings {
                 </a>
             </div>
         `;
-        
+
         modal.innerHTML = resetContainerHTML;
         document.body.appendChild(modal);
-        
-        // Show modal with animation
+
         setTimeout(() => {
             modal.classList.add('active');
         }, 10);
-        
-        // Close function
+
         const closeModal = () => {
             modal.classList.remove('active');
             setTimeout(() => modal.remove(), 300);
         };
-        
-        // Back button
+
         modal.querySelector('.back-to-login').addEventListener('click', e => {
             e.preventDefault();
             closeModal();
         });
-        
-        // Close on outside click
+
         modal.addEventListener('click', e => {
             if (e.target === modal) closeModal();
         });
-        
-        // Email form submission - show verification code inputs
+
         const emailForm = modal.querySelector('#reset-email-form');
         emailForm.addEventListener('submit', e => {
             e.preventDefault();
             const emailInput = modal.querySelector('#reset-email');
-            
+
             if (this.isValidEmail(emailInput.value)) {
                 emailForm.style.display = 'none';
                 const verificationStep = modal.querySelector('.verification-step');
                 verificationStep.style.display = 'block';
-                
-                // Setup verification code input behavior
                 this.setupVerificationCodeInputs(modal);
-                
-                // Start countdown timer
                 this.startCountdownTimer(modal.querySelector('.countdown'));
-                
                 this.showNotification({
                     title: 'Verification code sent',
                     message: `Please check your email ${emailInput.value} for the verification code.`,
@@ -1308,13 +1297,12 @@ export default class Settings {
                 emailInput.classList.add('error-input');
             }
         });
-        
-        // Verify code button
+
         modal.querySelector('.verify-code-btn').addEventListener('click', () => {
             const inputs = modal.querySelectorAll('.code-input');
             let code = '';
             let isValid = true;
-            
+
             inputs.forEach(input => {
                 code += input.value;
                 if (!input.value) {
@@ -1324,9 +1312,8 @@ export default class Settings {
                     input.classList.remove('error-input');
                 }
             });
-            
+
             if (isValid) {
-                // Show new password form (this would typically verify with server first)
                 modal.querySelector('.password-reset-container').innerHTML = `
                     <div class="password-reset-icon">
                         <i class='bx bx-check-circle'></i>
@@ -1365,37 +1352,32 @@ export default class Settings {
                         </button>
                     </form>
                 `;
-                
-                // Set up password toggle and strength meter
+
                 this.setupPasswordToggles();
-                
                 const newPasswordInput = document.getElementById('new-reset-password');
                 if (newPasswordInput) {
                     newPasswordInput.addEventListener('input', () => {
                         this.updatePasswordStrength(newPasswordInput.value, 'reset-strength-bar', 'reset-strength-text');
                     });
                 }
-                
-                // Set up form submission
+
                 document.getElementById('new-password-form').addEventListener('submit', e => {
                     e.preventDefault();
                     const newPassword = document.getElementById('new-reset-password').value;
                     const confirmPassword = document.getElementById('confirm-reset-password').value;
-                    
+
                     if (newPassword.length < 8) {
                         document.getElementById('new-reset-password').classList.add('error-input');
                         return;
                     }
-                    
+
                     if (newPassword !== confirmPassword) {
                         document.getElementById('confirm-reset-password').classList.add('error-input');
                         document.getElementById('confirm-reset-password').nextElementSibling.nextElementSibling.classList.remove('hidden');
                         return;
                     }
-                    
-                    // Success - password reset
+
                     this.showSuccessAnimation();
-                    
                     setTimeout(() => {
                         closeModal();
                         this.showNotification({
@@ -1407,38 +1389,32 @@ export default class Settings {
                 });
             }
         });
-        
-        // Resend code button
+
         modal.querySelector('.resend-code-btn').addEventListener('click', () => {
             this.showNotification({
                 title: 'Code resent',
                 message: 'A new verification code has been sent to your email.',
                 type: 'info'
             });
-            
-            // Reset timer
             this.startCountdownTimer(modal.querySelector('.countdown'));
         });
     }
-    
+
     setupVerificationCodeInputs(container) {
         const inputs = container.querySelectorAll('.code-input');
-        
         inputs.forEach((input, index) => {
             input.addEventListener('input', () => {
                 if (input.value && index < inputs.length - 1) {
                     inputs[index + 1].focus();
                 }
             });
-            
-            // Handle backspace to go to previous input
+
             input.addEventListener('keydown', e => {
                 if (e.key === 'Backspace' && !input.value && index > 0) {
                     inputs[index - 1].focus();
                 }
             });
-            
-            // Handle paste event to distribute across inputs
+
             input.addEventListener('paste', e => {
                 e.preventDefault();
                 const pasteData = e.clipboardData.getData('text').trim();
@@ -1446,7 +1422,6 @@ export default class Settings {
                     for (let i = 0; i < Math.min(pasteData.length, inputs.length - index); i++) {
                         inputs[index + i].value = pasteData[i];
                     }
-                    // Focus on the next empty input or the last one
                     const nextEmptyIndex = [...inputs].findIndex((inp, idx) => idx >= index && !inp.value);
                     if (nextEmptyIndex !== -1) {
                         inputs[nextEmptyIndex].focus();
@@ -1457,13 +1432,11 @@ export default class Settings {
             });
         });
     }
-    
+
     startCountdownTimer(element) {
         if (!element) return;
-        
         let minutes = 5;
         let seconds = 0;
-        
         const interval = setInterval(() => {
             if (seconds === 0) {
                 if (minutes === 0) {
@@ -1476,32 +1449,30 @@ export default class Settings {
             } else {
                 seconds--;
             }
-            
             element.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }, 1000);
-        
         element.dataset.intervalId = interval;
     }
-    
+
     updatePasswordStrength(password, barId = 'password-strength-bar', textId = 'password-strength-text') {
         const strengthBar = document.getElementById(barId);
         const strengthText = document.getElementById(textId);
-        
+
         if (!strengthBar || !strengthText) return;
-        
+
         let strength = 0;
         if (password.length >= 8) strength += 1;
         if (password.match(/[A-Z]/)) strength += 1;
         if (password.match(/[a-z]/)) strength += 1;
         if (password.match(/[0-9]/)) strength += 1;
         if (password.match(/[^A-Za-z0-9]/)) strength += 1;
-        
+
         const percent = (strength / 5) * 100;
         strengthBar.style.width = `${percent}%`;
-        
+
         let strengthLabel = 'Very Weak';
         let strengthColor = '#e53935';
-        
+
         if (strength === 1) {
             strengthLabel = 'Weak';
             strengthColor = '#ff9800';
@@ -1515,28 +1486,26 @@ export default class Settings {
             strengthLabel = 'Strong';
             strengthColor = '#4caf50';
         }
-        
+
         strengthBar.style.backgroundColor = strengthColor;
         strengthText.textContent = `Password strength: ${strengthLabel}`;
         strengthText.style.color = strengthColor;
     }
-    
+
     validateForm(form) {
         const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
         let isValid = true;
-        
+
         requiredFields.forEach(field => {
-            // Find the error message element (next sibling or child of parent)
-            const errorElem = field.nextElementSibling?.classList?.contains('error-message') 
-                ? field.nextElementSibling 
-                : field.parentElement.querySelector('.error-message') || 
-                  field.parentElement.nextElementSibling?.classList?.contains('error-message') 
-                  ? field.parentElement.nextElementSibling : null;
-                  
+            const errorElem = field.nextElementSibling?.classList?.contains('error-message')
+                ? field.nextElementSibling
+                : field.parentElement.querySelector('.error-message') ||
+                    field.parentElement.nextElementSibling?.classList?.contains('error-message')
+                    ? field.parentElement.nextElementSibling : null;
+
             if (!field.value.trim()) {
                 isValid = false;
                 field.classList.add('error-input');
-                
                 if (errorElem) {
                     errorElem.textContent = 'This field is required';
                     errorElem.classList.remove('hidden');
@@ -1544,7 +1513,6 @@ export default class Settings {
             } else if (field.type === 'email' && !this.isValidEmail(field.value)) {
                 isValid = false;
                 field.classList.add('error-input');
-                
                 if (errorElem) {
                     errorElem.textContent = 'Please enter a valid email address';
                     errorElem.classList.remove('hidden');
@@ -1556,20 +1524,17 @@ export default class Settings {
                 }
             }
         });
-        
         return isValid;
     }
-    
+
     validatePasswordForm(form) {
-        // First validate required fields
         if (!this.validateForm(form)) return false;
-        
+
         const currentPassword = form.querySelector('#current-password');
         const newPassword = form.querySelector('#new-password');
         const confirmPassword = form.querySelector('#confirm-password');
         let isValid = true;
-        
-        // Current password validation
+
         if (!currentPassword.value) {
             isValid = false;
             currentPassword.classList.add('error-input');
@@ -1577,8 +1542,7 @@ export default class Settings {
             errorElem.textContent = 'Current password is required';
             errorElem.classList.remove('hidden');
         }
-        
-        // New password validation
+
         if (newPassword.value.length < 8) {
             isValid = false;
             newPassword.classList.add('error-input');
@@ -1586,8 +1550,7 @@ export default class Settings {
             errorElem.textContent = 'Password must be at least 8 characters';
             errorElem.classList.remove('hidden');
         }
-        
-        // Password match validation
+
         if (newPassword.value !== confirmPassword.value) {
             isValid = false;
             confirmPassword.classList.add('error-input');
@@ -1595,8 +1558,7 @@ export default class Settings {
             errorElem.textContent = 'Passwords do not match';
             errorElem.classList.remove('hidden');
         }
-        
-        // Make sure new password is different from current
+
         if (currentPassword.value === newPassword.value) {
             isValid = false;
             newPassword.classList.add('error-input');
@@ -1604,30 +1566,23 @@ export default class Settings {
             errorElem.textContent = 'New password must be different from current password';
             errorElem.classList.remove('hidden');
         }
-        
         return isValid;
     }
-    
+
     isValidEmail(email) {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     }
-    
+
     animateSaveButton(button) {
         if (!button) return;
-        
-        // Add ripple effect
         button.classList.add('btn-animate');
-        
-        // Add success animation
         button.classList.add('save-success');
-        
-        // Remove animations after they complete
         setTimeout(() => {
             button.classList.remove('save-success');
         }, 600);
     }
-    
+
     showSuccessAnimation() {
         const animContainer = document.createElement('div');
         animContainer.className = 'success-animation-container';
@@ -1636,13 +1591,10 @@ export default class Settings {
                 <i class='bx bx-check'></i>
             </div>
         `;
-        
         document.body.appendChild(animContainer);
-        
         setTimeout(() => {
             animContainer.classList.add('active');
         }, 10);
-        
         setTimeout(() => {
             animContainer.classList.remove('active');
             setTimeout(() => {
@@ -1652,26 +1604,23 @@ export default class Settings {
     }
 
     showNotification({ title, message, type = 'success', duration = 5000, hasUndo = false, onUndo = null }) {
-        // Create notification container if it doesn't exist
         let container = document.querySelector('.notification-container');
         if (!container) {
             container = document.createElement('div');
             container.className = 'notification-container';
             document.body.appendChild(container);
         }
-        
-        // Create notification element
+
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         const id = Date.now();
         notification.dataset.id = id;
-        
-        // Icon based on type
+
         let icon = 'bx-check-circle';
         if (type === 'error') icon = 'bx-error-circle';
         if (type === 'warning') icon = 'bx-error';
         if (type === 'info') icon = 'bx-info-circle';
-        
+
         notification.innerHTML = `
             <div class="notification-content">
                 <i class='bx ${icon} notification-icon'></i>
@@ -1686,50 +1635,41 @@ export default class Settings {
             </div>
             <div class="notification-progress"></div>
         `;
-        
-        // Add to container
         container.appendChild(notification);
-        
-        // Store undo function if provided
+
         if (hasUndo && onUndo) {
             notification.undoFunction = onUndo();
         }
-        
-        // Set up progress bar
+
         const progress = notification.querySelector('.notification-progress');
         setTimeout(() => {
             notification.classList.add('fade-in');
             progress.style.width = '0';
         }, 10);
-        
-        // Set up event listeners
+
         notification.querySelector('.close-notification-btn').addEventListener('click', () => {
             this.removeNotification(id);
         });
-        
+
         if (hasUndo) {
             notification.querySelector('.undo-btn').addEventListener('click', () => {
                 this.removeNotification(id, true);
             });
         }
-        
-        // Auto-dismiss
+
         setTimeout(() => {
             this.removeNotification(id);
         }, duration);
     }
-    
+
     removeNotification(id, executeUndo = false) {
         const notification = document.querySelector(`.notification[data-id="${id}"]`);
         if (notification) {
             if (executeUndo && notification.undoFunction) {
-                // Execute the stored undo function
                 notification.undoFunction();
             }
-            
             notification.classList.remove('fade-in');
             notification.classList.add('fade-out');
-            
             setTimeout(() => {
                 notification.remove();
             }, 300);
@@ -1739,8 +1679,6 @@ export default class Settings {
     async saveNotificationSettings(form) {
         const formData = new FormData();
         formData.append('type', 'notifications');
-        
-        // Add checkbox states - check if they're checked
         const checkboxes = ['order_updates', 'promotions', 'newsletter', 'product_updates'];
         checkboxes.forEach(id => {
             const checkbox = form.querySelector(`#${id}`);
@@ -1752,12 +1690,9 @@ export default class Settings {
                 method: 'POST',
                 body: formData
             });
-
             const data = await response.json();
-
             if (data.success) {
                 this.showSuccessAnimation();
-                
                 setTimeout(() => {
                     this.showNotification({
                         title: 'Settings updated',
@@ -1765,9 +1700,8 @@ export default class Settings {
                         type: 'success'
                     });
                 }, 1000);
-
-                await this.loadGeneralSettings(); // Reload settings
-                this.render(); // Update the UI
+                await this.loadGeneralSettings();
+                this.render();
             } else {
                 throw new Error(data.message);
             }
@@ -1792,12 +1726,9 @@ export default class Settings {
                 method: 'POST',
                 body: formData
             });
-
             const data = await response.json();
-
             if (data.success) {
                 this.showSuccessAnimation();
-                
                 setTimeout(() => {
                     this.showNotification({
                         title: 'Settings updated',
@@ -1805,8 +1736,6 @@ export default class Settings {
                         type: 'success'
                     });
                 }, 1000);
-
-                // Reload the settings after successful update
                 await this.loadGeneralSettings();
                 this.render();
             } else {

@@ -1175,7 +1175,121 @@
     margin-bottom: 20px;
 }
 
-/* Dark mode support */
+/* Add to your SettingsStyle.css or relevant CSS file */
+
+.profile-picture-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 20px;
+    background-color: var(--settings-section-bg, #f9f9f9); 
+    border-radius: var(--settings-card-radius, 8px); 
+    box-shadow: var(--settings-shadow-light, 0 2px 4px rgba(0,0,0,0.05)); 
+}
+
+.profile-picture-section label:not(.change-photo-btn) { 
+    font-weight: 600;
+    color: var(--settings-text-primary, #333); 
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.profile-image-preview-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--settings-border-color, #ddd);
+    box-shadow: var(--settings-shadow-light, 0 2px 8px rgba(0,0,0,0.1));
+    margin-bottom: 15px;
+}
+
+#profile-image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+.change-photo-btn {
+    position: absolute;
+    bottom: 10px; 
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px; 
+    font-weight: 500; 
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; 
+    opacity: 0;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(var(--accent-rgb), 0.3);
+    text-align: center;
+}
+
+.profile-image-preview-container:hover .change-photo-btn {
+    opacity: 1;
+}
+
+.change-photo-btn:hover {
+    background-color: var(--accent-dark);
+    box-shadow: 0 4px 8px rgba(var(--accent-rgb), 0.4);
+    transform: translateX(-50%) translateY(-2px);
+}
+
+.change-photo-btn i {
+    font-size: 20px; 
+    margin-bottom: 2px;
+}
+
+#profile-image-input { 
+    display: none;
+}
+
+.profile-picture-section .form-text {
+    font-size: 0.85em;
+    color: var(--settings-text-secondary, #666);
+    text-align: center;
+}
+
+/* Dark mode considerations if you have them */
+body.dark-mode .profile-picture-section {
+    background-color: var(--settings-section-bg-dark, #2d3748); /* Example dark mode variable */
+    border-color: var(--settings-border-color-dark, #4a5568); /* Example dark mode variable */
+}
+
+body.dark-mode .profile-picture-section label:not(.change-photo-btn) {
+    color: var(--settings-text-primary-dark, #e2e8f0); /* Example dark mode variable */
+}
+
+body.dark-mode .profile-image-preview-container {
+    border: 3px solid var(--settings-border-color-dark, #4a5568);
+}
+
+body.dark-mode .change-photo-btn {
+    background: linear-gradient(135deg, var(--accent-dark), #4299e1);
+    box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
+}
+
+body.dark-mode .change-photo-btn:hover {
+    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
+}
+
+body.dark-mode .profile-picture-section .form-text {
+    color: var(--settings-text-secondary-dark, #a0aec0);
+}
+
 body.dark-mode .empty-state {
     background: var(--dark-bg);
 }
@@ -1184,9 +1298,6 @@ body.dark-mode .empty-state h3 {
     color: var(--light-text);
 }
 
-/* Update dark mode styles in SettingsStyle.css */
-
-/* Main content container */
 body.dark-mode .main-content-container {
     background: var(--dark-bg);
     box-shadow: var(--dark-shadow);
@@ -1196,7 +1307,6 @@ body.dark-mode .main-content-container:hover {
     box-shadow: var(--dark-hover-shadow);
 }
 
-/* Settings sections */
 body.dark-mode .settings-section {
     background-color: #080f26;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -1210,7 +1320,6 @@ body.dark-mode .settings-section p {
     color: #aaa;
 }
 
-/* Settings header & tabs */
 body.dark-mode .settings-header {
     border-bottom: 2px solid var(--light-bg);
 }
