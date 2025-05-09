@@ -10,6 +10,8 @@ DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS sold_items;
+
+
 -- Create users table
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -118,7 +120,11 @@ CREATE TABLE orders (
     shipping_zip VARCHAR(20) NOT NULL,
     shipping_country VARCHAR(50) NOT NULL,
     payment_method VARCHAR(50) NOT NULL,
-    status VARCHAR(20) DEFAULT 'pending',
+    status VARCHAR(20) DEFAULT 'pending', 
+    shipped_date TIMESTAMP NULL DEFAULT NULL,
+    actual_delivery_date TIMESTAMP NULL DEFAULT NULL, 
+    cancellation_reason TEXT NULL,                 
+    cancellation_date TIMESTAMP NULL DEFAULT NULL,  
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

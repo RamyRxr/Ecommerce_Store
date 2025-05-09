@@ -1,21 +1,20 @@
 export default class SellingContents {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.activeTab = 'active'; // Default to active listings
-        this.listings = []; // For active/draft listings
-        this.soldItems = []; // For sold items
+        this.activeTab = 'active'; 
+        this.listings = []; 
+        this.soldItems = []; 
         this.editingListing = null;
         this.isEditing = false;
-        this.imageFiles = []; // For create/edit form
+        this.imageFiles = [];
         this.init();
     }
 
     async init() {
-        await this.loadListings(); // Loads active/draft
-        await this.loadSoldItems(); // Load sold items
+        await this.loadListings();
+        await this.loadSoldItems(); 
         this.render();
         this.setupEventListeners();
-        this.setupNotificationContainer(); // Ensure this is called
     }
 
     async loadListings() {
@@ -57,7 +56,7 @@ export default class SellingContents {
 
     async loadSoldItems() {
         try {
-            const response = await fetch('../backend/api/listings/get_sold_items.php');
+            const response = await fetch('../backend/api/listings/get_sold_items.php'); // Ensure this path is correct
             if (!response.ok) {
                 throw new Error('Failed to fetch sold items');
             }
@@ -474,11 +473,11 @@ export default class SellingContents {
                                 ` : ''}
                                 <div class="listing-actions">
                                     ${listing.status !== 'sold_out' ? `
-                                    <button class="edit-listing-btn" data-id="${listing.id}">
+                                    <button class="edit-btn" data-id="${listing.id}">
                                         <i class='bx bx-edit'></i> Edit
                                     </button>
                                     ` : `<button class="view-listing-btn" data-id="${listing.id}"><i class='bx bx-search-alt'></i> View</button>`}
-                                    <button class="delete-listing-btn" data-id="${listing.id}">
+                                    <button class="remove-btn" data-id="${listing.id}">
                                         <i class='bx bx-trash'></i> Delete
                                     </button>
                                 </div>
@@ -513,30 +512,45 @@ export default class SellingContents {
                 day: 'numeric',
                 year: 'numeric'
             });
-            const imageUrl = item.images && item.images.length > 0
-                ? item.images[0]
-                : '../assets/images/products-images/placeholder.svg';
+            
+            const rawImageFromSoldItem = item.images && item.images.length > 0 && item.images[0] ? item.images[0] : null;
+            let finalImageUrl;
+
+            if (rawImageFromSoldItem) {
+                if (rawImageFromSoldItem.startsWith('http')) { // Absolute URL
+                    finalImageUrl = rawImageFromSoldItem;
+                } else if (rawImageFromSoldItem.includes('uploads/')) { // Path like 'uploads/products/image.jpg'
+                    finalImageUrl = '../' + rawImageFromSoldItem; 
+                } else if (rawImageFromSoldItem && !rawImageFromSoldItem.includes('/')) { // Just a filename 'image.jpg'
+                    // Assuming images are in 'uploads/products/' similar to active listings
+                    finalImageUrl = '../uploads/products/' + rawImageFromSoldItem;
+                } else { // Fallback for other relative paths (e.g., 'backend/uploads/...')
+                    finalImageUrl = '../backend/' + rawImageFromSoldItem; 
+                }
+            } else {
+                finalImageUrl = '../assets/images/products-images/placeholder.svg';
+            }
 
             return `
                         <div class="listing-card sold" data-id="${item.id}" data-product-id="${item.productId}">
                             <div class="listing-image">
-                                <img src="${imageUrl}" alt="${item.title}">
-                                <span class="sold-tag"><i class='bx bx-dollar-circle'></i>SOLD</span>
+                                <img src="${finalImageUrl}" alt="${item.title}">
                             </div>
                             <div class="listing-info">
                                 <h3 class="listing-title">${item.title}</h3>
                                 <p class="listing-description">${item.description && item.description.length > 52
-                    ? item.description.substring(0, 52) + '...'
-                    : (item.description || 'No description.')}</p>
-                                <div class="listing-price">Sold for: $${parseFloat(item.price).toFixed(2)} (Qty: ${item.quantitySold})</div>
+                                    ? item.description.substring(0, 52) + '...'
+                                    : item.description || ''}</p>
+                                <div class="listing-price">Sold for: $${parseFloat(item.price).toFixed(2)}</div>
                                 <div class="listing-date">
                                     <i class='bx bx-calendar-check'></i>
                                     Sold on ${formattedDate}
                                 </div>
+                                ${item.buyerUsername && item.buyerUsername !== 'N/A' ? `
                                 <div class="listing-buyer">
-                                    <i class='bx bx-user-check'></i>
-                                    Buyer: ${item.buyerUsername || 'N/A'}
-                                </div>
+                                    <i class='bx bx-user'></i>
+                                    Buyer: ${item.buyerUsername}
+                                </div>` : ''}
                                 <div class="listing-actions">
                                     <button class="view-order-btn" data-order-id="${item.orderId}">
                                         <i class='bx bx-receipt'></i> View Order
