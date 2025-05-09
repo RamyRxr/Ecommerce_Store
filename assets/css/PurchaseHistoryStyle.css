@@ -206,22 +206,32 @@
     font-weight: 500;
 }
 
-.order-status.processing {
+.order-status.pending,
+.status-badge.pending  {
+    background-color: #fff3e0;
+    color: #ff9800;
+}
+
+.order-status.processing,
+.status-badge.processing {
     background-color: #fff4de;
     color: #ff9800;
 }
 
-.order-status.shipped {
+.order-status.shipped,
+.status-badge.shipped {
     background-color: #e3f2fd;
     color: #2196f3;
 }
 
-.order-status.delivered {
+.order-status.delivered,
+.status-badge.delivered {
     background-color: #e8f5e9;
     color: #4caf50;
 }
 
-.order-status.cancelled {
+.order-status.cancelled,
+.status-badge.cancelled { 
     background-color: #feecec;
     color: #f44336;
 }
@@ -527,8 +537,9 @@
     width: 90%;
     max-width: 800px;
     max-height: 90vh;
-    overflow-y: auto;
     animation: slideIn 0.3s ease;
+    display: flex; 
+    flex-direction: column;
 }
 
 @keyframes slideIn {
@@ -548,6 +559,7 @@
     align-items: center;
     padding: 20px;
     border-bottom: 1px solid #eee;
+    flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -575,6 +587,8 @@
 
 .modal-body {
     padding: 20px;
+    overflow-y: auto; 
+    flex-grow: 1;
 }
 
 .order-summary-section {
@@ -599,6 +613,10 @@
     font-size: 16px;
     font-weight: 500;
     color: var(--dark-bg);
+}
+
+body.dark-mode .summary-value {
+    color: var(--light-bg);
 }
 
 .status-badge {
@@ -743,6 +761,7 @@ body.dark-mode .tax {
     gap: 15px;
     padding: 20px;
     border-top: 1px solid #eee;
+    flex-shrink: 0;
 }
 
 .close-details-btn {
@@ -778,6 +797,16 @@ body.dark-mode .tax {
 .rating-modal p {
     margin: 0 0 20px 0;
     font-size: 16px;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 5px; 
+}
+
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1; 
+    border-radius: 10px;
 }
 
 .star-rating {
@@ -982,9 +1011,7 @@ body.dark-mode .summary-label {
     color: #aaa;
 }
 
-body.dark-mode .summary-value {
-    color: var(--light-bg);
-}
+
 
 
 body.dark-mode .shipping-address h3,
@@ -1274,16 +1301,16 @@ body.dark-mode .browse-products-btn:hover {
 }
 
 .order-action .rated-btn {
-    background-color: #f1f5f9; /* Light gray for disabled/rated */
+    background-color: #f1f5f9; 
     color: #64748b;
     cursor: not-allowed;
 }
 .order-action .rated-btn i {
-    color: #facc15; /* Yellow star */
+    color: #facc15;
 }
 
 .order-action .cancel-order-btn {
-    color: #ef4444; /* Red text for cancel */
+    color: #ef4444;
     border-color: #fecdd3;
 }
 .order-action .cancel-order-btn:hover {
@@ -1291,8 +1318,6 @@ body.dark-mode .browse-products-btn:hover {
     border-color: #ef4444;
 }
 
-
-/* Status Badges in Modal */
 .status-badge {
     padding: 4px 8px;
     border-radius: 12px;
@@ -1300,9 +1325,3 @@ body.dark-mode .browse-products-btn:hover {
     font-weight: 500;
     text-transform: capitalize;
 }
-.status-badge.pending { background-color: #ffedd5; color: #f97316; }
-.status-badge.shipped { background-color: #dbeafe; color: #3b82f6; }
-.status-badge.delivered { background-color: #dcfce7; color: #22c55e; }
-.status-badge.cancelled { background-color: #fee2e2; color: #ef4444; }
-
-/* ...other styles... */

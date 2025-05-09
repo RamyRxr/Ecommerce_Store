@@ -246,7 +246,13 @@ export default class CheckoutSummary {
                 total_price: parseFloat(totals.total),
                 shipping_method: this.shippingMethod,
                 shipping_cost: this.shippingRates[this.shippingMethod],
-                payment_method: 'credit_card',
+                payment_method: 'credit_card', // Assuming this is fixed for now, or get from user input
+                // Add user's shipping address
+                shipping_address: user.address,
+                shipping_city: user.city,
+                shipping_state: user.state,
+                shipping_zip: user.zip_code,
+                shipping_country: user.country,
                 items: this.cartItems.map(item => ({
                     product_id: item.product_id,
                     quantity: item.quantity,

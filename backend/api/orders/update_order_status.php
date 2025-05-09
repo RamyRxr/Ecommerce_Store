@@ -50,11 +50,11 @@ try {
     
     // Update the order status
     $updateSql = "UPDATE orders SET 
-                  status = :status, 
-                  cancellation_reason = :reason,
-                  cancellation_date = NOW(),
-                  updated_at = NOW()
-                  WHERE id = :order_id AND user_id = :user_id";
+                    status = :status, 
+                    cancellation_reason = :reason,
+                    cancellation_date = NOW(),
+                    updated_at = NOW()
+                    WHERE id = :order_id AND user_id = :user_id";
     
     $updateStmt = $conn->prepare($updateSql);
     $updateStmt->bindParam(':status', $status);

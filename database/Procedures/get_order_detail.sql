@@ -1,47 +1,45 @@
 DELIMITER //
 
-CREATE PROCEDURE get_order_details(IN p_order_id INT, IN p_user_id INT)
+CREATE PROCEDURE GetOrderDetail(
+    IN p_order_id VARCHAR(50) 
+)
 BEGIN
-    -- Vérifier que l'utilisateur a accès à cette commande (sécurité)
-    DECLARE has_access BOOLEAN;
-    DECLARE user_role VARCHAR(10);
-    
-    SELECT role INTO user_role FROM users WHERE user_id = p_user_id;
-    
-    IF user_role = 'admin' THEN
-        SET has_access = TRUE;
-    ELSE
-        SELECT COUNT(*) > 0 INTO has_access 
-        FROM orders 
-        WHERE order_id = p_order_id AND user_id = p_user_id;
-    END IF;
-    
-    IF has_access THEN
-        -- Informations générales de la commande
-        SELECT o.order_id, o.order_date, os.name AS status, o.total_amount,
-               o.shipping_address, o.shipping_city, o.shipping_postal_code, 
-               o.shipping_country, o.payment_method
-        FROM orders o
-        JOIN order_statuses os ON o.status_id = os.status_id
-        WHERE o.order_id = p_order_id;
-        
-        -- Détails des produits dans la commande
-        SELECT oi.order_item_id, p.product_id, p.name AS product_name, 
-               oi.quantity, oi.price AS unit_price, 
-               (oi.quantity * oi.price) AS subtotal,
-               p.image_url
-        FROM order_items oi
-        JOIN products p ON oi.product_id = p.product_id
-        WHERE oi.order_id = p_order_id;
-        
-        -- Calcul du total (redondant avec total_amount, mais bon pour la vérification)
-        SELECT SUM(oi.quantity * oi.price) AS calculated_total
-        FROM order_items oi
-        WHERE oi.order_id = p_order_id;
-    ELSE
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Accès non autorisé à cette commande';
-    END IF;
+    SELECT
+        o.id AS order_id,
+        o.user_id,
+        u.username AS customer_username,
+        o.created_at AS order_date,
+        o.status AS order_status,
+        o.shipping_address,
+        o.shipping_city,
+        o.shipping_state,
+        o.shipping_zip,
+        o.shipping_country,
+        o.shipping_method,
+        o.shipping_cost,
+        o.payment_method,
+        o.total_price AS total_amount_payable,
+        o.cancellation_reason,
+        o.cancellation_date,
+        o.estimated_delivery_date,
+        o.actual_delivery_date,
+        (SELECT COUNT(*) > 0 FROM order_ratings orat WHERE orat.order_id = o.id AND orat.user_id = o.user_id) AS rated
+    FROM orders o
+    JOIN users u ON o.user_id = u.id
+    WHERE o.id = p_order_id;
+
+    SELECT
+        oi.id as order_item_id,
+        oi.product_id,
+        oi.product_title,
+        p.description as product_description, 
+        (SELECT pi.image_url FROM product_images pi WHERE pi.product_id = oi.product_id ORDER BY pi.display_order ASC, pi.id ASC LIMIT 1) as product_image,
+        oi.quantity,
+        oi.price AS price_per_item,
+        (oi.quantity * oi.price) AS item_total_price
+    FROM order_items oi
+    JOIN products p ON oi.product_id = p.id
+    WHERE oi.order_id = p_order_id;
 END //
 
 DELIMITER ;

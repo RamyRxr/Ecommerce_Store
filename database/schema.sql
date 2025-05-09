@@ -10,6 +10,8 @@ DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS sold_items;
+DROP TABLE IF EXISTS order_ratings;
+DROP TABLE IF EXISTS cancelled_orders_log;
 
 
 -- Create users table
@@ -75,12 +77,24 @@ CREATE TABLE reviews (
     product_id INT NOT NULL,
     rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
     review_text TEXT,
-    helpful_count INT DEFAULT 0,
-    is_verified BOOLEAN DEFAULT FALSE, -- For verified purchases, if you implement that
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+-- Create order_ratings table
+CREATE TABLE order_ratings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id VARCHAR(20) NOT NULL,
+    user_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comments TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY `uniq_order_user_rating` (`order_id`, `user_id`) -- Ensures a user can rate an order only once
 );
 
 -- Create saved items table
@@ -190,6 +204,21 @@ CREATE TABLE sold_items (
     FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Add this new table definition
+CREATE TABLE cancelled_orders_log (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id VARCHAR(50) NOT NULL, -- Increased length to match orders.id
+    user_id INT,
+    cancellation_reason TEXT,
+    cancellation_initiator ENUM('user', 'admin', 'system') DEFAULT 'user', -- To track who cancelled
+    cancelled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    original_order_data JSON, 
+    KEY idx_cancelled_order_id (order_id),
+    KEY idx_cancelled_user_id (user_id)   
+);
+
+
+
 -- Add indexes for performance
 CREATE INDEX idx_products_category ON products(category);
 CREATE INDEX idx_products_brand ON products(brand);
@@ -202,6 +231,7 @@ CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_payment_methods_user ON payment_methods(user_id);
 CREATE INDEX idx_user_settings_user ON user_settings(user_id);
 CREATE INDEX idx_reviews_user_product ON reviews(user_id, product_id);
+CREATE INDEX idx_order_ratings_order_user ON order_ratings(order_id, user_id);
 
 
 -- Ramy as admin

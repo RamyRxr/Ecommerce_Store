@@ -1,9 +1,8 @@
 export default class Profile {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.activeTab = 'reviews'; // Default tab
+        this.activeTab = 'reviews'; 
 
-        // Get user info from session storage
         const sessionUser = JSON.parse(sessionStorage.getItem('user') || '{}');
         this.currentUser = {
             id: sessionUser.id,
@@ -11,17 +10,16 @@ export default class Profile {
             username: sessionUser.username
         };
 
-        this.userData = {}; // Will be populated from backend
-        this.userStats = {}; // Will be populated from backend
-        this.adminStats = {}; // Will be populated from backend if admin
-        this.reviewsData = []; // Will be populated from backend
+        this.userData = {}; 
+        this.userStats = {}; 
+        this.adminStats = {}; 
+        this.reviewsData = []; 
 
-        // Activity data structure (counts will be filled from backend)
         this.activityData = {
             savedItems: {
                 icon: 'bx-bookmark',
                 title: 'Saved Items',
-                link: '../HTML-Pages/SavedPage.html', // Ensure this page exists and handles saved items
+                link: '../HTML-Pages/SavedPage.html', 
                 count: 0
             },
             orders: {
@@ -30,16 +28,16 @@ export default class Profile {
                 link: '../HTML-Pages/HistoryPage.html',
                 count: 0
             },
-            listedItems: { // For Admin
+            listedItems: { 
                 icon: 'bx-store',
                 title: 'Listed Items',
-                link: '../HTML-Pages/SellingPage.html', // Ensure this page exists for admin/listings
+                link: '../HTML-Pages/SellingPage.html', 
                 count: 0
             },
-            reviews: { // Added for activity tab consistency
+            reviews: { 
                 icon: 'bx-star',
                 title: 'Reviews',
-                link: '#', // Stays on profile page, reviews tab
+                link: '#', 
                 count: 0
             }
         };
@@ -48,19 +46,17 @@ export default class Profile {
         this.currentEditRating = 0;
 
         this.createNotificationContainer();
-        this.loadProfileData(); // Load data from backend
+        this.loadProfileData(); 
     }
 
     async loadProfileData() {
         if (!this.currentUser.id) {
             console.error('User ID not found. Cannot load profile data.');
-            // Potentially redirect to login or show an error message
-            this.render(); // Render an empty/error state
+            this.render(); 
             return;
         }
 
         try {
-            // Fetch user profile information (including stats)
             const profileResponse = await fetch(`../backend/api/profile/get_user_profile.php`);
             const profileData = await profileResponse.json();
 
@@ -71,13 +67,11 @@ export default class Profile {
                     this.adminStats = profileData.adminStats;
                 }
 
-                // Update activityData counts
                 this.activityData.orders.count = this.userStats.ordersCount || 0;
                 this.activityData.reviews.count = this.userStats.reviewsCount || 0;
 
                 if (this.currentUser.isAdmin) {
                     this.activityData.listedItems.count = this.adminStats.totalListedItemsCount || 0;
-                    // Admins might see total orders/reviews in activity, adjust if needed
                     this.activityData.orders.count = this.adminStats.totalOrdersCount || 0;
                     this.activityData.reviews.count = this.adminStats.totalReviewsCount || 0;
                 } else {
@@ -88,7 +82,6 @@ export default class Profile {
                 throw new Error(profileData.message || 'Failed to load profile data');
             }
 
-            // Fetch reviews
             const reviewsResponse = await fetch(`../backend/api/profile/get_reviews.php`);
             const reviewsResult = await reviewsResponse.json();
 
@@ -104,24 +97,38 @@ export default class Profile {
             this.reviewsData = [];
         } finally {
             this.render();
-            this.setupEventListeners(); // Re-setup event listeners after render
+            this.setupEventListeners(); 
         }
     }
 
     createNotificationContainer() {
-        // Remove any existing notification container
         const existingContainer = document.querySelector('.global-notification-container');
         if (existingContainer) return;
 
-        // Create a new container appended to body
         const container = document.createElement('div');
         container.className = 'notification-container global-notification-container';
         document.body.appendChild(container);
     }
+    
+    getDisplayImageUrl(imagePathFromPHP) {
+        if (!imagePathFromPHP) {
+            return '../assets/images/general-image/RamyRxr.png'; 
+        }
+
+        if (imagePathFromPHP.startsWith('../assets/') || imagePathFromPHP.startsWith('../backend/')) {
+            return imagePathFromPHP;
+        }
+
+        if (imagePathFromPHP.includes('uploads/')) { 
+            return '../' + imagePathFromPHP; 
+        } 
+        else { 
+            return '../backend/uploads/products/' + imagePathFromPHP;
+        }
+    }
 
     render() {
-        if (!this.userData || !this.currentUser) { // Check if essential data is loaded
-            // Render a loading state or return early
+        if (!this.userData || !this.currentUser) { 
             this.container.innerHTML = `<div class="loading-profile">Loading profile...</div>`;
             return;
         }
@@ -133,11 +140,10 @@ export default class Profile {
                     </div>
                     
                     <div class="profile-content">
-                        <!-- User info sidebar -->
                         <div class="profile-sidebar">
                             <div class="user-info-card">
                                 <div class="user-avatar">
-                                    <img src="${this.userData.image || '../assets/images/general-image/RamyRxr.png'}" alt="${this.userData.name || 'User'}">
+                                    <img src="${this.getDisplayImageUrl(this.userData.image) || '../assets/images/general-image/RamyRxr.png'}" alt="${this.userData.name || 'User'}">
                                 </div>
                                 
                                 <h2 class="user-name">${this.userData.name || this.currentUser.username || 'User'}</h2>
@@ -162,7 +168,6 @@ export default class Profile {
                             </div>
                         </div>
                         
-                        <!-- Main content area with tabs -->
                         <div class="profile-main">
                             <div class="profile-tabs">
                                 <button class="tab-btn ${this.activeTab === 'reviews' ? 'active' : ''}" data-tab="reviews">
@@ -180,7 +185,6 @@ export default class Profile {
                     </div>
                 </div>
                 
-                <!-- Edit Review Modal -->
                 ${this.renderEditModal()}
             </div>
         `;
@@ -190,7 +194,6 @@ export default class Profile {
         } else {
             this.container.insertAdjacentHTML('beforeend', profileHTML);
         }
-        // No need to call setupEventListeners here if loadProfileData calls it in finally
     }
 
     renderUserStats() {
@@ -252,18 +255,19 @@ export default class Profile {
         }
 
         const reviewsHTML = this.reviewsData.map(review => {
-            // Generate stars based on rating
             const stars = Array(5).fill(0).map((_, i) =>
                 i < review.rating
                     ? '<i class="bx bxs-star"></i>'
                     : '<i class="bx bx-star"></i>'
             ).join('');
 
+            const displayImageSrc = this.getDisplayImageUrl(review.productImage);
+
             return `
                 <div class="review-item" data-id="${review.id}">
                     <div class="review-item-header">
                         <div class="product-image">
-                            <img src="${review.productImage}" alt="${review.productName}">
+                            <img src="${displayImageSrc}" alt="${review.productName}">
                         </div>
                         <div class="review-details">
                             <h3 class="product-name">${review.productName}</h3>
@@ -313,14 +317,12 @@ export default class Profile {
         let activityItemsHTML = '';
 
         if (this.currentUser.isAdmin) {
-            // Admin: Orders, Listed Items, Reviews (all)
             activityItemsHTML = `
                 ${this.renderActivityItem(this.activityData.orders)}
                 ${this.renderActivityItem(this.activityData.listedItems)}
                 ${this.renderActivityItem(this.activityData.reviews, 'reviews')}
             `;
         } else {
-            // Regular User: Saved Items, Orders, Reviews (own)
             activityItemsHTML = `
                 ${this.renderActivityItem(this.activityData.savedItems)}
                 ${this.renderActivityItem(this.activityData.orders)}
@@ -331,7 +333,6 @@ export default class Profile {
     }
 
     renderActivityItem(item, tabTarget = null) {
-        // If tabTarget is 'reviews', clicking it should switch to the reviews tab.
         const link = tabTarget === 'reviews' ? '#' : item.link;
         const dataTabAttr = tabTarget === 'reviews' ? `data-tab-target="reviews"` : '';
         const itemClass = tabTarget === 'reviews' ? 'activity-item activity-reviews-link' : 'activity-item';
@@ -350,12 +351,11 @@ export default class Profile {
     }
 
     getActivityItemGradient(icon) {
-        // Helper to provide some visual variety, can be expanded
-        if (icon.includes('bookmark') || icon.includes('heart')) return 'background: linear-gradient(135deg, #9c27b0, #6a0080);'; // Saved/Liked
-        if (icon.includes('package') || icon.includes('history')) return 'background: linear-gradient(135deg, #4caf50, #2e7d32);'; // Orders
-        if (icon.includes('store')) return 'background: linear-gradient(135deg, #ff9800, #e65100);'; // Listed Items
-        if (icon.includes('star')) return 'background: linear-gradient(135deg, #2196f3, #0d47a1);'; // Reviews
-        return 'background: linear-gradient(135deg, #757575, #424242);'; // Default
+        if (icon.includes('bookmark') || icon.includes('heart')) return 'background: linear-gradient(135deg, #9c27b0, #6a0080);'; 
+        if (icon.includes('package') || icon.includes('history')) return 'background: linear-gradient(135deg, #4caf50, #2e7d32);'; 
+        if (icon.includes('store')) return 'background: linear-gradient(135deg, #ff9800, #e65100);'; 
+        if (icon.includes('star')) return 'background: linear-gradient(135deg, #2196f3, #0d47a1);'; 
+        return 'background: linear-gradient(135deg, #757575, #424242);'; 
     }
 
 
@@ -416,8 +416,8 @@ export default class Profile {
     }
 
     setupEventListeners() {
-        document.removeEventListener('click', this.handleDocumentClick); // Remove previous if any
-        this.handleDocumentClick = this.handleDocumentClick.bind(this); // Bind 'this'
+        document.removeEventListener('click', this.handleDocumentClick); 
+        this.handleDocumentClick = this.handleDocumentClick.bind(this); 
         document.addEventListener('click', this.handleDocumentClick);
 
         const editModalBackdrop = document.querySelector('.edit-modal-backdrop');
@@ -429,7 +429,7 @@ export default class Profile {
     }
 
     handleModalBackdropClick(e) {
-        if (e.target === e.currentTarget) { // e.currentTarget is the backdrop itself
+        if (e.target === e.currentTarget) { 
             this.closeEditModal();
         }
     }
@@ -440,7 +440,7 @@ export default class Profile {
         if (tabBtn) {
             this.activeTab = tabBtn.dataset.tab;
             this.render();
-            this.setupEventListeners(); // Re-attach listeners as DOM is rebuilt
+            this.setupEventListeners(); 
             return;
         }
 
@@ -454,8 +454,8 @@ export default class Profile {
         }
 
         const reviewItem = e.target.closest('.review-item');
-        const actionBtn = e.target.closest('button'); // Check if the click was on a button inside review-item
-        if (reviewItem && !actionBtn && !e.target.closest('.action-buttons')) { // Expand only if not clicking a button
+        const actionBtn = e.target.closest('button'); 
+        if (reviewItem && !actionBtn && !e.target.closest('.action-buttons')) { 
             reviewItem.classList.toggle('expanded');
             return;
         }
@@ -506,12 +506,11 @@ export default class Profile {
             return;
         }
 
-        // Removed undo and close notification for permanent delete as undo is removed
         const closeNotificationBtn = e.target.closest('.close-notification-btn');
         if (closeNotificationBtn) {
             const notification = closeNotificationBtn.closest('.notification');
             if (notification) {
-                notification.remove(); // Simple remove, no permanent delete logic tied here
+                notification.remove(); 
             }
             return;
         }
@@ -522,27 +521,22 @@ export default class Profile {
         const review = this.reviewsData.find(r => r.id === reviewId);
         if (!review) return;
 
-        // Set current review ID being edited
         this.currentEditReviewId = reviewId;
 
-        // Get modal elements
         const modal = document.querySelector('.edit-modal-backdrop');
         const productNameEl = document.getElementById('modal-product-name');
         const reviewDateEl = document.getElementById('modal-review-date');
         const productImageEl = document.getElementById('modal-product-image');
         const textareaEl = document.getElementById('edit-review-textarea');
 
-        // Set initial values
         productNameEl.textContent = review.productName;
-        reviewDateEl.textContent = `Reviewed on ${review.date}`;  // Add the date here
-        productImageEl.src = review.productImage;
+        reviewDateEl.textContent = `Reviewed on ${review.date}`;  
+        productImageEl.src = this.getDisplayImageUrl(review.productImage);
         productImageEl.alt = review.productName;
         textareaEl.value = review.reviewText;
 
-        // Set star rating
         this.updateStarRating(review.rating);
 
-        // Show modal with animation
         modal.classList.add('active');
     }
 
@@ -567,7 +561,6 @@ export default class Profile {
             }
         });
 
-        // Store the current rating
         this.currentEditRating = rating;
     }
 
@@ -596,9 +589,9 @@ export default class Profile {
             const result = await response.json();
 
             if (result.success) {
-                this.showEditSuccessNotification(result.productName || 'Selected Product'); // productName can be returned by API
+                this.showEditSuccessNotification(result.productName || 'Selected Product'); 
                 this.closeEditModal();
-                await this.loadProfileData(); // Reload all data to reflect changes
+                await this.loadProfileData(); 
             } else {
                 throw new Error(result.message || 'Failed to save review');
             }
@@ -629,13 +622,11 @@ export default class Profile {
 
         notificationContainer.appendChild(notification);
 
-        // Remove after 3 seconds
         setTimeout(() => {
             notification.classList.remove('fade-in');
             notification.classList.add('fade-out');
 
             setTimeout(() => {
-                // Check if notification still exists before removing
                 if (notification && notification.parentElement) {
                     notification.remove();
                 }
@@ -657,7 +648,6 @@ export default class Profile {
             const result = await response.json();
 
             if (result.success) {
-                // Show a simple confirmation, then reload data
                 const notificationContainer = document.querySelector('.global-notification-container');
                 if (notificationContainer) {
                     const notification = document.createElement('div');
@@ -675,7 +665,7 @@ export default class Profile {
                         setTimeout(() => notification.remove(), 300);
                     }, 3000);
                 }
-                await this.loadProfileData(); // Reload data
+                await this.loadProfileData(); 
             } else {
                 throw new Error(result.message || 'Failed to delete review');
             }
@@ -684,18 +674,4 @@ export default class Profile {
             alert(`Error: ${error.message}`);
         }
     }
-
-    // REMOVE: deleteReview (old one with undo)
-    // REMOVE: showDeleteNotification (old one with undo)
-    // REMOVE: undoDelete
-    // REMOVE: permanentlyDeleteReview
-    // REMOVE: removeNotification (old one with reviewId)
-    // REMOVE: loadReviewsFromStorage
-    // REMOVE: saveReviewsToStorage
-    // REMOVE: loadActivityCounts
-    // REMOVE: updateActivityCountsInUI
 }
-
-// REMOVE: const sampleReviews = [ ... ];
-// REMOVE: localStorage.setItem('userReviews', JSON.stringify(sampleReviews));
-// REMOVE: console.log('Sample reviews added to localStorage! Refresh the page to see them.');

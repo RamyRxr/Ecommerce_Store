@@ -22,9 +22,11 @@ try {
                 o.created_at as date, o.status,
                 o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip as shipping_postal_code, 
                 o.shipping_country, o.payment_method,
-                o.updated_at as cancellationDate, o.status as cancellationReason
+                o.updated_at as cancellationDate, o.status as cancellationReason,
+                CASE WHEN orat.id IS NOT NULL THEN TRUE ELSE FALSE END as rated
                 FROM orders o
                 JOIN users u ON o.user_id = u.id
+                LEFT JOIN order_ratings orat ON o.id = orat.order_id AND o.user_id = orat.user_id
                 ORDER BY o.created_at DESC";
         $stmt = $conn->prepare($sql);
     } else {
@@ -32,8 +34,10 @@ try {
                 o.created_at as date, o.status,
                 o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_zip as shipping_postal_code, 
                 o.shipping_country, o.payment_method,
-                o.updated_at as cancellationDate, o.status as cancellationReason
+                o.updated_at as cancellationDate, o.status as cancellationReason,
+                CASE WHEN orat.id IS NOT NULL THEN TRUE ELSE FALSE END as rated
                 FROM orders o
+                LEFT JOIN order_ratings orat ON o.id = orat.order_id AND o.user_id = orat.user_id
                 WHERE o.user_id = :user_id
                 ORDER BY o.created_at DESC";
         $stmt = $conn->prepare($sql);

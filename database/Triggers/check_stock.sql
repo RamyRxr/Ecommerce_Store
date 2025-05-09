@@ -1,20 +1,13 @@
 DELIMITER //
 
-CREATE TRIGGER check_stock_before_order
+CREATE TRIGGER CheckStockBeforeOrderItemInsert
 BEFORE INSERT ON order_items
 FOR EACH ROW
 BEGIN
     DECLARE available_stock INT;
-    
-    -- Récupérer le stock disponible
-    SELECT stock_quantity INTO available_stock
-    FROM products
-    WHERE product_id = NEW.product_id;
-    
-    -- Vérifier si le stock est suffisant
-    IF NEW.quantity > available_stock THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'Stock insuffisant pour ce produit';
+    SELECT quantity INTO available_stock FROM products WHERE id = NEW.product_id;
+    IF available_stock < NEW.quantity THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Quantity requested exceeds available stock for the product.';
     END IF;
 END //
 
