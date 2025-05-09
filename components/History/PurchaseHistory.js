@@ -216,7 +216,7 @@ export default class PurchaseHistory {
     renderStarDisplay(ratingValue) {
         let starsHTML = '';
         const numericRating = parseInt(ratingValue, 10);
-        if (isNaN(numericRating) || numericRating < 1) { // Handle cases where ratingValue might be null or 0
+        if (isNaN(numericRating) || numericRating < 1) {
             return '<div class="order-rating-display no-rating">Not Rated</div>';
         }
         for (let i = 1; i <= 5; i++) {
@@ -266,17 +266,11 @@ export default class PurchaseHistory {
                         bottomAction = `
                             <div class="rated-action-group">
                                 ${this.renderStarDisplay(order.order_rating_value)}
-                                <button class="delete-rating-btn" data-id="${order.id}" title="Delete Rating">
-                                    <i class='bx bx-trash'></i>
-                                </button>
                             </div>`;
                     } else if (order.rated) {
                         bottomAction = `
                             <div class="rated-action-group">
                                 <button class="rated-btn" disabled><i class='bx bxs-star'></i> Rated (No value)</button>
-                                <button class="delete-rating-btn" data-id="${order.id}" title="Delete Rating">
-                                    <i class='bx bx-trash'></i>
-                                </button>
                             </div>`;
                     } else {
                         bottomAction = `<button class="rate-order-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Order</button>`;
@@ -383,11 +377,6 @@ export default class PurchaseHistory {
                     this.cancelOrder(orderId);
                     return;
                 }
-                if (e.target.closest('.delete-rating-btn')) { // For card view
-                    const orderId = e.target.closest('.delete-rating-btn').dataset.id;
-                    this.deleteOrderRating(orderId);
-                    return;
-                }
             }
 
             if (this.isAdmin) {
@@ -410,19 +399,6 @@ export default class PurchaseHistory {
                     return;
                 }
             }
-        });
-
-        // Event listener for delete button inside modal (delegated to document.body if modal is added/removed)
-        document.body.addEventListener('click', async e => {
-            if (e.target.closest('.delete-rating-modal-btn')) {
-                const orderId = e.target.closest('.delete-rating-modal-btn').dataset.id;
-                const modalElement = e.target.closest('.modal-backdrop');
-                if (modalElement) {
-                    modalElement.remove();
-                }
-                this.deleteOrderRating(orderId);
-            }
-            // Add similar for .rate-order-modal-btn and .cancel-order-modal-btn if not handled inside viewOrderDetails
         });
     }
 
@@ -517,8 +493,10 @@ export default class PurchaseHistory {
                 };
                 return countries[String(countryCode).toLowerCase()] || countryCode;
             };
+            
+            order.rated = order.rated || (order.order_rating_value && order.order_rating_value > 0) || false;
+            order.order_rating_value = order.order_rating_value || null;
 
-            order.rated = order.rated || false;
 
             let rateOrDisplaySection = '';
             if (!this.isAdmin && order.status === 'delivered') {
@@ -526,18 +504,12 @@ export default class PurchaseHistory {
                     rateOrDisplaySection = `
                         <div class="display-rating-modal">
                             ${this.renderStarDisplay(order.order_rating_value)}
-                        </div>
-                        <button class="action-btn delete-rating-modal-btn" data-id="${order.id}" title="Delete Rating">
-                            <i class='bx bx-trash'></i> Delete Rating
-                        </button>`;
+                        </div>`;
                 } else if (order.rated) {
                     rateOrDisplaySection = `
                         <div class="display-rating-modal">
                             <button class="rated-btn" disabled><i class='bx bxs-star'></i> Rated (No value)</button>
-                        </div>
-                        <button class="action-btn delete-rating-modal-btn" data-id="${order.id}" title="Delete Rating">
-                            <i class='bx bx-trash'></i> Delete Rating
-                        </button>`;
+                        </div>`;
                 } else {
                     rateOrDisplaySection = `<button class="action-btn rate-order-modal-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Products</button>`;
                 }
@@ -602,7 +574,6 @@ export default class PurchaseHistory {
                         </div>
                         <div class="modal-footer">
                             ${!this.isAdmin && order.status === 'pending' ? `<button class="action-btn cancel-order-modal-btn" data-id="${order.id}"><i class='bx bx-x'></i> Cancel Order</button>` : ''}
-                            ${!this.isAdmin && order.status === 'delivered' && !order.rated ? `<button class="action-btn rate-order-modal-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Products</button>` : ''}
                             ${rateOrDisplaySection}
                             <button class="action-btn close-details-btn">Close</button>
                         </div>
@@ -641,14 +612,6 @@ export default class PurchaseHistory {
                 });
             }
 
-            const deleteRatingModalBtn = modalElement.querySelector('.delete-rating-modal-btn');
-            if (deleteRatingModalBtn) {
-                deleteRatingModalBtn.addEventListener('click', () => {
-                    modalElement.remove();
-                    this.deleteOrderRating(orderId);
-                });
-            }
-
         } catch (error) {
             console.error('Error loading order details:', error);
             this.showError(`Failed to load order details. ${error.message}`);
@@ -658,15 +621,8 @@ export default class PurchaseHistory {
     async rateOrder(orderId) {
         const orderToRate = this.orders.find(o => o.id === orderId);
 
-        if (orderToRate && orderToRate.rated) {
+        if (orderToRate && orderToRate.rated && orderToRate.order_rating_value > 0) {
             alert('You have already submitted a rating for this order.');
-            const orderIndex = this.orders.findIndex(o => o.id === orderId);
-            if (orderIndex !== -1) {
-                if (!this.orders[orderIndex].rated) {
-                    this.orders[orderIndex].rated = true;
-                    this.render();
-                }
-            }
             return;
         }
 
@@ -808,18 +764,17 @@ export default class PurchaseHistory {
                         if (!responseData.success) {
                             throw new Error(responseData.message || 'Failed to submit rating');
                         }
-
-
+                        
+                        backdropElement.remove();
+                        alert('Thank you for your rating!');
+                        
                         const orderIndex = this.orders.findIndex(o => o.id === orderId);
                         if (orderIndex !== -1) {
                             this.orders[orderIndex].rated = true;
                             this.orders[orderIndex].order_rating_value = selectedRating;
                         }
-
-                        backdropElement.remove();
-
-                        alert('Thank you for your rating!');
-                        await this.loadOrders();
+                        
+                        await this.loadOrders(); 
                         this.render();
 
                     } catch (error) {
@@ -864,40 +819,6 @@ export default class PurchaseHistory {
             } catch (error) {
                 console.error('Error cancelling order:', error);
                 this.showError(error.message || 'Failed to cancel order. Please try again later.');
-            }
-        }
-    }
-
-    async deleteOrderRating(orderId) {
-        if (confirm('Are you sure you want to delete your rating for this order? This will also remove associated product reviews from this order.')) {
-            try {
-                const response = await fetch('../backend/api/orders/delete_order_rating.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ order_id: orderId })
-                });
-
-                const responseData = await response.json();
-
-                if (!response.ok || !responseData.success) {
-                    throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
-                }
-
-                alert(responseData.message || 'Order rating deleted successfully.');
-
-                const orderIndex = this.orders.findIndex(o => o.id === orderId);
-                if (orderIndex !== -1) {
-                    this.orders[orderIndex].rated = false;
-                    this.orders[orderIndex].order_rating_value = null;
-                }
-                await this.loadOrders(); // Crucial to get fresh state, especially product ratings
-                this.render();
-
-            } catch (error) {
-                console.error('Error deleting order rating:', error);
-                this.showError(error.message || 'Failed to delete order rating. Please try again later.');
             }
         }
     }

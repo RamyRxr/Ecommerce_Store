@@ -1,5 +1,4 @@
 <?php
-// filepath: c:\xampp\htdocs\Project-Web\backend\api\orders\add_order_rating.php
 header('Content-Type: application/json');
 session_start();
 
