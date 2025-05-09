@@ -7,93 +7,118 @@ export default class ExploreContents {
         this.products = [];
         this.filteredProducts = [];
         this.activeFilters = null;
+        this.user = JSON.parse(sessionStorage.getItem('user') || '{}'); // Added user initialization
         this.init();
     }
 
     async init() {
         await this.fetchProducts();
-        this.initializeSavedStates();
+        await this.initializeSavedStates(); // Ensure this is awaited if it's async
         this.render();
         this.setupEventListeners();
     }
 
-    // Add this helper method to format product data
     formatProductData(listing) {
+        // Ensure images is an array and handle potential errors
+        let imagesArray = [];
+        if (Array.isArray(listing.images)) {
+            imagesArray = listing.images;
+        } else if (typeof listing.images === 'string') {
+            try {
+                const parsed = JSON.parse(listing.images);
+                if (Array.isArray(parsed)) {
+                    imagesArray = parsed;
+                }
+            } catch (e) {
+                // console.warn("Could not parse images string:", listing.images);
+            }
+        }
+    
+        const mainImage = imagesArray.length > 0 ? imagesArray[0] : '';
+        const imagePath = mainImage 
+            ? (mainImage.includes('uploads/') ? `../${mainImage}` : `../backend/uploads/products/${mainImage}`) 
+            : '../assets/images/general-image/DefaultProduct.png'; // Fallback image
+
         return {
             id: listing.id,
-            title: listing.title,
-            description: listing.description,
-            price: parseFloat(listing.price),
+            title: listing.name || listing.title || 'Unnamed Product', // Added fallback for name/title
+            description: listing.description || '',
+            price: parseFloat(listing.price) || 0,
             originalPrice: listing.original_price ? parseFloat(listing.original_price) : null,
-            category: listing.category,
-            brand: listing.brand,
-            image: listing.images[0] ? `${listing.images[0].includes('uploads/') ? '../' + listing.images[0] : '../backend/uploads/products/' + listing.images[0]}` : '/Project-Web/assets/images/products-images/placeholder.svg',
-            images: listing.images.map(img =>
-                `${img.includes('uploads/') ? '../' + img : '../backend/uploads/products/' + img}`
+            category: listing.category_name || listing.category || 'Uncategorized', // Added category_name
+            category_id: listing.category_id, // Keep category_id if available
+            brand: listing.brand || 'Unknown Brand',
+            image: imagePath,
+            images: imagesArray.map(img =>
+                `${img.includes('uploads/') ? `../${img}` : `../backend/uploads/products/${img}`}`
             ),
-            condition: listing.condition,
-            seller: listing.seller_name,
+            condition: listing.condition || 'Not specified',
+            seller: listing.seller_username || listing.seller_name || 'Unknown Seller', // Added seller_username
+            seller_id: listing.user_id || listing.seller_id, // Added user_id as potential seller_id
             dateAdded: new Date(listing.created_at),
-            rating: parseFloat(listing.rating) || 0,
-            ratingCount: parseInt(listing.rating_count) || 0,
+            rating: parseFloat(listing.rating_avg || listing.rating) || 0, // Added rating_avg
+            ratingCount: parseInt(listing.review_count || listing.rating_count) || 0, // Added review_count
+            stock_quantity: parseInt(listing.stock_quantity, 10), // Ensure stock_quantity is parsed
             isSaved: false
         };
     }
 
     async fetchProducts() {
         try {
-            const response = await fetch('../backend/api/get_all_products.php');
+            const response = await fetch('../backend/api/get_all_products.php'); // Using your specified endpoint
             if (!response.ok) {
-                throw new Error('Failed to fetch products');
+                throw new Error(`Failed to fetch products: ${response.statusText} (Status: ${response.status})`);
             }
 
             const data = await response.json();
 
-            if (data.success) {
-                this.products = data.data.listings.map(listing => this.formatProductData(listing));
-                this.filteredProducts = [...this.products]; // Create a copy for filtering
+            if (data.success && data.data && Array.isArray(data.data.listings)) {
+                const currentUserId = this.user ? String(this.user.id) : null;
+                this.products = data.data.listings
+                    .filter(listing => String(listing.user_id) !== currentUserId) // Filter out user's own products
+                    .map(listing => this.formatProductData(listing));
+                this.filteredProducts = [...this.products];
             } else {
-                throw new Error(data.message || 'Failed to load products');
+                throw new Error(data.message || 'Failed to load products or unexpected data structure');
             }
         } catch (error) {
             console.error('Error fetching products:', error);
-            // Use empty arrays as fallback
             this.products = [];
             this.filteredProducts = [];
+            this.showToast(`Error fetching products: ${error.message}`, 'error');
         }
     }
 
     async initializeSavedStates() {
+        if (!this.user || !this.user.id) return;
         try {
             const response = await fetch('../backend/api/saved/get_saved_items.php');
-            if (!response.ok) throw new Error('Failed to fetch saved states');
+            if (!response.ok) throw new Error(`Failed to fetch saved states: ${response.statusText} (Status: ${response.status})`);
 
             const data = await response.json();
-            if (data.success) {
-                const savedIds = data.data.map(item => item.product_id); // Changed from id to product_id
+            // Assuming data.data is the array of saved items and each has product_id
+            if (data.success && Array.isArray(data.data)) {
+                const savedProductIds = new Set(data.data.map(item => String(item.product_id)));
 
-                // Update isSaved flag for products
                 this.products.forEach(product => {
-                    product.isSaved = savedIds.includes(product.id);
+                    product.isSaved = savedProductIds.has(String(product.id));
+                });
+                this.filteredProducts.forEach(product => {
+                    product.isSaved = savedProductIds.has(String(product.id));
                 });
 
-                // Also update filtered products if they exist
-                if (this.filteredProducts.length > 0) {
-                    this.filteredProducts.forEach(product => {
-                        product.isSaved = savedIds.includes(product.id);
-                    });
-                }
-
-                // Update UI for all saved buttons
+                // Update UI for save buttons if cards are already rendered (though typically called before full render)
                 document.querySelectorAll('.product-card').forEach(card => {
-                    const productId = parseInt(card.dataset.id);
+                    const productId = card.dataset.id;
                     const saveBtn = card.querySelector('.save-btn');
-                    if (saveBtn) {
-                        const isSaved = savedIds.includes(productId);
+                    if (saveBtn && productId) {
+                        const isSaved = savedProductIds.has(String(productId));
                         saveBtn.classList.toggle('saved', isSaved);
                         saveBtn.innerHTML = `<i class='bx ${isSaved ? 'bxs-heart' : 'bx-heart'}'></i>`;
                     }
                 });
+            } else if (!data.success) {
+                console.warn('API indicated failure in fetching saved states:', data.message);
             }
         } catch (error) {
             console.error('Error initializing saved states:', error);
@@ -102,113 +127,100 @@ export default class ExploreContents {
 
     sortProducts(option) {
         this.sortOption = option;
+        const productsToSort = [...this.filteredProducts];
 
-        // Sort the current filtered products instead of replacing them with all products
         switch (option) {
             case 'newest':
-                this.filteredProducts.sort((a, b) => b.dateAdded - a.dateAdded);
+                productsToSort.sort((a, b) => b.dateAdded - a.dateAdded);
                 break;
             case 'price-low-high':
-                this.filteredProducts.sort((a, b) => a.price - b.price);
+                productsToSort.sort((a, b) => a.price - b.price);
                 break;
             case 'price-high-low':
-                this.filteredProducts.sort((a, b) => b.price - a.price);
+                productsToSort.sort((a, b) => b.price - a.price);
                 break;
             case 'highest-rated':
-                this.filteredProducts.sort((a, b) => b.rating - a.rating || b.ratingCount - a.ratingCount);
+                productsToSort.sort((a, b) => b.rating - a.rating || b.ratingCount - a.ratingCount);
+                break;
+            case 'name_asc': // Added name sorting
+                productsToSort.sort((a,b) => a.title.localeCompare(b.title));
+                break;
+            case 'name_desc': // Added name sorting
+                productsToSort.sort((a,b) => b.title.localeCompare(a.title));
                 break;
         }
-
-        this.currentPage = 1; // Reset to first page on sort
-        this.updateProductCards();
-        this.updatePagination();
-    }
-
-    searchProducts(query) {
-        if (!query || query.trim() === '') {
-            // If search is empty, apply only active filters if they exist
-            if (this.activeFilters) {
-                this.applyFilters(this.activeFilters);
-                return;
-            }
-            // Otherwise show all products
-            this.filteredProducts = [...this.products];
-        } else {
-            const searchTerm = query.toLowerCase().trim();
-            // Search within all products or within filtered products if filters are active
-            const productsToSearch = this.activeFilters ? this.filteredProducts : this.products;
-            this.filteredProducts = productsToSearch.filter(product =>
-                product.title.toLowerCase().includes(searchTerm) ||
-                product.description.toLowerCase().includes(searchTerm) ||
-                product.brand.toLowerCase().includes(searchTerm) ||
-                product.category.toLowerCase().includes(searchTerm)
-            );
-
-            console.log(`Found ${this.filteredProducts.length} products matching "${searchTerm}"`);
-        }
-
-        // Reset to first page and update the display
+        this.filteredProducts = productsToSort;
         this.currentPage = 1;
         this.updateProductCards();
         this.updatePagination();
     }
 
-    // New method to apply filters
-    applyFilters(filters) {
-        // Store active filters for use with search
-        this.activeFilters = filters;
+    searchProducts(query) {
+        const searchTerm = query.toLowerCase().trim();
+        if (!searchTerm) {
+            this.filteredProducts = this.activeFilters ? this.applyFiltersToData(this.products, this.activeFilters) : [...this.products];
+        } else {
+            const baseProducts = this.activeFilters ? this.applyFiltersToData(this.products, this.activeFilters) : [...this.products];
+            this.filteredProducts = baseProducts.filter(product =>
+                (product.title && product.title.toLowerCase().includes(searchTerm)) ||
+                (product.description && product.description.toLowerCase().includes(searchTerm)) ||
+                (product.brand && product.brand.toLowerCase().includes(searchTerm)) ||
+                (product.category && product.category.toLowerCase().includes(searchTerm))
+            );
+        }
+        this.currentPage = 1;
+        this.updateProductCards();
+        this.updatePagination();
+    }
+    
+    applyFiltersToData(products, filters) {
+        let filtered = [...products];
+        const currentUserId = this.user ? String(this.user.id) : null;
+        
+        if (currentUserId) {
+            filtered = filtered.filter(product => String(product.seller_id) !== currentUserId);
+        }
 
-        // Start with all products
-        let filtered = [...this.products];
-
-        // Filter by categories if any are selected
         if (filters.categories && filters.categories.length > 0) {
-            filtered = filtered.filter(product =>
-                filters.categories.includes(product.category)
-            );
+            filtered = filtered.filter(product => filters.categories.includes(product.category_id ? String(product.category_id) : product.category));
         }
-
-        // Filter by brands if any are selected
         if (filters.brands && filters.brands.length > 0) {
-            filtered = filtered.filter(product =>
-                filters.brands.includes(product.brand)
-            );
+            filtered = filtered.filter(product => filters.brands.includes(product.brand));
         }
-
-        // Filter by price range
         if (filters.price) {
             filtered = filtered.filter(product => {
                 const price = product.price;
-                return price >= filters.price.min &&
-                    (filters.price.max === 'unlimited' || price <= filters.price.max);
+                const minOk = !filters.price.min || price >= parseFloat(filters.price.min);
+                const maxOk = !filters.price.max || filters.price.max === 'unlimited' || price <= parseFloat(filters.price.max);
+                return minOk && maxOk;
             });
         }
-
-        // Filter by rating
         if (filters.rating && parseInt(filters.rating) > 0) {
             const minRating = parseInt(filters.rating);
             filtered = filtered.filter(product => product.rating >= minRating);
         }
-
-        console.log(`Filtered to ${filtered.length} products`);
-
-        // Update filtered products
-        this.filteredProducts = filtered;
-
-        // Apply current sort option
-        this.sortProducts(this.sortOption);
+        if (filters.showOutOfStock === false) { 
+             filtered = filtered.filter(product => product.stock_quantity > 0);
+        }
+        return filtered;
     }
 
-    // Method to reset filters
+
+    applyFilters(filters) {
+        this.activeFilters = filters;
+        this.filteredProducts = this.applyFiltersToData(this.products, filters);
+        this.sortProducts(this.sortOption); 
+    }
+
     resetFilters() {
         this.activeFilters = null;
-        this.filteredProducts = [...this.products];
-
-        // Apply current sort option
+        const currentUserId = this.user ? String(this.user.id) : null;
+        this.filteredProducts = currentUserId 
+            ? this.products.filter(product => String(product.seller_id) !== currentUserId)
+            : [...this.products];
         this.sortProducts(this.sortOption);
     }
 
-    // Rest of the class remains the same...
     render() {
         const mainContentHTML = `
             <div class="main-content-container">
@@ -245,19 +257,23 @@ export default class ExploreContents {
                                 <i class='bx bx-star'></i>
                                 <span>Highest Rated</span>
                             </div>
+                            <div class="filter-option ${this.sortOption === 'name_asc' ? 'selected' : ''}" data-sort="name_asc">
+                                <i class='bx bx-sort-a-z'></i>
+                                <span>Name: A-Z</span>
+                            </div>
+                            <div class="filter-option ${this.sortOption === 'name_desc' ? 'selected' : ''}" data-sort="name_desc">
+                                <i class='bx bx-sort-z-a'></i>
+                                <span>Name: Z-A</span>
+                            </div>
                             <button id="apply-filter-btn">Apply</button>
                         </div>
                     </div>
                 </div>
                 
                 <div class="products-grid">
-                    <!-- Product cards will be inserted here -->
                 </div>
                 
                 <div class="pagination-container">
-                    <div class="pagination">
-                        <!-- Pagination will be inserted here -->
-                    </div>
                 </div>
             </div>
         `;
@@ -266,7 +282,7 @@ export default class ExploreContents {
         mainContentContainer.className = 'explore-content';
         mainContentContainer.innerHTML = mainContentHTML;
 
-        const existingMainContent = document.querySelector('.explore-content');
+        const existingMainContent = this.container.querySelector('.explore-content');
         if (existingMainContent) {
             existingMainContent.replaceWith(mainContentContainer);
         } else {
@@ -289,26 +305,21 @@ export default class ExploreContents {
                     <div class="no-products-icon">
                         <i class='bx bx-search-alt'></i>
                     </div>
-                    <h3>Product Not Found</h3>
-                    <p>We couldn't find any products matching your criteria.</p>
+                    <h3>No Products Found</h3>
+                    <p>We couldn't find any products matching your criteria. Try adjusting your search or filters.</p>
                     <button class="reset-search-btn">
                         <i class='bx bx-reset'></i>
-                        Clear All Filters
+                        Clear Search & Filters
                     </button>
                 </div>
             `;
-
-            // Add event listener to the reset search button
-            const resetSearchBtn = productsGrid.querySelector('.reset-search-btn');
-            if (resetSearchBtn) {
-                resetSearchBtn.addEventListener('click', () => {
-                    const searchInput = document.getElementById('main-search');
-                    if (searchInput) {
-                        searchInput.value = '';
-                    }
+            const resetBtn = productsGrid.querySelector('.reset-search-btn');
+            if(resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    const mainSearchInput = document.getElementById('main-search');
+                    if (mainSearchInput) mainSearchInput.value = '';
                     this.resetFilters();
-                    // Also trigger the filter reset event for the sidebar
-                    document.dispatchEvent(new CustomEvent('resetAllFilters'));
+                    document.dispatchEvent(new CustomEvent('resetAllFiltersInSidebar')); 
                 });
             }
             return;
@@ -321,43 +332,37 @@ export default class ExploreContents {
         paginatedProducts.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
-            productCard.dataset.id = product.id; // Change from productId to id
+            productCard.dataset.id = product.id;
 
-            // Generate stars based on rating
             const fullStars = Math.floor(product.rating);
             const hasHalfStar = product.rating % 1 >= 0.5;
-
             let starsHTML = '';
             for (let i = 1; i <= 5; i++) {
-                if (i <= fullStars) {
-                    starsHTML += `<i class='bx bxs-star'></i>`;
-                } else if (i === fullStars + 1 && hasHalfStar) {
-                    starsHTML += `<i class='bx bxs-star-half'></i>`;
-                } else {
-                    starsHTML += `<i class='bx bx-star'></i>`;
-                }
+                if (i <= fullStars) starsHTML += `<i class='bx bxs-star'></i>`;
+                else if (i === fullStars + 1 && hasHalfStar) starsHTML += `<i class='bx bxs-star-half'></i>`;
+                else starsHTML += `<i class='bx bx-star'></i>`;
             }
 
-            // Truncate description if longer than 52 characters
-            const truncatedDescription = product.description.length > 52
+            const truncatedDescription = product.description && product.description.length > 52
                 ? product.description.substring(0, 52) + '...'
-                : product.description;
+                : product.description || '';
+            
+            const outOfStock = product.stock_quantity !== undefined && product.stock_quantity <= 0;
 
             productCard.innerHTML = `
                 <div class="product-image">
                     <img src="${product.image}" alt="${product.title}">
-                    <button class="save-btn ${product.isSaved ? 'saved' : ''}">
+                    <button class="save-btn ${product.isSaved ? 'saved' : ''}" aria-label="Save item">
                         <i class='bx ${product.isSaved ? 'bxs-heart' : 'bx-heart'}'></i>
                     </button>
+                    ${outOfStock ? '<span class="out-of-stock-badge">Out of Stock</span>' : ''}
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">${product.title}</h3>
                     <p class="product-description">${truncatedDescription}</p>
                     <div class="product-meta">
                         <div class="price-container">
-                            ${product.originalPrice ?
-                    `<span class="old-price">$${product.originalPrice.toFixed(2)}</span>` : ''
-                }
+                            ${product.originalPrice ? `<span class="old-price">$${product.originalPrice.toFixed(2)}</span>` : ''}
                             <span class="product-price">$${product.price.toFixed(2)}</span>
                         </div>
                         <div class="product-rating">
@@ -365,451 +370,284 @@ export default class ExploreContents {
                             <span class="rating-count">(${product.ratingCount})</span>
                         </div>
                     </div>
-                    <button class="add-to-cart-btn">
+                    <button class="add-to-cart-btn" ${outOfStock ? 'disabled' : ''}>
                         <i class='bx bx-cart-add'></i>
-                        Add to Cart
+                        ${outOfStock ? 'Out of Stock' : 'Add to Cart'}
                     </button>
                 </div>
             `;
-
             productsGrid.appendChild(productCard);
         });
     }
 
     updatePagination() {
-        const totalItems = this.filteredProducts.length;
-        const totalPages = Math.ceil(totalItems / this.itemsPerPage);
-
-        // Clear existing pagination
         const paginationContainer = document.querySelector('.pagination-container');
         if (!paginationContainer) return;
 
-        // Hide pagination if no products found
-        if (totalItems === 0) {
+        const totalItems = this.filteredProducts.length;
+        const totalPages = Math.ceil(totalItems / this.itemsPerPage);
+
+        paginationContainer.innerHTML = '';
+
+        if (totalPages <= 1) {
             paginationContainer.style.display = 'none';
             return;
-        } else {
-            paginationContainer.style.display = 'flex';
         }
-
-        // Rest of your pagination code...
-        const pagination = document.createElement('div');
-        pagination.className = 'pagination';
-        // ...existing pagination generation code
+        paginationContainer.style.display = 'flex';
 
         let paginationHTML = '';
+        paginationHTML += `<button class="pagination-btn prev-btn" ${this.currentPage === 1 ? 'disabled' : ''}><i class='bx bx-chevron-left'></i></button>`;
 
-        // Prev button
-        paginationHTML += `
-            <button class="pagination-btn prev-btn" ${this.currentPage === 1 ? 'disabled' : ''}>
-                <i class='bx bx-chevron-left'></i>
-            </button>
-        `;
-
-        // Page numbers with dynamic styling
         if (totalPages <= 7) {
-            // Show all pages if 7 or fewer
             for (let i = 1; i <= totalPages; i++) {
-                paginationHTML += `
-                    <button class="pagination-btn page-number ${i === this.currentPage ? 'active' : ''}" 
-                            data-page="${i}">
-                        ${i}
-                    </button>
-                `;
+                paginationHTML += `<button class="pagination-btn page-number ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
             }
         } else {
-            // Show first page, current page and neighbors, and last page
-            paginationHTML += `
-                <button class="pagination-btn page-number ${this.currentPage === 1 ? 'active' : ''}" data-page="1">1</button>
-            `;
+            paginationHTML += `<button class="pagination-btn page-number ${this.currentPage === 1 ? 'active' : ''}" data-page="1">1</button>`;
+            if (this.currentPage > 3) paginationHTML += `<span class="pagination-ellipsis">...</span>`;
 
-            if (this.currentPage > 3) {
-                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+            const startPage = Math.max(2, this.currentPage - 1);
+            const endPage = Math.min(totalPages - 1, this.currentPage + 1);
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `<button class="pagination-btn page-number ${i === this.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
             }
 
-            // Pages around current page
-            const start = Math.max(2, this.currentPage - 1);
-            const end = Math.min(totalPages - 1, this.currentPage + 1);
-
-            for (let i = start; i <= end; i++) {
-                paginationHTML += `
-                    <button class="pagination-btn page-number ${i === this.currentPage ? 'active' : ''}" 
-                            data-page="${i}">
-                        ${i}
-                    </button>
-                `;
-            }
-
-            if (this.currentPage < totalPages - 2) {
-                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
-            }
-
-            paginationHTML += `
-                <button class="pagination-btn page-number ${this.currentPage === totalPages ? 'active' : ''}" 
-                        data-page="${totalPages}">
-                    ${totalPages}
-                </button>
-            `;
+            if (this.currentPage < totalPages - 2) paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+            paginationHTML += `<button class="pagination-btn page-number ${this.currentPage === totalPages ? 'active' : ''}" data-page="${totalPages}">${totalPages}</button>`;
         }
 
-        // Next button
-        paginationHTML += `
-            <button class="pagination-btn next-btn" ${this.currentPage === totalPages ? 'disabled' : ''}>
-                <i class='bx bx-chevron-right'></i>
-            </button>
-        `;
-
+        paginationHTML += `<button class="pagination-btn next-btn" ${this.currentPage === totalPages ? 'disabled' : ''}><i class='bx bx-chevron-right'></i></button>`;
         paginationContainer.innerHTML = paginationHTML;
     }
 
     setupEventListeners() {
-        // Search functionality
         const searchInput = document.getElementById('main-search');
         const searchButton = document.getElementById('search-button');
-
-        // Check if we should focus the search input
-        if (sessionStorage.getItem('focusSearch') === 'true') {
-            const searchInputOnExplorePage = document.getElementById('main-search'); // Or the correct ID for Explore page's search input
-            if (searchInputOnExplorePage) {
-                searchInputOnExplorePage.focus();
-                // Clear the flag after focusing
-                sessionStorage.removeItem('focusSearch');
-            }
-        }
-
-        if (searchInput) {
-            // Add debouncing to improve performance
-            let searchTimeout;
-
-            // Search when typing (with debounce)
-            searchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    this.searchProducts(searchInput.value);
-                }, 200); // Wait 500ms after user stops typing
-            });
-
-            // Search when user presses Enter
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    clearTimeout(searchTimeout);
-                    this.searchProducts(searchInput.value);
-                }
-            });
-
-            // Add search button click event
-            if (searchButton) {
-                searchButton.addEventListener('click', () => {
-                    clearTimeout(searchTimeout);
-                    this.searchProducts(searchInput.value);
-                });
-            }
-        }
-
-        // Filter dropdown toggle
         const filterBtn = document.getElementById('filter-dropdown-btn');
         const filterDropdown = document.querySelector('.filter-dropdown');
+        const productsGrid = document.querySelector('.products-grid');
+        const paginationContainer = document.querySelector('.pagination-container');
 
-        if (filterBtn && filterDropdown) {
-            filterBtn.addEventListener('click', () => {
-                filterDropdown.classList.toggle('active');
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
-                    filterDropdown.classList.remove('active');
-                }
-            });
+        if (sessionStorage.getItem('focusSearch') === 'true') {
+            searchInput?.focus();
+            sessionStorage.removeItem('focusSearch');
         }
 
-        // Filter options
-        const filterOptions = document.querySelectorAll('.filter-option');
-        const applyFilterBtn = document.getElementById('apply-filter-btn');
+        let searchTimeout;
+        searchInput?.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => this.searchProducts(searchInput.value), 300);
+        });
+        searchInput?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                this.searchProducts(searchInput.value);
+            }
+        });
+        searchButton?.addEventListener('click', () => {
+            clearTimeout(searchTimeout);
+            this.searchProducts(searchInput.value);
+        });
 
-        if (filterOptions && applyFilterBtn) {
-            let selectedOption = this.sortOption;
-
-            // Set initial selected option
-            filterOptions.forEach(option => {
-                if (option.dataset.sort === this.sortOption) {
-                    option.classList.add('selected');
-                }
-
-                option.addEventListener('click', () => {
-                    filterOptions.forEach(opt => opt.classList.remove('selected'));
-                    option.classList.add('selected');
-                    selectedOption = option.dataset.sort;
-                });
-            });
-
-            applyFilterBtn.addEventListener('click', () => {
-                this.sortProducts(selectedOption);
+        filterBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            filterDropdown?.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (filterDropdown?.classList.contains('active') && !filterBtn?.contains(e.target) && !filterDropdown.contains(e.target)) {
                 filterDropdown.classList.remove('active');
-            });
-        }
-
-        // Listen for filter events
-        document.addEventListener('filtersApplied', async (event) => {
-            if (event.detail && event.detail.products) {
-                // Update products with filtered results from the server
-                this.products = event.detail.products.map(product => {
-                    // Create formatted product with all required properties
-                    const formattedProduct = this.formatProductData(product);
-                    // Make sure to keep the saved state from the API response
-                    formattedProduct.isSaved = product.isSaved || false;
-                    return formattedProduct;
-                });
-                
-                this.filteredProducts = [...this.products];
-                this.currentPage = 1;
-                this.render();
             }
         });
 
-        document.addEventListener('filtersReset', async () => {
-            // Reset to original products
-            await this.fetchProducts();
-            this.currentPage = 1;
-            this.render();
-        });
+        filterDropdown?.addEventListener('click', (e) => {
+            const filterOption = e.target.closest('.filter-option');
+            const applyButton = e.target.closest('#apply-filter-btn');
 
-        // Listen to filter application from sidebar
-        document.addEventListener('filtersApplied', (event) => {
-            if (event.detail && event.detail.products) {
-                const currentUserId = event.detail.currentUserId;
-
-                // Filter out current user's products and map remaining ones
-                this.filteredProducts = event.detail.products
-                    .filter(product => product.seller_id != currentUserId)
-                    .map(listing => this.formatProductData(listing));
-
-                // Reset to first page
-                this.currentPage = 1;
-
-                // Update display
-                this.updateProductCards();
-                this.updatePagination();
+            if (filterOption) {
+                filterDropdown.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('selected'));
+                filterOption.classList.add('selected');
+                this.tempSortOption = filterOption.dataset.sort;
+            }
+            if (applyButton) {
+                if (this.tempSortOption) this.sortProducts(this.tempSortOption);
+                filterDropdown.classList.remove('active');
             }
         });
+        
+        // Combined event listener for product grid interactions
+        productsGrid?.addEventListener('click', (e) => {
+            const productCard = e.target.closest('.product-card');
+            if (!productCard) return;
 
-        // Listen to filter reset from sidebar
-        document.addEventListener('filtersReset', () => {
-            this.resetFilters();
-        });
+            const productId = productCard.dataset.id;
+            // Find product from the currently displayed (filtered) list or the main list
+            const product = this.filteredProducts.find(p => String(p.id) === String(productId)) || this.products.find(p => String(p.id) === String(productId));
 
-        // Pagination
-        document.addEventListener('click', e => {
-            // Page number buttons
-            if (e.target.matches('.pagination-btn.page-number')) {
-                this.currentPage = parseInt(e.target.dataset.page);
-                this.updateProductCards();
-                this.updatePagination();
-                window.scrollTo(0, 0);
-            }
 
-            // Prev button
-            if (e.target.matches('.prev-btn') || e.target.closest('.prev-btn')) {
-                if (this.currentPage > 1) {
-                    this.currentPage--;
-                    this.updateProductCards();
-                    this.updatePagination();
-                    window.scrollTo(0, 0);
-                }
-            }
-
-            // Next button
-            if (e.target.matches('.next-btn') || e.target.closest('.next-btn')) {
-                const totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-                if (this.currentPage < totalPages) {
-                    this.currentPage++;
-                    this.updateProductCards();
-                    this.updatePagination();
-                    window.scrollTo(0, 0);
-                }
-            }
-        });
-
-        // Save product (heart icon)
-        document.addEventListener('click', e => {
-            const saveBtn = e.target.closest('.save-btn');
-            if (saveBtn) {
+            if (e.target.closest('.save-btn')) {
+                e.preventDefault(); // Prevent navigation if save button is inside a link
+                if (product) this.updateSavedItems(product);
+            } else if (e.target.closest('.add-to-cart-btn')) {
                 e.preventDefault();
-                e.stopPropagation();
-
-                const productCard = saveBtn.closest('.product-card');
-                if (!productCard) return;
-
-                const productId = parseInt(productCard.dataset.id);
-                const product = this.products.find(p => p.id === productId);
-
-                if (product) {
-                    // Don't update UI immediately, let updateSavedItems handle it
-                    this.updateSavedItems(product);
+                const btn = e.target.closest('.add-to-cart-btn');
+                if (product && !btn.disabled) this.addToCart(product, btn);
+            } else {
+                // If the click was on the card itself (not a button), navigate to details
+                if (productId) {
+                    window.location.href = `../HTML-Pages/ItemDetailsPage.html?id=${productId}`;
                 }
             }
         });
 
-        // Add to cart
-        document.addEventListener('click', e => {
-            if (e.target.matches('.add-to-cart-btn') || e.target.closest('.add-to-cart-btn')) {
-                const btn = e.target.matches('.add-to-cart-btn') ? e.target : e.target.closest('.add-to-cart-btn');
-                const productCard = btn.closest('.product-card');
-                const productId = parseInt(productCard.dataset.id);
+        paginationContainer?.addEventListener('click', e => {
+            const pageButton = e.target.closest('.pagination-btn.page-number');
+            const prevButton = e.target.closest('.prev-btn');
+            const nextButton = e.target.closest('.next-btn');
 
-                // Find the product
-                const product = this.products.find(p => p.id === productId);
-                if (product) {
-                    this.addToCart(product);
-                }
-            }
+            if (pageButton) this.currentPage = parseInt(pageButton.dataset.page);
+            else if (prevButton && this.currentPage > 1) this.currentPage--;
+            else if (nextButton) {
+                const totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+                if (this.currentPage < totalPages) this.currentPage++;
+            } else return;
+
+            this.updateProductCards();
+            this.updatePagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // Add to cart button click handler
-        const productCards = document.querySelectorAll('.product-card');
-        productCards.forEach(card => {
-            const addToCartBtn = card.querySelector('.add-to-cart-btn');
-            if (addToCartBtn) {
-                addToCartBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    const productId = card.dataset.productId;
-                    const product = this.products.find(p => p.id === parseInt(productId));
-                    if (product) {
-                        await this.addToCart(product);
-                    }
-                });
+        document.addEventListener('filtersAppliedFromSidebar', (event) => {
+            if (event.detail && event.detail.filters) {
+                this.applyFilters(event.detail.filters);
             }
+        });
+        document.addEventListener('resetAllFiltersInSidebar', () => {
+            this.resetFilters();
+            const mainSearchInput = document.getElementById('main-search');
+            if(mainSearchInput) mainSearchInput.value = '';
         });
     }
 
-    // Add a new method to handle saving items to localStorage
     async updateSavedItems(product) {
+        if (!this.user || !this.user.id) {
+            this.showToast("Please log in to save items.", "info");
+            return;
+        }
+        const currentSavedState = product.isSaved;
+        const action = currentSavedState ? 'remove' : 'add';
+
+        product.isSaved = !currentSavedState; // Optimistic UI update
+        const saveBtn = document.querySelector(`.product-card[data-id="${product.id}"] .save-btn`);
+        if (saveBtn) {
+            saveBtn.classList.toggle('saved', product.isSaved);
+            saveBtn.innerHTML = `<i class='bx ${product.isSaved ? 'bxs-heart' : 'bx-heart'}'></i>`;
+        }
+        document.dispatchEvent(new CustomEvent('updateSavedBadge'));
+
         try {
-            // Get current state before making the change
-            const currentSavedState = product.isSaved;
-            const action = currentSavedState ? 'remove' : 'add';
-
-            const response = await fetch('../backend/api/saved/add_to_saved.php', {
+            const response = await fetch('../backend/api/saved/add_to_saved.php', { // Your endpoint for saved items
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    product_id: product.id,
-                    action: action
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: product.id, action: action })
             });
-
             const data = await response.json();
-
-            if (data.success) {
-                // Only update the state and UI after successful API call
-                product.isSaved = !currentSavedState;
-
-                // Update UI for this specific product card
-                const saveBtn = document.querySelector(`.product-card[data-id="${product.id}"] .save-btn`);
-                if (saveBtn) {
-                    if (!currentSavedState) {
-                        // Adding to saved
-                        saveBtn.classList.add('saved');
-                        saveBtn.innerHTML = '<i class="bx bxs-heart"></i>';
-                    } else {
-                        // Removing from saved
-                        saveBtn.classList.remove('saved');
-                        saveBtn.innerHTML = '<i class="bx bx-heart"></i>';
-                    }
-                }
-
-                // Trigger badge update
-                document.dispatchEvent(new CustomEvent('updateSavedBadge'));
-
-                // Refresh saved items list if we're on the saved page
-                const savedItemsInstance = window.savedItemsInstance;
-                if (savedItemsInstance) {
-                    savedItemsInstance.loadSavedItems();
-                }
-            } else {
-                throw new Error(data.message || 'Failed to update saved state');
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to update saved state on server');
+            }
+            if (window.location.pathname.includes('SavedPage.html') && typeof window.savedItemsInstance?.loadSavedItems === 'function') {
+                window.savedItemsInstance.loadSavedItems();
             }
         } catch (error) {
             console.error('Error updating saved items:', error);
-            // Revert visual state on error
-            product.isSaved = !product.isSaved;
-            const saveBtn = document.querySelector(`.product-card[data-id="${product.id}"] .save-btn`);
+            product.isSaved = currentSavedState; // Revert optimistic update on error
             if (saveBtn) {
-                saveBtn.classList.toggle('saved');
+                saveBtn.classList.toggle('saved', product.isSaved);
                 saveBtn.innerHTML = `<i class='bx ${product.isSaved ? 'bxs-heart' : 'bx-heart'}'></i>`;
             }
-            // Show error message
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-toast';
-            errorDiv.textContent = error.message || 'Failed to update saved item';
-            document.body.appendChild(errorDiv);
-            setTimeout(() => errorDiv.remove(), 3000);
+            document.dispatchEvent(new CustomEvent('updateSavedBadge'));
+            this.showToast(error.message || 'Failed to update saved item', 'error');
         }
     }
 
-    // Add this method to the ExploreContents class
-    async addToCart(product) {
+    async addToCart(product, buttonElement) {
+        if (!this.user || !this.user.id) {
+            this.showToast("Please log in to add items to your cart.", "info");
+            return;
+        }
+        if (product.stock_quantity !== undefined && product.stock_quantity <= 0) {
+            this.showToast('This item is out of stock.', 'error');
+            return;
+        }
+
+        const originalButtonHTML = buttonElement.innerHTML;
+        buttonElement.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i> Adding...`;
+        buttonElement.disabled = true;
+
         try {
             const response = await fetch('../backend/api/cart/add_to_cart.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    product_id: product.id,
-                    quantity: 1
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: product.id, quantity: 1 })
             });
-
             const data = await response.json();
-
             if (data.success) {
-                // Show visual confirmation
-                this.showAddedToCartConfirmation(product.id);
-
-                // Update cart badge
+                this.showToast(data.message || `${product.title} added to cart!`, 'success');
                 document.dispatchEvent(new CustomEvent('updateCartBadge'));
-
-                console.log(`Added ${product.title} to cart`);
+                buttonElement.innerHTML = `<i class='bx bx-check'></i> Added`;
+                setTimeout(() => {
+                    buttonElement.innerHTML = originalButtonHTML;
+                    buttonElement.disabled = product.stock_quantity !== undefined && product.stock_quantity <= 0;
+                }, 2000);
             } else {
                 throw new Error(data.message || 'Failed to add item to cart');
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
-            // Show error message to user
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-toast';
-            errorDiv.textContent = error.message || 'Failed to add item to cart';
-            document.body.appendChild(errorDiv);
-            setTimeout(() => errorDiv.remove(), 3000);
+            this.showToast(error.message || 'Failed to add item to cart', 'error');
+            buttonElement.innerHTML = originalButtonHTML;
+            buttonElement.disabled = product.stock_quantity !== undefined && product.stock_quantity <= 0;
         }
     }
 
-    // Visual confirmation when product is added to cart
-    showAddedToCartConfirmation(productId) {
-        const productCard = document.querySelector(`.product-card[data-id="${productId}"]`);
-        if (!productCard) return;
+    showToast(message, type = 'info') {
+        const toastId = 'toast-' + Date.now();
+        const toast = document.createElement('div');
+        toast.id = toastId;
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
 
-        const addButton = productCard.querySelector('.add-to-cart-btn');
-        if (!addButton) return;
+        const toastContainer = document.getElementById('toast-container') || this.createToastContainer();
+        toastContainer.appendChild(toast);
 
-        // Change button state
-        const originalText = addButton.innerHTML;
-        addButton.innerHTML = `<i class='bx bx-check'></i> Added to Cart`;
-        addButton.classList.add('added');
-
-        // Reset button after 2 seconds
         setTimeout(() => {
-            addButton.innerHTML = originalText;
-            addButton.classList.remove('added');
-        }, 2000);
+            toast.classList.add('show');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+                if (toastContainer.hasChildNodes && !toastContainer.hasChildNodes()) {
+                    toastContainer.remove();
+                }
+            }, 500);
+        }, 3000);
+    }
+
+    createToastContainer() {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        return container;
     }
 }
 
-// Add a custom event to notify sidebar when cart is updated
 document.addEventListener('cartUpdated', () => {
-    // Dispatch an event that the sidebar can listen to
     document.dispatchEvent(new CustomEvent('updateCartBadge'));
 });
