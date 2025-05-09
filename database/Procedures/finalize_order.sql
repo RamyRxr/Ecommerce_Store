@@ -45,8 +45,22 @@ BEGIN
     JOIN products p ON ci.product_id = p.id
     WHERE ci.user_id = p_user_id;
 
-    DELETE FROM cart_items WHERE user_id = p_user_id;
-
 END //
 
 DELIMITER ;
+
+SET @generated_id = '';
+CALL FinalizeOrder(
+    2, -- Replace with a valid user ID for testing 
+    150.75, -- p_total_price
+    'standard', -- p_shipping_method
+    5.00, -- p_shipping_cost
+    '123 Test St', -- p_shipping_address
+    'Testville', -- p_shipping_city
+    'TS', -- p_shipping_state
+    '12345', -- p_shipping_zip
+    'Testland', -- p_shipping_country
+    'credit_card', -- p_payment_method
+    @generated_id
+);
+SELECT @generated_id;

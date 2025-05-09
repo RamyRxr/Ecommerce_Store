@@ -12,3 +12,7 @@ BEGIN
 END //
 
 DELIMITER ;
+
+-- Testing line --> this must add new item to order
+INSERT INTO order_items (order_id, product_id, product_title, quantity, price, created_at) 
+VALUES ('ORD-0525-201', 2, 'test2', 1,120, NOW());

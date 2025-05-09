@@ -21,7 +21,7 @@ BEGIN
         o.total_price AS total_amount_payable,
         o.cancellation_reason,
         o.cancellation_date,
-        o.estimated_delivery_date,
+        o.shipped_date,
         o.actual_delivery_date,
         (SELECT COUNT(*) > 0 FROM order_ratings orat WHERE orat.order_id = o.id AND orat.user_id = o.user_id) AS rated
     FROM orders o
@@ -43,3 +43,6 @@ BEGIN
 END //
 
 DELIMITER ;
+
+--Test the procedure on exist order
+CALL GetOrderDetail('ORD-0525-201');

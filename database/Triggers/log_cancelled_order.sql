@@ -33,3 +33,7 @@ DELIMITER ;
 
 
 
+-- Test line --> id = 'order_id_to_cancel'
+UPDATE orders 
+SET status = 'cancelled', cancellation_reason = 'Customer request', cancellation_date = NOW() 
+WHERE id = 'ORD-0525-303';
