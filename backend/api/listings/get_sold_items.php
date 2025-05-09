@@ -33,9 +33,9 @@ try {
                 p.description as product_description,
                 u_buyer.username as buyer_username,
                 (SELECT GROUP_CONCAT(pi.image_url ORDER BY pi.display_order ASC, pi.id ASC) 
-                 FROM product_images pi 
-                 WHERE pi.product_id = si.product_id 
-                 LIMIT 1) as product_image_url
+                    FROM product_images pi 
+                    WHERE pi.product_id = si.product_id 
+                    LIMIT 1) as product_image_url
             FROM sold_items si
             JOIN products p ON si.product_id = p.id
             JOIN users u_buyer ON si.buyer_id = u_buyer.id 
@@ -50,19 +50,26 @@ try {
     $soldItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $formattedSoldItems = array_map(function($item) {
-        // Process image URL similar to how you do in get_listings.php
-        $imageUrl = '../assets/images/products-images/placeholder.svg'; // Default
+        $raw_image_path = null;
         if (!empty($item['product_image_url'])) {
-            // Assuming product_image_url might be a comma-separated list from GROUP_CONCAT, take the first
-            $firstImage = explode(',', $item['product_image_url'])[0];
-            $imageUrl = $firstImage; // The path is already relative from product_images
-             // Adjust path if image_url is not stored with '../backend/' prefix
-            if (!str_starts_with($imageUrl, '../backend/')) {
-                 $imageUrl = '../backend/' . $imageUrl;
+            // Get the first image path if multiple are comma-separated
+            $raw_image_path = explode(',', $item['product_image_url'])[0];
+        }
+
+        $final_image_path_for_json = ''; // Default to empty string
+
+        if ($raw_image_path) {
+            // Check if it's a full URL or already contains a path separator
+            if (str_starts_with($raw_image_path, 'http://') || str_starts_with($raw_image_path, 'https://') || str_contains($raw_image_path, '/')) {
+                $final_image_path_for_json = $raw_image_path;
+            } else {
+                // If it's just a filename, assume it's in the default 'uploads/products/' directory
+                $final_image_path_for_json = 'uploads/products/' . $raw_image_path;
             }
         }
+
         return [
-            'id' => $item['sold_item_id'], // This is sold_items.id
+            'id' => $item['sold_item_id'],
             'productId' => $item['product_id'],
             'orderId' => $item['order_id'],
             'title' => $item['product_title'],
@@ -71,7 +78,7 @@ try {
             'quantitySold' => (int)$item['quantity_sold'],
             'dateSold' => $item['sold_at'],
             'buyerUsername' => $item['buyer_username'] ?? 'N/A',
-            'images' => [$imageUrl] // Present as an array for consistency with other image handling
+            'images' => [$final_image_path_for_json] // Send the processed path
         ];
     }, $soldItems);
 
