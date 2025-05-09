@@ -52,12 +52,11 @@ export default class PurchaseHistory {
                         product_name: item.product_name || 'Product',
                         price: parseFloat(item.price || 0),
                         quantity: parseInt(item.quantity || 1),
-                        total: parseFloat(item.total || 0),
-                        image: this.getFirstValidItemImage(item), 
+                        total: parseFloat(item.total || (parseFloat(item.price || 0) * parseInt(item.quantity || 1))),
+                        image: this.getFirstValidItemImage(item),
                     })) : [];
                     return processedOrder;
                 });
-                // console.log("Orders loaded:", this.orders, "IsAdmin:", this.isAdmin);
             } else {
                 throw new Error(data.message || 'Failed to load orders');
             }
@@ -68,22 +67,17 @@ export default class PurchaseHistory {
         }
     }
 
-    // Helper method to get first valid image for an item
     getFirstValidItemImage(item) {
-        // Check if item.images is an array and has content
         if (Array.isArray(item.images) && item.images.length > 0 && item.images[0]) {
             const imgPath = item.images[0];
             return imgPath.includes('uploads/') ? `../${imgPath}` : `../backend/uploads/products/${imgPath}`;
         }
-        // Fallback for a single image property if item.images is not as expected
         if (item.image) {
              const imgPath = item.image;
              return imgPath.includes('uploads/') ? `../${imgPath}` : `../backend/uploads/products/${imgPath}`;
         }
+        return '../assets/images/general-image/DefaultProduct.png';
     }
-
-    // Remove the old getFirstValidImage method if it's redundant
-    // getFirstValidImage(item) { ... } // This one had console.log('rami error 3');
 
     showError(message) {
         const errorDiv = document.createElement('div');
@@ -93,22 +87,21 @@ export default class PurchaseHistory {
             <span>${message}</span>
         `;
 
-        // Remove any existing error message
         const existingError = document.querySelector('.error-message');
         if (existingError) {
             existingError.remove();
         }
 
-        // Add the new error message at the top of the container
         if (this.container.firstChild) {
             this.container.insertBefore(errorDiv, this.container.firstChild);
         } else {
             this.container.appendChild(errorDiv);
         }
 
-        // Auto-remove the error after 5 seconds
         setTimeout(() => {
-            errorDiv.remove();
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
         }, 5000);
     }
 
@@ -118,7 +111,7 @@ export default class PurchaseHistory {
                 <div class="main-content-container">
                     <div class="purchase-header">
                             <h1>Purchase History</h1>
-                            <p>${this.orders.length} orders placed</p>
+                            <p>${this.orders.length} order${this.orders.length === 1 ? '' : 's'} placed</p>
                     </div>
                     
                     <div class="purchase-tabs">
@@ -154,8 +147,7 @@ export default class PurchaseHistory {
         const historyContentContainer = document.createElement('div');
         historyContentContainer.innerHTML = historyContentHTML;
 
-        // Check if purchase history content already exists
-        const existingHistoryContent = document.querySelector('.purchase-history-content');
+        const existingHistoryContent = this.container.querySelector('.purchase-history-content');
         if (existingHistoryContent) {
             existingHistoryContent.replaceWith(historyContentContainer.firstElementChild);
         } else {
@@ -166,7 +158,7 @@ export default class PurchaseHistory {
     renderTabContent() {
         const filteredOrders = this.activeTab === 'all'
             ? this.orders
-            : this.orders.filter(order => order.status === this.activeTab); // Simplified filter
+            : this.orders.filter(order => order.status === this.activeTab);
 
         if (filteredOrders.length === 0) {
             return this.renderEmptyState();
@@ -250,8 +242,7 @@ export default class PurchaseHistory {
                     </button>
                 `;
             }
-            // No specific admin actions for 'delivered' or 'cancelled' in this flow, but can be added.
-        } else { // Customer view
+        } else {
             switch (order.status) {
                 case 'delivered':
                     bottomAction = order.rated
@@ -271,7 +262,7 @@ export default class PurchaseHistory {
                     bottomAction = `<button class="cancel-order-btn" data-id="${order.id}"><i class='bx bx-x'></i> Cancel Order</button>`;
                     break;
                 case 'cancelled':
-                    const cancellationDate = order.cancellationDate ? new Date(order.cancellationDate) : orderDate;
+                    const cancellationDate = order.cancellationDate ? new Date(order.cancellationDate) : (order.date ? new Date(order.date) : new Date());
                     const formattedCancellationDate = cancellationDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
                     bottomAction = `<div class="cancellation-info"><i class='bx bx-info-circle'></i><span>Cancelled on ${formattedCancellationDate}${order.cancellationReason ? ': ' + order.cancellationReason : ''}</span></div>`;
                     break;
@@ -334,12 +325,12 @@ export default class PurchaseHistory {
     }
 
     setupEventListeners() {
-        document.addEventListener('click', async e => { // Make async if handlers are async
+        this.container.addEventListener('click', async e => {
             const tabButton = e.target.closest('.tab-button');
             if (tabButton) {
                 this.activeTab = tabButton.dataset.tab;
-                this.render(); // Re-render for tab change
-                return; // Prevent other handlers on the same click
+                this.render();
+                return;
             }
 
             if (e.target.closest('.view-details-btn')) {
@@ -348,7 +339,6 @@ export default class PurchaseHistory {
                 return;
             }
 
-            // Customer actions
             if (!this.isAdmin) {
                 if (e.target.closest('.rate-order-btn')) {
                     const orderId = e.target.closest('.rate-order-btn').dataset.id;
@@ -357,12 +347,11 @@ export default class PurchaseHistory {
                 }
                 if (e.target.closest('.cancel-order-btn')) {
                     const orderId = e.target.closest('.cancel-order-btn').dataset.id;
-                    this.cancelOrder(orderId); // Customer cancel
+                    this.cancelOrder(orderId);
                     return;
                 }
             }
 
-            // Admin actions
             if (this.isAdmin) {
                 if (e.target.closest('.mark-shipped-btn')) {
                     const orderId = e.target.closest('.mark-shipped-btn').dataset.id;
@@ -376,9 +365,9 @@ export default class PurchaseHistory {
                 }
                 if (e.target.closest('.admin-cancel-btn')) {
                     const orderId = e.target.closest('.admin-cancel-btn').dataset.id;
-                    // You might want a prompt for reason here
                     if (confirm('Are you sure you want to cancel this order as an admin?')) {
-                        await this.adminUpdateOrderStatus(orderId, 'cancelled', 'Cancelled by Admin');
+                        const reason = prompt("Please enter a reason for cancellation (optional):", "Cancelled by Admin");
+                        await this.adminUpdateOrderStatus(orderId, 'cancelled', reason);
                     }
                     return;
                 }
@@ -389,7 +378,7 @@ export default class PurchaseHistory {
     async adminUpdateOrderStatus(orderId, newStatus, reason = null) {
         try {
             const payload = { order_id: orderId, status: newStatus };
-            if (reason) {
+            if (reason !== null) {
                 payload.reason = reason;
             }
 
@@ -423,7 +412,7 @@ export default class PurchaseHistory {
         try {
             const response = await fetch(`../backend/api/orders/get_order_details.php?id=${orderId}`);
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({})); // Try to parse error
+                const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
             }
 
@@ -434,7 +423,6 @@ export default class PurchaseHistory {
 
             const order = data.order;
 
-            // Ensure shippingAddress object is properly formed
             order.shippingAddress = {
                 street: order.shipping_address || order.shippingAddress?.street || 'N/A',
                 city: order.shipping_city || order.shippingAddress?.city || 'N/A',
@@ -443,20 +431,14 @@ export default class PurchaseHistory {
                 country: order.shipping_country || order.shippingAddress?.country || 'N/A'
             };
             
-            // Standardize payment method display
             let paymentMethodDisplay = order.payment_method || 'N/A';
-            if (order.payment_details) {
-                 paymentMethodDisplay = `${order.payment_details.card_type || 'Card'} ending in ${order.payment_details.last_four || '****'}`;
-            } else if (String(order.payment_method).toLowerCase().includes('card') && (!order.payment_details || !order.payment_details.last_four)) {
-                // Fallback if it's a card but no specific details in the order data
-                // This previously fetched admin's card details, which is incorrect for an order's payment snapshot.
-                // Best practice: `get_order_details.php` should provide a snapshot of payment info used for THAT order.
-                // If not available, a generic message is better.
+            if (order.payment_details && order.payment_details.card_type && order.payment_details.last_four) {
+                 paymentMethodDisplay = `${order.payment_details.card_type} ending in ${order.payment_details.last_four}`;
+            } else if (String(order.payment_method).toLowerCase().includes('card')) {
                 paymentMethodDisplay = "Card (details unavailable)";
             }
 
 
-            // Process item images and ensure numeric types
             if (Array.isArray(order.items)) {
                 order.items = order.items.map(item => ({
                     ...item,
@@ -475,7 +457,6 @@ export default class PurchaseHistory {
                 year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
             });
 
-            // Helper function for country name (can be moved to class level if used elsewhere)
             const getCountryName = (countryCode) => {
                 if (!countryCode) return 'N/A';
                 const countries = {
@@ -486,7 +467,6 @@ export default class PurchaseHistory {
                 return countries[String(countryCode).toLowerCase()] || countryCode;
             };
             
-            // Default order.rated if not provided by backend, to prevent issues with button logic
             order.rated = order.rated || false;
 
             const modalHTML = `
@@ -559,7 +539,7 @@ export default class PurchaseHistory {
             modalContainer.innerHTML = modalHTML;
             document.body.appendChild(modalContainer.firstElementChild);
 
-            const modalElement = document.querySelector('.modal-backdrop');
+            const modalElement = document.body.querySelector('.modal-backdrop:last-child');
 
             modalElement.querySelector('.close-modal-btn').addEventListener('click', () => modalElement.remove());
             modalElement.querySelector('.close-details-btn').addEventListener('click', () => modalElement.remove());
@@ -582,10 +562,7 @@ export default class PurchaseHistory {
             if (rateBtnModal) {
                 rateBtnModal.addEventListener('click', () => {
                     modalElement.remove();
-                    // If rating is per product, this should ideally pass item info or redirect
-                    // For now, it calls the generic rateOrder which was for the whole order.
-                    // You might want to change this to a "Rate Products" flow.
-                    this.rateOrder(orderId); // This was for order rating. Adjust if product rating is different.
+                    this.rateOrder(orderId);
                 });
             }
 
@@ -596,7 +573,20 @@ export default class PurchaseHistory {
     }
 
     async rateOrder(orderId) {
-        // Build rating modal
+        const orderToRate = this.orders.find(o => o.id === orderId);
+
+        if (orderToRate && orderToRate.rated) {
+            alert('You have already submitted a rating for this order.');
+            const orderIndex = this.orders.findIndex(o => o.id === orderId);
+            if (orderIndex !== -1) {
+                if (!this.orders[orderIndex].rated) { 
+                    this.orders[orderIndex].rated = true; 
+                    this.render(); 
+                }
+            }
+            return;
+        }
+
         const modalHTML = `
             <div class="modal-backdrop">
                 <div class="rating-modal">
@@ -632,24 +622,26 @@ export default class PurchaseHistory {
             </div>
         `;
 
-        // Add modal to the DOM
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = modalHTML;
         document.body.appendChild(modalContainer.firstElementChild);
+        
+        const ratingModalElement = document.body.querySelector('.modal-backdrop:last-child .rating-modal');
+        const backdropElement = document.body.querySelector('.modal-backdrop:last-child');
 
-        // Track selected rating
+
         let selectedRating = 0;
 
-        // Add event listeners for star rating
-        const stars = document.querySelectorAll('.star-icon');
-        const submitBtn = document.querySelector('.submit-rating-btn');
+        const stars = ratingModalElement.querySelectorAll('.star-icon');
+        const submitBtn = ratingModalElement.querySelector('.submit-rating-btn');
+        const feedbackEl = ratingModalElement.querySelector('.star-feedback');
+        const commentsEl = ratingModalElement.querySelector('#rating-comments');
 
         stars.forEach(star => {
             star.addEventListener('click', () => {
                 const rating = parseInt(star.dataset.rating);
                 selectedRating = rating;
 
-                // Update star display
                 stars.forEach((s, index) => {
                     if (index < rating) {
                         s.classList.remove('bx-star');
@@ -662,20 +654,16 @@ export default class PurchaseHistory {
                     }
                 });
 
-                // Update feedback text
-                const feedbackEl = document.querySelector('.star-feedback');
                 if (feedbackEl) {
                     const feedback = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
                     feedbackEl.textContent = feedback[rating];
                 }
 
-                // Enable submit button
                 if (submitBtn) {
                     submitBtn.removeAttribute('disabled');
                 }
             });
 
-            // Add hover effects
             star.addEventListener('mouseover', () => {
                 const rating = parseInt(star.dataset.rating);
                 stars.forEach((s, index) => {
@@ -692,31 +680,26 @@ export default class PurchaseHistory {
             });
         });
 
-        // Close modal when clicking close button or cancel
-        const closeButtons = document.querySelectorAll('.close-modal-btn, .cancel-rating-btn');
+        const closeButtons = ratingModalElement.querySelectorAll('.close-modal-btn, .cancel-rating-btn');
         closeButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelector('.modal-backdrop').remove();
+                backdropElement.remove();
             });
         });
 
-        // Close modal when clicking on backdrop
-        document.querySelector('.modal-backdrop').addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-backdrop')) {
-                document.querySelector('.modal-backdrop').remove();
+        backdropElement.addEventListener('click', (e) => {
+            if (e.target === backdropElement) {
+                backdropElement.remove();
             }
         });
 
-        // Handle rating submission
         if (submitBtn) {
             submitBtn.addEventListener('click', async () => {
                 if (selectedRating > 0) {
                     try {
-                        // Get comments if provided
-                        const comments = document.getElementById('rating-comments').value;
+                        const comments = commentsEl.value;
 
-                        // Submit rating via API
-                        const response = await fetch('../backend/api/orders/add_rating.php', {
+                        const response = await fetch('../backend/api/orders/add_order_rating.php', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -727,30 +710,40 @@ export default class PurchaseHistory {
                                 comments: comments
                             })
                         });
+                        
+                        let responseData;
+                        const responseText = await response.text();
+                        try {
+                            responseData = JSON.parse(responseText);
+                        } catch (e) {
+                            throw new Error(`Failed to parse server response. Status: ${response.status}. Response: ${responseText}`);
+                        }
 
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        if (!response.ok) {
+                             throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
+                        }
+                        if (!responseData.success) {
+                            throw new Error(responseData.message || 'Failed to submit rating');
+                        }
 
-                        const data = await response.json();
-                        if (!data.success) throw new Error(data.message || 'Failed to submit rating');
 
-                        // Update local order data
                         const orderIndex = this.orders.findIndex(o => o.id === orderId);
                         if (orderIndex !== -1) {
                             this.orders[orderIndex].rated = true;
                         }
 
-                        // Close modal
-                        document.querySelector('.modal-backdrop').remove();
+                        backdropElement.remove();
 
-                        // Show confirmation and refresh
                         alert('Thank you for your rating!');
-                        await this.loadOrders(); // Reload orders from server
+                        await this.loadOrders();
                         this.render();
 
                     } catch (error) {
                         console.error('Error submitting rating:', error);
-                        this.showError('Failed to submit your rating. Please try again later.');
-                        document.querySelector('.modal-backdrop').remove();
+                        this.showError(error.message || 'Failed to submit your rating. Please try again later.');
+                        if(backdropElement && backdropElement.parentNode) {
+                           backdropElement.remove();
+                        }
                     }
                 }
             });
@@ -760,7 +753,7 @@ export default class PurchaseHistory {
     async cancelOrder(orderId) {
         if (confirm('Are you sure you want to cancel this order?')) {
             try {
-                const response = await fetch('../backend/api/orders/update_order_status.php', { // Uses the original endpoint
+                const response = await fetch('../backend/api/orders/update_order_status.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -768,11 +761,14 @@ export default class PurchaseHistory {
                     body: JSON.stringify({
                         order_id: orderId,
                         status: 'cancelled',
-                        reason: 'Cancelled by customer' // Specific reason for customer
+                        reason: 'Cancelled by customer'
                     })
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
 
                 const data = await response.json();
                 if (!data.success) throw new Error(data.message || 'Failed to cancel order');
@@ -783,7 +779,7 @@ export default class PurchaseHistory {
 
             } catch (error) {
                 console.error('Error cancelling order:', error);
-                this.showError('Failed to cancel order. Please try again later.');
+                this.showError(error.message || 'Failed to cancel order. Please try again later.');
             }
         }
     }

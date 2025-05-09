@@ -12,7 +12,6 @@ export default class LogIn {
     }
 
     render() {
-        // All the login HTML goes here
         const loginHTML = `
             <div class="login-container">
                 <div class="login-card">
@@ -107,7 +106,6 @@ export default class LogIn {
     }
 
     setupEventListeners() {
-        // Theme toggle
         const themeToggle = document.getElementById('login-theme-toggle');
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
@@ -115,7 +113,6 @@ export default class LogIn {
             });
         }
 
-        // Password visibility toggle
         const togglePassword = document.getElementById('toggle-password');
         if (togglePassword) {
             togglePassword.addEventListener('click', () => {
@@ -132,7 +129,6 @@ export default class LogIn {
             });
         }
 
-        // Form submission
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => {
@@ -142,18 +138,15 @@ export default class LogIn {
                 const password = document.getElementById('password').value;
                 const remember = document.getElementById('remember-me').checked;
 
-                // Validate form
                 if (!username || !password) {
                     this.showError('Please fill in all fields');
                     return;
                 }
 
-                // Simulate login process
                 this.login(username, password, remember);
             });
         }
 
-        // Input focus effects
         const inputs = document.querySelectorAll('.form-control');
         inputs.forEach(input => {
             input.addEventListener('focus', () => {
@@ -166,19 +159,16 @@ export default class LogIn {
                 }
             });
 
-            // Check if input has value on page load
             if (input.value !== '') {
                 input.parentElement.classList.add('focused');
             }
         });
 
-        // Check if a user was remembered
         const rememberedUser = localStorage.getItem('rememberedUser');
         if (rememberedUser) {
             document.getElementById('username').value = rememberedUser;
             document.getElementById('remember-me').checked = true;
 
-            // Add focused class to the username input
             document.getElementById('username').parentElement.classList.add('focused');
         }
     }
@@ -188,13 +178,11 @@ export default class LogIn {
         loginBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Logging in...</span>';
         loginBtn.disabled = true;
 
-        // Prepare data for sending to server
         const data = {
             username: username,
             password: password
         };
 
-        // Send login request to server
         fetch('../backend/api/auth/login.php', {
             method: 'POST',
             headers: {
@@ -234,23 +222,18 @@ export default class LogIn {
     }
 
     showError(message) {
-        // Check if an error message already exists
         let errorDiv = document.querySelector('.login-error');
 
         if (!errorDiv) {
-            // Create error element if it doesn't exist
             errorDiv = document.createElement('div');
             errorDiv.className = 'login-error';
 
-            // Add it before the login button
             const formGroup = document.querySelector('.checkbox-group').parentNode;
             formGroup.insertBefore(errorDiv, document.querySelector('.btn-login'));
         }
 
-        // Set the error message
         errorDiv.textContent = message;
 
-        // Shake animation
         document.querySelector('.login-card').classList.add('shake');
         setTimeout(() => {
             document.querySelector('.login-card').classList.remove('shake');
