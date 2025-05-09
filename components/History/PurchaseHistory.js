@@ -39,7 +39,8 @@ export default class PurchaseHistory {
                         paymentMethod: order.paymentMethod || order.payment_method || '',
                         estimatedDelivery: order.estimatedDelivery,
                         actualDelivery: order.actualDelivery,
-                        rated: order.rated || false,
+                        rated: order.rated || (order.order_rating_value && order.order_rating_value > 0) || false,
+                        order_rating_value: order.order_rating_value || null,
                         cancellationDate: order.cancellationDate,
                         cancellationReason: order.cancellationReason,
                         username: this.isAdmin ? (order.username || 'N/A') : null,
@@ -73,8 +74,8 @@ export default class PurchaseHistory {
             return imgPath.includes('uploads/') ? `../${imgPath}` : `../backend/uploads/products/${imgPath}`;
         }
         if (item.image) {
-             const imgPath = item.image;
-             return imgPath.includes('uploads/') ? `../${imgPath}` : `../backend/uploads/products/${imgPath}`;
+            const imgPath = item.image;
+            return imgPath.includes('uploads/') ? `../${imgPath}` : `../backend/uploads/products/${imgPath}`;
         }
         return '../assets/images/general-image/DefaultProduct.png';
     }
@@ -212,6 +213,22 @@ export default class PurchaseHistory {
         `;
     }
 
+    renderStarDisplay(ratingValue) {
+        let starsHTML = '';
+        const numericRating = parseInt(ratingValue, 10);
+        if (isNaN(numericRating) || numericRating < 1) { // Handle cases where ratingValue might be null or 0
+            return '<div class="order-rating-display no-rating">Not Rated</div>';
+        }
+        for (let i = 1; i <= 5; i++) {
+            if (i <= numericRating) {
+                starsHTML += `<i class='bx bxs-star'></i>`;
+            } else {
+                starsHTML += `<i class='bx bx-star'></i>`;
+            }
+        }
+        return `<div class="order-rating-display">${starsHTML}</div>`;
+    }
+
     renderOrder(order) {
         const orderDate = new Date(order.date);
         const formattedDate = orderDate.toLocaleDateString('en-US', {
@@ -245,9 +262,25 @@ export default class PurchaseHistory {
         } else {
             switch (order.status) {
                 case 'delivered':
-                    bottomAction = order.rated
-                        ? `<button class="rated-btn" disabled><i class='bx bxs-star'></i> Rated</button>`
-                        : `<button class="rate-order-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Order</button>`;
+                    if (order.rated && order.order_rating_value && order.order_rating_value > 0) {
+                        bottomAction = `
+                            <div class="rated-action-group">
+                                ${this.renderStarDisplay(order.order_rating_value)}
+                                <button class="delete-rating-btn" data-id="${order.id}" title="Delete Rating">
+                                    <i class='bx bx-trash'></i>
+                                </button>
+                            </div>`;
+                    } else if (order.rated) {
+                        bottomAction = `
+                            <div class="rated-action-group">
+                                <button class="rated-btn" disabled><i class='bx bxs-star'></i> Rated (No value)</button>
+                                <button class="delete-rating-btn" data-id="${order.id}" title="Delete Rating">
+                                    <i class='bx bx-trash'></i>
+                                </button>
+                            </div>`;
+                    } else {
+                        bottomAction = `<button class="rate-order-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Order</button>`;
+                    }
                     break;
                 case 'shipped':
                     if (order.estimatedDelivery) {
@@ -350,6 +383,11 @@ export default class PurchaseHistory {
                     this.cancelOrder(orderId);
                     return;
                 }
+                if (e.target.closest('.delete-rating-btn')) { // For card view
+                    const orderId = e.target.closest('.delete-rating-btn').dataset.id;
+                    this.deleteOrderRating(orderId);
+                    return;
+                }
             }
 
             if (this.isAdmin) {
@@ -372,6 +410,19 @@ export default class PurchaseHistory {
                     return;
                 }
             }
+        });
+
+        // Event listener for delete button inside modal (delegated to document.body if modal is added/removed)
+        document.body.addEventListener('click', async e => {
+            if (e.target.closest('.delete-rating-modal-btn')) {
+                const orderId = e.target.closest('.delete-rating-modal-btn').dataset.id;
+                const modalElement = e.target.closest('.modal-backdrop');
+                if (modalElement) {
+                    modalElement.remove();
+                }
+                this.deleteOrderRating(orderId);
+            }
+            // Add similar for .rate-order-modal-btn and .cancel-order-modal-btn if not handled inside viewOrderDetails
         });
     }
 
@@ -430,10 +481,10 @@ export default class PurchaseHistory {
                 zip: order.shipping_zip || order.shipping_postal_code || order.shippingAddress?.zip || 'N/A',
                 country: order.shipping_country || order.shippingAddress?.country || 'N/A'
             };
-            
+
             let paymentMethodDisplay = order.payment_method || 'N/A';
             if (order.payment_details && order.payment_details.card_type && order.payment_details.last_four) {
-                 paymentMethodDisplay = `${order.payment_details.card_type} ending in ${order.payment_details.last_four}`;
+                paymentMethodDisplay = `${order.payment_details.card_type} ending in ${order.payment_details.last_four}`;
             } else if (String(order.payment_method).toLowerCase().includes('card')) {
                 paymentMethodDisplay = "Card (details unavailable)";
             }
@@ -466,8 +517,31 @@ export default class PurchaseHistory {
                 };
                 return countries[String(countryCode).toLowerCase()] || countryCode;
             };
-            
+
             order.rated = order.rated || false;
+
+            let rateOrDisplaySection = '';
+            if (!this.isAdmin && order.status === 'delivered') {
+                if (order.rated && order.order_rating_value && order.order_rating_value > 0) {
+                    rateOrDisplaySection = `
+                        <div class="display-rating-modal">
+                            ${this.renderStarDisplay(order.order_rating_value)}
+                        </div>
+                        <button class="action-btn delete-rating-modal-btn" data-id="${order.id}" title="Delete Rating">
+                            <i class='bx bx-trash'></i> Delete Rating
+                        </button>`;
+                } else if (order.rated) {
+                    rateOrDisplaySection = `
+                        <div class="display-rating-modal">
+                            <button class="rated-btn" disabled><i class='bx bxs-star'></i> Rated (No value)</button>
+                        </div>
+                        <button class="action-btn delete-rating-modal-btn" data-id="${order.id}" title="Delete Rating">
+                            <i class='bx bx-trash'></i> Delete Rating
+                        </button>`;
+                } else {
+                    rateOrDisplaySection = `<button class="action-btn rate-order-modal-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Products</button>`;
+                }
+            }
 
             const modalHTML = `
                 <div class="modal-backdrop">
@@ -529,12 +603,13 @@ export default class PurchaseHistory {
                         <div class="modal-footer">
                             ${!this.isAdmin && order.status === 'pending' ? `<button class="action-btn cancel-order-modal-btn" data-id="${order.id}"><i class='bx bx-x'></i> Cancel Order</button>` : ''}
                             ${!this.isAdmin && order.status === 'delivered' && !order.rated ? `<button class="action-btn rate-order-modal-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Products</button>` : ''}
+                            ${rateOrDisplaySection}
                             <button class="action-btn close-details-btn">Close</button>
                         </div>
                     </div>
                 </div>
             `;
-            
+
             const modalContainer = document.createElement('div');
             modalContainer.innerHTML = modalHTML;
             document.body.appendChild(modalContainer.firstElementChild);
@@ -543,10 +618,10 @@ export default class PurchaseHistory {
 
             modalElement.querySelector('.close-modal-btn').addEventListener('click', () => modalElement.remove());
             modalElement.querySelector('.close-details-btn').addEventListener('click', () => modalElement.remove());
-            
+
             modalElement.addEventListener('click', (e) => {
                 if (e.target === modalElement) {
-                     modalElement.remove();
+                    modalElement.remove();
                 }
             });
 
@@ -554,7 +629,7 @@ export default class PurchaseHistory {
             if (cancelBtnModal) {
                 cancelBtnModal.addEventListener('click', () => {
                     modalElement.remove();
-                    this.cancelOrder(orderId); 
+                    this.cancelOrder(orderId);
                 });
             }
 
@@ -563,6 +638,14 @@ export default class PurchaseHistory {
                 rateBtnModal.addEventListener('click', () => {
                     modalElement.remove();
                     this.rateOrder(orderId);
+                });
+            }
+
+            const deleteRatingModalBtn = modalElement.querySelector('.delete-rating-modal-btn');
+            if (deleteRatingModalBtn) {
+                deleteRatingModalBtn.addEventListener('click', () => {
+                    modalElement.remove();
+                    this.deleteOrderRating(orderId);
                 });
             }
 
@@ -579,9 +662,9 @@ export default class PurchaseHistory {
             alert('You have already submitted a rating for this order.');
             const orderIndex = this.orders.findIndex(o => o.id === orderId);
             if (orderIndex !== -1) {
-                if (!this.orders[orderIndex].rated) { 
-                    this.orders[orderIndex].rated = true; 
-                    this.render(); 
+                if (!this.orders[orderIndex].rated) {
+                    this.orders[orderIndex].rated = true;
+                    this.render();
                 }
             }
             return;
@@ -625,7 +708,7 @@ export default class PurchaseHistory {
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = modalHTML;
         document.body.appendChild(modalContainer.firstElementChild);
-        
+
         const ratingModalElement = document.body.querySelector('.modal-backdrop:last-child .rating-modal');
         const backdropElement = document.body.querySelector('.modal-backdrop:last-child');
 
@@ -710,7 +793,7 @@ export default class PurchaseHistory {
                                 comments: comments
                             })
                         });
-                        
+
                         let responseData;
                         const responseText = await response.text();
                         try {
@@ -720,7 +803,7 @@ export default class PurchaseHistory {
                         }
 
                         if (!response.ok) {
-                             throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
+                            throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
                         }
                         if (!responseData.success) {
                             throw new Error(responseData.message || 'Failed to submit rating');
@@ -730,6 +813,7 @@ export default class PurchaseHistory {
                         const orderIndex = this.orders.findIndex(o => o.id === orderId);
                         if (orderIndex !== -1) {
                             this.orders[orderIndex].rated = true;
+                            this.orders[orderIndex].order_rating_value = selectedRating;
                         }
 
                         backdropElement.remove();
@@ -741,8 +825,8 @@ export default class PurchaseHistory {
                     } catch (error) {
                         console.error('Error submitting rating:', error);
                         this.showError(error.message || 'Failed to submit your rating. Please try again later.');
-                        if(backdropElement && backdropElement.parentNode) {
-                           backdropElement.remove();
+                        if (backdropElement && backdropElement.parentNode) {
+                            backdropElement.remove();
                         }
                     }
                 }
@@ -780,6 +864,40 @@ export default class PurchaseHistory {
             } catch (error) {
                 console.error('Error cancelling order:', error);
                 this.showError(error.message || 'Failed to cancel order. Please try again later.');
+            }
+        }
+    }
+
+    async deleteOrderRating(orderId) {
+        if (confirm('Are you sure you want to delete your rating for this order? This will also remove associated product reviews from this order.')) {
+            try {
+                const response = await fetch('../backend/api/orders/delete_order_rating.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ order_id: orderId })
+                });
+
+                const responseData = await response.json();
+
+                if (!response.ok || !responseData.success) {
+                    throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
+                }
+
+                alert(responseData.message || 'Order rating deleted successfully.');
+
+                const orderIndex = this.orders.findIndex(o => o.id === orderId);
+                if (orderIndex !== -1) {
+                    this.orders[orderIndex].rated = false;
+                    this.orders[orderIndex].order_rating_value = null;
+                }
+                await this.loadOrders(); // Crucial to get fresh state, especially product ratings
+                this.render();
+
+            } catch (error) {
+                console.error('Error deleting order rating:', error);
+                this.showError(error.message || 'Failed to delete order rating. Please try again later.');
             }
         }
     }
