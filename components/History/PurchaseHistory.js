@@ -22,7 +22,7 @@ export default class PurchaseHistory {
             const data = await response.json();
 
             if (data.success) {
-                this.isAdmin = Boolean(data.is_admin); // Ensure isAdmin is set based on response
+                this.isAdmin = Boolean(data.is_admin);
                 this.orders = data.orders.map(order => {
                     const processedOrder = {
                         id: order.id,
@@ -39,7 +39,7 @@ export default class PurchaseHistory {
                         paymentMethod: order.paymentMethod || order.payment_method || '',
                         estimatedDelivery: order.estimatedDelivery,
                         actualDelivery: order.actualDelivery,
-                        rated: Boolean(order.rated), // Ensure 'rated' is a boolean
+                        rated: order.rated || false,
                         cancellationDate: order.cancellationDate,
                         cancellationReason: order.cancellationReason,
                         username: this.isAdmin ? (order.username || 'N/A') : null,
@@ -53,8 +53,7 @@ export default class PurchaseHistory {
                         price: parseFloat(item.price || 0),
                         quantity: parseInt(item.quantity || 1),
                         total: parseFloat(item.total || 0),
-                        image: this.getFirstValidItemImage(item), // Use helper for item image
-                        // images array can be processed similarly if needed by other parts
+                        image: this.getFirstValidItemImage(item), 
                     })) : [];
                     return processedOrder;
                 });
@@ -488,10 +487,7 @@ export default class PurchaseHistory {
             };
             
             // Default order.rated if not provided by backend, to prevent issues with button logic
-            // This should now come from get_user_orders.php, but good to have a fallback
-            const orderFromList = this.orders.find(o => o.id === orderId);
-            order.rated = orderFromList ? orderFromList.rated : (order.rated || false);
-
+            order.rated = order.rated || false;
 
             const modalHTML = `
                 <div class="modal-backdrop">
@@ -505,7 +501,7 @@ export default class PurchaseHistory {
                         <div class="modal-body">
                             <div class="order-summary-section">
                                 <div class="summary-item"><span class="summary-label">Order Date:</span><span class="summary-value">${formattedModalDate}</span></div>
-                                <div class="summary-item"><span class="summary-label">Status:</span><span class="status-badge ${order.status}">${this.getStatusInfo(order.status).label}</span></div>
+                                <div class="summary-item"><span class="summary-label">Status:</span><span class="summary-value status-badge ${order.status}">${this.getStatusInfo(order.status).label}</span></div>
                                 <div class="summary-item"><span class="summary-label">Total Amount:</span><span class="summary-value">$${parseFloat(order.total_price || order.totalAmount || 0).toFixed(2)}</span></div>
                                 ${order.estimatedDelivery ? `<div class="summary-item"><span class="summary-label">Estimated Delivery:</span><span class="summary-value">${new Date(order.estimatedDelivery).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>` : ''}
                                 ${order.actualDelivery ? `<div class="summary-item"><span class="summary-label">Delivered On:</span><span class="summary-value">${new Date(order.actualDelivery).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>` : ''}
@@ -552,7 +548,7 @@ export default class PurchaseHistory {
                         </div>
                         <div class="modal-footer">
                             ${!this.isAdmin && order.status === 'pending' ? `<button class="action-btn cancel-order-modal-btn" data-id="${order.id}"><i class='bx bx-x'></i> Cancel Order</button>` : ''}
-                            ${!this.isAdmin && order.status === 'delivered' && !order.rated ? `<button class="action-btn rate-order-modal-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Order</button>` : ''}
+                            ${!this.isAdmin && order.status === 'delivered' && !order.rated ? `<button class="action-btn rate-order-modal-btn" data-id="${order.id}"><i class='bx bx-star'></i> Rate Products</button>` : ''}
                             <button class="action-btn close-details-btn">Close</button>
                         </div>
                     </div>
@@ -586,8 +582,10 @@ export default class PurchaseHistory {
             if (rateBtnModal) {
                 rateBtnModal.addEventListener('click', () => {
                     modalElement.remove();
-                    // This calls the method that shows the rating modal
-                    this.rateOrder(orderId); 
+                    // If rating is per product, this should ideally pass item info or redirect
+                    // For now, it calls the generic rateOrder which was for the whole order.
+                    // You might want to change this to a "Rate Products" flow.
+                    this.rateOrder(orderId); // This was for order rating. Adjust if product rating is different.
                 });
             }
 
@@ -598,18 +596,6 @@ export default class PurchaseHistory {
     }
 
     async rateOrder(orderId) {
-        // Find the order to ensure it's not already rated (client-side check)
-        const orderToRate = this.orders.find(o => o.id === orderId);
-        if (orderToRate && orderToRate.rated) {
-            this.showError('This order has already been rated.');
-            return;
-        }
-        if (orderToRate && orderToRate.status !== 'delivered') {
-            this.showError('Only delivered orders can be rated.');
-            return;
-        }
-
-
         // Build rating modal
         const modalHTML = `
             <div class="modal-backdrop">
@@ -726,10 +712,11 @@ export default class PurchaseHistory {
             submitBtn.addEventListener('click', async () => {
                 if (selectedRating > 0) {
                     try {
+                        // Get comments if provided
                         const comments = document.getElementById('rating-comments').value;
 
-                        // Submit rating via API to the new endpoint
-                        const response = await fetch('../backend/api/orders/add_order_rating.php', { // Corrected endpoint
+                        // Submit rating via API
+                        const response = await fetch('../backend/api/orders/add_rating.php', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -741,11 +728,8 @@ export default class PurchaseHistory {
                             })
                         });
 
-                        if (!response.ok) {
-                            const errorData = await response.json().catch(() => ({ message: `HTTP error! status: ${response.status}` }));
-                            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-                        }
-                        
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
                         const data = await response.json();
                         if (!data.success) throw new Error(data.message || 'Failed to submit rating');
 
@@ -755,16 +739,18 @@ export default class PurchaseHistory {
                             this.orders[orderIndex].rated = true;
                         }
 
+                        // Close modal
                         document.querySelector('.modal-backdrop').remove();
-                        this.showError('Thank you for your rating!'); // Using showError for consistency, can be a success message
-                        // await this.loadOrders(); // Reload orders from server to get the latest state
-                        this.render(); // Re-render to update the UI immediately
+
+                        // Show confirmation and refresh
+                        alert('Thank you for your rating!');
+                        await this.loadOrders(); // Reload orders from server
+                        this.render();
 
                     } catch (error) {
                         console.error('Error submitting rating:', error);
-                        this.showError(`Failed to submit your rating: ${error.message}`);
-                        // Optionally keep modal open or provide specific feedback
-                        // document.querySelector('.modal-backdrop')?.remove();
+                        this.showError('Failed to submit your rating. Please try again later.');
+                        document.querySelector('.modal-backdrop').remove();
                     }
                 }
             });

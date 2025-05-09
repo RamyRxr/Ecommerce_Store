@@ -632,6 +632,13 @@ body.dark-mode .summary-items::-webkit-scrollbar-thumb {
     font-style: italic;
 }
 
+.stock-limit-msg {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--danger, #e53935);
+    margin-top: 8px;
+}
+
 .summary-item .item-price {
     font-size: 15px;
     font-weight: 700;

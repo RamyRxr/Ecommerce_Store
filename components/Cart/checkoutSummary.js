@@ -235,7 +235,6 @@ export default class CheckoutSummary {
             if (!user.address || !user.city || !user.state || !user.zip_code || !user.country) {
                 this.showIncompleteInfoNotification();
                 setTimeout(() => {
-                    // Use a path from the domain root for navigation as well
                     window.location.href = '/Project-Web/HTML-Pages/SettingsPage.html';
                 }, 3000);
                 return;
@@ -247,7 +246,6 @@ export default class CheckoutSummary {
                 shipping_method: this.shippingMethod,
                 shipping_cost: this.shippingRates[this.shippingMethod],
                 payment_method: 'credit_card', // Assuming this is fixed for now, or get from user input
-                // Add user's shipping address
                 shipping_address: user.address,
                 shipping_city: user.city,
                 shipping_state: user.state,
