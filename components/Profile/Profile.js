@@ -93,7 +93,7 @@ export default class Profile {
 
         } catch (error) {
             console.error('Error loading profile data:', error);
-            this.userData = { name: 'Error', email: 'Could not load data', image: '../assets/images/general-image/RamyRxr.png', address: '', memberSince: '', joinDate: '' };
+            this.userData = { name: 'Error', email: 'Could not load data', image: '../assets/images/RamyRxr.png', address: '', memberSince: '', joinDate: '' };
             this.reviewsData = [];
         } finally {
             this.render();
@@ -112,7 +112,7 @@ export default class Profile {
     
     getDisplayImageUrl(imagePathFromPHP) {
         if (!imagePathFromPHP) {
-            return '../assets/images/general-image/RamyRxr.png'; 
+            return '../assets/images/RamyRxr.png'; 
         }
 
         if (imagePathFromPHP.startsWith('../assets/') || imagePathFromPHP.startsWith('../backend/')) {
@@ -143,7 +143,7 @@ export default class Profile {
                         <div class="profile-sidebar">
                             <div class="user-info-card">
                                 <div class="user-avatar">
-                                    <img src="${this.getDisplayImageUrl(this.userData.image) || '../assets/images/general-image/RamyRxr.png'}" alt="${this.userData.name || 'User'}">
+                                    <img src="${this.getDisplayImageUrl(this.userData.image) || '../assets/images/RamyRxr.png'}" alt="${this.userData.name || 'User'}">
                                 </div>
                                 
                                 <h2 class="user-name">${this.userData.name || this.currentUser.username || 'User'}</h2>

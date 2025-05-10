@@ -17,7 +17,7 @@ export default class LogIn {
                 <div class="login-card">
                     <div class="login-header">
                         <div class="logo">
-                            <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR" class="logo-img">
+                            <img src="../assets/images/RamyRxr.png" alt="RamyRXR" class="logo-img">
                             <h2>RamyRXR</h2>
                         </div>
                         <div class="theme-toggle">
@@ -95,12 +95,10 @@ export default class LogIn {
             </div>
         `;
 
-        // Create login element and add to container
         const loginContainer = document.createElement('div');
         loginContainer.id = 'login-container';
         loginContainer.innerHTML = loginHTML;
 
-        // Clear the container first
         this.container.innerHTML = '';
         this.container.appendChild(loginContainer);
     }
@@ -168,7 +166,6 @@ export default class LogIn {
         if (rememberedUser) {
             document.getElementById('username').value = rememberedUser;
             document.getElementById('remember-me').checked = true;
-
             document.getElementById('username').parentElement.classList.add('focused');
         }
     }
@@ -178,7 +175,6 @@ export default class LogIn {
         loginBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Logging in...</span>';
         loginBtn.disabled = true;
 
-        // Renamed this variable to avoid conflict
         const requestPayload = {
             username: username,
             password: password
@@ -190,12 +186,12 @@ export default class LogIn {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestPayload) // Use the renamed variable
+                body: JSON.stringify(requestPayload)
             });
 
-            const responseData = await response.json(); // Use a different name for response data
+            const responseData = await response.json();
 
-            if (responseData.success) { // Use responseData here
+            if (responseData.success) {
                 sessionStorage.setItem('user', JSON.stringify({
                     id: responseData.user.id,
                     username: responseData.user.username,
@@ -213,7 +209,7 @@ export default class LogIn {
 
                 window.location.href = '../HTML-Pages/ExplorePage.html'; 
             } else {
-                throw new Error(responseData.message || 'Login failed'); // Use responseData here
+                throw new Error(responseData.message || 'Login failed');
             }
         } catch (error) {
             console.error('Login error:', error);

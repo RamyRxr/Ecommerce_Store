@@ -19,7 +19,6 @@ export default class SideBar2 {
         const user = JSON.parse(sessionStorage.getItem('user') || '{}');
         this.isAdmin = Boolean(user.is_admin);
 
-
         const sidebarHTML = `
             <div class="sidebar collapsed">
                 <div class="explore-top">
@@ -28,7 +27,6 @@ export default class SideBar2 {
                     </span>
                 </div>
 
-                <!-- Search Bar -->
                 <div class="search-box" >
                     <i class='bx bx-search'></i>
                     <input type="text" placeholder="Search..." id="search-input">
@@ -107,20 +105,16 @@ export default class SideBar2 {
             </div>
         `;
 
-        // Create sidebar element and add to container
         const sidebarContainer = document.createElement('div');
         sidebarContainer.id = 'sidebar-container';
         sidebarContainer.innerHTML = sidebarHTML;
 
-        // Check if sidebar already exists
         const existingSidebar = document.querySelector('.sidebar');
         if (existingSidebar) {
             existingSidebar.replaceWith(sidebarContainer.firstElementChild);
         } else {
             this.container.appendChild(sidebarContainer);
         }
-
-        // Update user info
         this.updateUserInfo();
     }
 
@@ -130,26 +124,19 @@ export default class SideBar2 {
             customerOnlyItems.forEach(item => {
                 item.style.display = 'none';
             });
-
-            // Show admin-only items
             const adminOnlyItems = document.querySelectorAll('.admin-only-item');
             adminOnlyItems.forEach(item => {
                 item.style.display = 'block';
             });
         } else {
-            // Hide admin-only items
             const adminOnlyItems = document.querySelectorAll('.admin-only-item');
             adminOnlyItems.forEach(item => {
                 item.style.display = 'none';
             });
-
-            // Show customer-only items
             const customerOnlyItems = document.querySelectorAll('.customer-only-item');
             customerOnlyItems.forEach(item => {
                 item.style.display = 'block';
             });
-
-            // Update cart and saved counts for customers
             this.updateCartCount();
             this.updateSavedCount();
         }
@@ -174,7 +161,6 @@ export default class SideBar2 {
     }
 
     setupEventListeners() {
-        // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
             themeToggle.addEventListener('click', (e) => {
@@ -183,7 +169,6 @@ export default class SideBar2 {
             });
         }
 
-        // Logout functionality
         const logoutLink = document.getElementById('logout-link');
         if (logoutLink) {
             logoutLink.addEventListener('click', (e) => {
@@ -192,18 +177,14 @@ export default class SideBar2 {
             });
         }
 
-        // Search functionality
-        const searchInput = document.getElementById('search-input'); // The input field in the sidebar
+        const searchInput = document.getElementById('search-input'); 
         if (searchInput) {
-            // Handles search submission when Enter is pressed in the sidebar search input
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     const query = searchInput.value.trim();
                     if (query) {
-                        // If there's a query, navigate with it
                         window.location.href = `../HTML-Pages/ExplorePage.html?search=${encodeURIComponent(query)}`;
                     } else {
-                        // If no query, just go to Explore page and signal focus
                         sessionStorage.setItem('focusSearch', 'true');
                         window.location.href = '../HTML-Pages/ExplorePage.html';
                     }
@@ -211,25 +192,17 @@ export default class SideBar2 {
             });
         }
 
-        // Event listener for the whole search box container click
         const searchBox = document.querySelector('.sidebar .search-box');
         if (searchBox) {
             searchBox.addEventListener('click', (e) => {
-                // If the click target is the input field itself, do nothing.
-                // This allows the input to be focused, and the user can type.
-                // The 'keypress' event listener on 'search-input' will handle search submission.
                 if (e.target.id === 'search-input') {
                     return;
                 }
-
-                // For any other click within the search-box (e.g., on the icon or the div's padding),
-                // set the sessionStorage flag and navigate to the Explore page.
                 sessionStorage.setItem('focusSearch', 'true');
                 window.location.href = '../HTML-Pages/ExplorePage.html';
             });
         }
 
-        // Add event listeners for badge updates
         document.addEventListener('updateCartBadge', () => {
             this.updateCartCount();
         });
@@ -277,11 +250,7 @@ export default class SideBar2 {
 
             const data = await response.json();
             const cartItems = data.success ? data.data : [];
-
-            // Calculate total items
             const itemCount = cartItems.reduce((total, item) => total + parseInt(item.quantity || 1), 0);
-
-            // Update the badge
             const cartBadge = document.querySelector('.cart-badge');
             if (cartBadge) {
                 if (itemCount > 0) {
@@ -297,17 +266,14 @@ export default class SideBar2 {
     }
 
     async updateSavedCount() {
-        if (this.isAdmin) return; // Skip for admin users
+        if (this.isAdmin) return; 
 
         try {
-            // Get saved items count from database
             const response = await fetch('../backend/api/saved/get_saved_items.php');
             if (!response.ok) throw new Error('Failed to fetch saved items');
 
             const data = await response.json();
             const savedItems = data.success ? data.data : [];
-
-            // Update the badge
             const savedBadge = document.querySelector('.saved-badge');
             if (savedBadge) {
                 if (savedItems.length > 0) {

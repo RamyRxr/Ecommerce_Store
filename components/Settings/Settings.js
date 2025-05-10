@@ -157,7 +157,7 @@ export default class Settings {
 
         const profileImageSrc = this.userData.profile_image 
             ? `../backend/${this.userData.profile_image}` 
-            : '../assets/images/general-image/RamyRxr.png';
+            : '../assets/images/RamyRxr.png';
 
         return `
             <div class="account-settings">
