@@ -962,7 +962,6 @@ export default class SellingContents {
         const titleText = notificationData.title || 'Success';
         const messageText = notificationData.message || 'Operation completed.';
 
-
         notification.innerHTML = `
             <div class="notification-content">
                 <i class='bx ${iconClass} notification-icon ${notificationData.type === 'error' ? 'error' : ''}'></i>
