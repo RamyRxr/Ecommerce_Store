@@ -82,7 +82,6 @@ export default class ExploreContents {
                 throw new Error(data.message || 'Failed to load products or unexpected data structure');
             }
         } catch (error) {
-            console.error('Error fetching products:', error);
             this.products = [];
             this.filteredProducts = [];
             this.showToast(`Error fetching products: ${error.message}`, 'error');
@@ -113,11 +112,9 @@ export default class ExploreContents {
                         saveBtn.innerHTML = `<i class='bx ${isSaved ? 'bxs-heart' : 'bx-heart'}'></i>`;
                     }
                 });
-            } else if (!data.success) {
-                // console.warn('API indicated failure in fetching saved states:', data.message);
             }
         } catch (error) {
-            console.error('Error initializing saved states:', error);
+            // console.error('Error initializing saved states:', error);
         }
     }
 
@@ -150,7 +147,7 @@ export default class ExploreContents {
         this.updatePagination();
     }
 
-    searchProducts(query) {
+    searchProducts(query = '') {
         const searchTerm = query.toLowerCase().trim();
         if (!searchTerm) {
             this.filteredProducts = this.activeFilters ? this.applyFiltersToData(this.products, this.activeFilters) : [...this.products];
@@ -219,11 +216,9 @@ export default class ExploreContents {
                     return formattedProduct;
                 });
             } else {
-                // console.warn('Failed to load filtered products or unexpected data structure:', data.message || data);
                 this.filteredProducts = [];
             }
         } catch (error) {
-            console.error('Error applying filters via API:', error);
             this.showToast(`Error applying filters: ${error.message}`, 'error');
             this.filteredProducts = [];
         }
@@ -353,14 +348,13 @@ export default class ExploreContents {
             const truncatedDescription = product.description && product.description.length > 52
                 ? product.description.substring(0, 52) + '...'
                 : product.description || '';
-            const outOfStock = product.stock_quantity !== undefined && product.stock_quantity <= 0;
+
             productCard.innerHTML = `
                 <div class="product-image">
                     <img src="${product.image}" alt="${product.title}">
                     <button class="save-btn ${product.isSaved ? 'saved' : ''}" aria-label="Save item">
                         <i class='bx ${product.isSaved ? 'bxs-heart' : 'bx-heart'}'></i>
                     </button>
-                    ${outOfStock ? '<span class="out-of-stock-badge">Out of Stock</span>' : ''}
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">${product.title}</h3>
@@ -375,9 +369,9 @@ export default class ExploreContents {
                             <span class="rating-count">(${product.ratingCount})</span>
                         </div>
                     </div>
-                    <button class="add-to-cart-btn" ${outOfStock ? 'disabled' : ''}>
+                    <button class="add-to-cart-btn"> 
                         <i class='bx bx-cart-add'></i>
-                        ${outOfStock ? 'Out of Stock' : 'Add to Cart'}
+                        Add to Cart
                     </button>
                 </div>
             `;
@@ -499,8 +493,6 @@ export default class ExploreContents {
                 this.updatePagination();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
-        } else {
-            // console.error("Main content container for event delegation not found during setupEventListeners.");
         }
 
         document.addEventListener('filtersAppliedFromSidebar', (event) => {
@@ -543,7 +535,6 @@ export default class ExploreContents {
                 window.savedItemsInstance.loadSavedItems();
             }
         } catch (error) {
-            console.error('Error updating saved items:', error);
             product.isSaved = currentSavedState;
             if (saveBtn) {
                 saveBtn.classList.toggle('saved', product.isSaved);
@@ -559,36 +550,53 @@ export default class ExploreContents {
             this.showToast("Please log in to add items to your cart.", "info");
             return;
         }
-        if (product.stock_quantity !== undefined && product.stock_quantity <= 0) {
-            this.showToast('This item is out of stock.', 'error');
-            return;
-        }
+
         const originalButtonHTML = buttonElement.innerHTML;
         buttonElement.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i> Adding...`;
         buttonElement.disabled = true;
+
         try {
             const response = await fetch('../backend/api/cart/add_to_cart.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ product_id: product.id, quantity: 1 })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: product.id,
+                    quantity: 1 
+                })
             });
-            const data = await response.json();
+
+            const responseText = await response.text(); 
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (jsonError) {
+                console.error("Failed to parse JSON response from server:", responseText);
+                throw new Error("Server returned an invalid response. Please check the browser console for details.");
+            }
+            
+            console.log("Add to cart API response data:", data); 
+
             if (data.success) {
                 this.showToast(data.message || `${product.title} added to cart!`, 'success');
-                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+                document.dispatchEvent(new CustomEvent('updateCartBadge')); 
+                console.log(`Added ${product.title} to cart`); 
+
                 buttonElement.innerHTML = `<i class='bx bx-check'></i> Added`;
                 setTimeout(() => {
                     buttonElement.innerHTML = originalButtonHTML;
-                    buttonElement.disabled = product.stock_quantity !== undefined && product.stock_quantity <= 0;
+                    buttonElement.disabled = false;
                 }, 2000);
             } else {
-                throw new Error(data.message || 'Failed to add item to cart');
+                throw new Error(data.message || 'Failed to add item to cart (server indicated failure)');
             }
         } catch (error) {
-            console.error('Error adding to cart:', error);
-            this.showToast(error.message || 'Failed to add item to cart', 'error');
+            console.error('Error in addToCart process:', error);
+            this.showToast(error.message || 'Failed to add item to cart. Check console for errors.', 'error');
+
             buttonElement.innerHTML = originalButtonHTML;
-            buttonElement.disabled = product.stock_quantity !== undefined && product.stock_quantity <= 0;
+            buttonElement.disabled = false;
         }
     }
 
