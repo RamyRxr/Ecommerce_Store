@@ -12,13 +12,11 @@
     <link rel="stylesheet" href="../assets/css/CartStyle.css">
 
     <script>
-        // Check if user is admin before page loads
         document.addEventListener('DOMContentLoaded', function() {
             function checkCustomerAccess() {
                 try {
                     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
                     if (user.is_admin) {
-                        // Admin trying to access customer pages
                         alert('This page is only available to customers');
                         window.location.href = 'Home.html';
                     }
@@ -34,7 +32,6 @@
 </head>
 <body>
     <div id="app">
-        <!-- Components will be inserted here by JavaScript -->
     </div>
     
     <script type="module" src="../pages/CartPage.js"></script>
