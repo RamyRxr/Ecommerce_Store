@@ -1,29 +1,24 @@
-/* Fix sidebar positioning */
 .sidebar {
-    left: 0 !important; /* Force left position to be 0 */
+    left: 0 !important;
     position: fixed !important;
 }
 
-/* Ensure proper container layout */
 .app-container {
     display: flex;
-    padding-left: 0; /* Remove any left padding */
+    padding-left: 0;
 }
 
-/* Make sure the main content respects the sidebar width */
 .selling-container {
-    margin-left: 80px; /* For collapsed sidebar */
+    margin-left: 80px;
     width: calc(100% - 80px);
     transition: margin-left 0.3s ease;
 }
 
-/* Adjust when sidebar is expanded */
 .sidebar:not(.collapsed) + .selling-container {
-    margin-left: 250px; /* For expanded sidebar */
+    margin-left: 250px;
     width: calc(100% - 250px);
 }
 
-/* Fix for mobile */
 @media (max-width: 768px) {
     .sidebar {
         left: 0 !important;
@@ -34,7 +29,6 @@
     }
 }
 
-/* Selling Content Layout */
 .selling-content {
     position: fixed;
     left: calc(var(--sidebar-collapsed-width) + 10px);
@@ -43,13 +37,11 @@
     transition: var(--transition-normal);
 }
 
-/* When sidebar is collapsed */
 .sidebar.collapsed+.selling-content,
 .sidebar.collapsed~.selling-content {
     left: calc(var(--sidebar-collapsed-width) + 10px);
 }
 
-/* Main content container */
 .main-content-container {
     background: var(--light-bg);
     height: calc(100vh - 40px);
@@ -67,7 +59,6 @@
     box-shadow: var(--sidebar-hover-shadow);
 }
 
-/* Custom scrollbar for main content */
 .main-content-container::-webkit-scrollbar {
     width: 5px;
 }
@@ -81,7 +72,6 @@
     border-radius: 5px;
 }
 
-/* Selling Header */
 .selling-header {
     display: flex;
     justify-content: space-between;
@@ -103,7 +93,6 @@
     color: #666;
 }
 
-/* Selling Tabs */
 .selling-tabs {
     display: flex;
     padding: 0 30px;
@@ -150,7 +139,6 @@
     background-color: var(--accent);
 }
 
-/* Selling Content Body with Fancy Scrollbar */
 .selling-content-body {
     flex: 1;
     overflow-y: auto;
@@ -184,7 +172,6 @@
     background-clip: padding-box;
 }
 
-/* Create Listing Tab */
 .create-listing-container {
     max-width: 900px;
     margin: 0 auto;
@@ -215,7 +202,6 @@
     margin-bottom: 20px;
 }
 
-/* Form row for multi-column layout */
 .form-row {
     display: flex;
     flex-wrap: wrap;
@@ -234,7 +220,6 @@
     margin-top: 10px;
 }
 
-/* Price, brand and model row */
 .price-brand-model-row {
     display: flex;
     flex-wrap: wrap;
@@ -252,7 +237,6 @@
     flex: 0.7;
 }
 
-/* Form inputs */
 .form-group label {
     display: block;
     margin-bottom: 8px;
@@ -284,7 +268,6 @@
     box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.1);
 }
 
-/* Enhanced Form Controls */
 .fancy-select {
     width: 100%;
     padding: 12px 15px;
@@ -390,7 +373,6 @@
     color: var(--accent);
 }
 
-/* "Other" input field animation */
 .other-input-container {
     max-height: 0;
     overflow: hidden;
@@ -402,7 +384,6 @@
     margin-top: 10px;
 }
 
-/* Listing Summary Options */
 .listing-summary-container {
     padding: 15px 0;
 }
@@ -477,7 +458,6 @@
     margin-top: 3px;
 }
 
-/* Image Upload Area */
 .image-upload-container {
     margin-bottom: 15px;
 }
@@ -588,7 +568,6 @@
     margin-bottom: 3px;
 }
 
-/* Form Actions */
 .form-actions {
     display: flex;
     justify-content: space-between;
@@ -645,7 +624,6 @@
     box-shadow: none;
 }
 
-/* Active Listings & Sold Items Tabs */
 .listings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -653,7 +631,6 @@
     padding: 10px 0;
 }
 
-/* Listing Card Styling */
 .listings-grid .listing-card {
     background-color: var(--light-bg);
     border-radius: 8px;
@@ -725,15 +702,8 @@
     color: var(--text-muted, #6c757d);
 }
 
-.listing-card.sold-out-item .edit-listing-btn {
-    display: none; /* Hide edit button for sold out items */
-}
-.listing-card.sold-out-item .view-listing-btn { /* Style for a view button if you add one */
-    background-color: var(--secondary-color);
-    color: white;
-}
-.listing-card.sold-out-item .view-listing-btn:hover {
-    background-color: var(--secondary-dark);
+.listing-card.sold-out-item .edit-btn {
+    display: none;
 }
 
 .listing-quantity {
@@ -777,7 +747,7 @@ body.dark-mode .listing-buyer {
 .view-order-btn {
     flex: 1;
     padding: 8px 15px;
-    background-color: var(--accent); /* Or another color like #6c757d for secondary actions */
+    background-color: var(--accent);
     color: white;
     border: none;
     border-radius: 4px;
@@ -793,9 +763,9 @@ body.dark-mode .listing-buyer {
 }
 
 .view-order-btn:hover {
-    background-color: var(--accent-dark); /* Adjust hover color accordingly */
+    background-color: var(--accent-dark);
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(var(--accent-rgb), 0.3); /* Or a shadow matching the chosen color */
+    box-shadow: 0 3px 8px rgba(var(--accent-rgb), 0.3);
 }
 
 .view-order-btn:active {
@@ -906,8 +876,7 @@ body.dark-mode .listing-buyer {
 }
 
 .edit-btn,
-.remove-btn,
-.view-details-btn {
+.remove-btn {
     flex: 1;
     padding: 8px 0;
     border: none;
@@ -944,25 +913,12 @@ body.dark-mode .listing-buyer {
     box-shadow: 0 3px 8px rgba(244, 67, 54, 0.3);
 }
 
-.view-details-btn {
-    background-color: var(--accent);
-    color: white;
-}
-
-.view-details-btn:hover {
-    background-color: var(--accent-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(var(--accent-rgb), 0.3);
-}
-
 .edit-btn:active,
-.remove-btn:active,
-.view-details-btn:active {
+.remove-btn:active {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Empty state styling */
 .no-listings {
     padding: 60px 40px;
     text-align: center;
@@ -1008,7 +964,7 @@ body.dark-mode .listing-buyer {
     line-height: 1.5;
 }
 
-.create-listing-btn {
+.create-listing-btn-empty { /* Renamed from create-listing-btn to avoid conflict if used elsewhere */
     background: var(--accent);
     color: white;
     border: none;
@@ -1024,22 +980,21 @@ body.dark-mode .listing-buyer {
     box-shadow: 0 4px 6px rgba(var(--accent-rgb), 0.2);
 }
 
-.create-listing-btn:hover {
+.create-listing-btn-empty:hover {
     background: var(--accent-dark);
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(var(--accent-rgb), 0.3);
 }
 
-.create-listing-btn:active {
+.create-listing-btn-empty:active {
     transform: scale(0.98);
     box-shadow: 0 2px 4px rgba(var(--accent-rgb), 0.2);
 }
 
-.create-listing-btn i {
+.create-listing-btn-empty i {
     font-size: 18px;
 }
 
-/* Notification System */
 .notification-container {
     position: fixed;
     top: 20px;
@@ -1100,9 +1055,16 @@ body.dark-mode .listing-buyer {
     color: #4caf50;
     margin-right: 12px;
 }
+.notification-icon.error {
+    color: var(--danger-color, #dc3545);
+}
 
 .notification-text {
     flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
 }
 
 .notification-text p {
@@ -1110,19 +1072,8 @@ body.dark-mode .listing-buyer {
     font-size: 14px;
     color: #333;
 }
-
-.undo-btn {
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0;
-}
-
-.undo-btn:hover {
-    text-decoration: underline;
+.notification-text p:last-child {
+    margin-bottom: 0;
 }
 
 .close-notification-btn {
@@ -1143,20 +1094,18 @@ body.dark-mode .listing-buyer {
 .notification-progress {
     height: 3px;
     background: var(--accent);
-    width: 100%;
-    transition: width 5s linear;
+    animation: progressAnim 5s linear forwards;
     position: absolute;
     bottom: 0;
     left: 0;
 }
 
-.notification-time {
-    font-size: 12px;
-    color: #666;
-    margin-left: 5px;
+@keyframes progressAnim {
+    from { width: 100%; }
+    to { width: 0%; }
 }
 
-/* Dark Mode Styles */
+
 body.dark-mode .main-content-container {
     background: var(--dark-bg);
 }
@@ -1388,12 +1337,12 @@ body.dark-mode .no-listings p {
     color: #a0aec0;
 }
 
-body.dark-mode .create-listing-btn {
+body.dark-mode .create-listing-btn-empty {
     background: linear-gradient(135deg, var(--accent-dark), #4299e1);
     box-shadow: 0 6px 15px rgba(49, 130, 206, 0.3);
 }
 
-body.dark-mode .create-listing-btn:hover {
+body.dark-mode .create-listing-btn-empty:hover {
     background: linear-gradient(135deg, #4299e1, #63b3ed);
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
@@ -1408,15 +1357,10 @@ body.dark-mode .notification-text p {
     color: #e2e8f0;
 }
 
-body.dark-mode .notification-time {
-    color: #aaa;
-}
-
 body.dark-mode .close-notification-btn {
     color: #aaa;
 }
 
-/* Global notification container */
 .global-notification-container {
     position: fixed;
     top: 20px;

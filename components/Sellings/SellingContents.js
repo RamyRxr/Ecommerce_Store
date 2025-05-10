@@ -1,9 +1,9 @@
 export default class SellingContents {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.activeTab = 'active'; 
-        this.listings = []; 
-        this.soldItems = []; 
+        this.activeTab = 'active';
+        this.listings = [];
+        this.soldItems = [];
         this.editingListing = null;
         this.isEditing = false;
         this.imageFiles = [];
@@ -12,14 +12,14 @@ export default class SellingContents {
 
     async init() {
         await this.loadListings();
-        await this.loadSoldItems(); 
+        await this.loadSoldItems();
         this.render();
         this.setupEventListeners();
     }
 
     async loadListings() {
         try {
-            const response = await fetch('../backend/api/listings/get_listings.php'); // Fetches seller's own listings
+            const response = await fetch('../backend/api/listings/get_listings.php');
             if (!response.ok) {
                 throw new Error('Failed to fetch listings');
             }
@@ -34,8 +34,8 @@ export default class SellingContents {
                     condition: listing.condition,
                     brand: listing.brand,
                     model: listing.model,
-                    quantity: parseInt(listing.quantity) || 0, // Ensure quantity is a number
-                    status: listing.status || 'active', // Ensure status is present
+                    quantity: parseInt(listing.quantity) || 0,
+                    status: listing.status || 'active',
                     views: parseInt(listing.views) || 0,
                     dateListed: listing.created_at,
                     images: Array.isArray(listing.images) ? listing.images.map(img =>
@@ -56,13 +56,13 @@ export default class SellingContents {
 
     async loadSoldItems() {
         try {
-            const response = await fetch('../backend/api/listings/get_sold_items.php'); // Ensure this path is correct
+            const response = await fetch('../backend/api/listings/get_sold_items.php');
             if (!response.ok) {
                 throw new Error('Failed to fetch sold items');
             }
             const data = await response.json();
             if (data.success) {
-                this.soldItems = data.data; // Assuming data.data is the array of formatted sold items
+                this.soldItems = data.data;
             } else {
                 throw new Error(data.message || 'Failed to parse sold items data');
             }
@@ -78,8 +78,8 @@ export default class SellingContents {
             <div class="selling-content">
                 <div class="main-content-container">
                     <div class="selling-header">
-                        <h1>Sell Your Tech</h1>
-                        <p>${this.listings.length} Active Listings</p>
+                        <h1>${this.isEditing ? 'Edit Your Listing' : 'Sell Your Tech'}</h1>
+                        <p>${this.isEditing ? '' : `${this.listings.length} Active Listings`}</p>
                     </div>
                     
                     <div class="selling-tabs">
@@ -107,7 +107,6 @@ export default class SellingContents {
         const sellingContentContainer = document.createElement('div');
         sellingContentContainer.innerHTML = sellingContentHTML;
 
-        // Check if selling content already exists
         const existingSellingContent = document.querySelector('.selling-content');
         if (existingSellingContent) {
             existingSellingContent.replaceWith(sellingContentContainer.firstElementChild);
@@ -115,7 +114,6 @@ export default class SellingContents {
             this.container.appendChild(sellingContentContainer.firstElementChild);
         }
 
-        // Set up tab-specific event listeners
         if (this.activeTab === 'create') {
             this.setupCreateTabEventListeners();
         }
@@ -135,15 +133,7 @@ export default class SellingContents {
     }
 
     renderCreateTab() {
-        const isEditing = this.editingListingId !== null;
-        let editingListing = null;
-
-        if (isEditing) {
-            editingListing = this.listings.find(listing => listing.id === this.editingListingId);
-            if (!editingListing) {
-                this.editingListingId = null;
-            }
-        }
+        const currentListing = this.editingListing;
 
         return `
             <div class="create-listing-container">
@@ -154,7 +144,7 @@ export default class SellingContents {
                         
                         <div class="form-group">
                             <label for="product-title">Product Title</label>
-                            <input type="text" id="product-title" placeholder="Enter product title" value="${isEditing && editingListing ? editingListing.title : ''}">
+                            <input type="text" id="product-title" placeholder="Enter product title" value="${currentListing ? currentListing.title : ''}">
                         </div>
                         
                         <div class="form-row">
@@ -163,43 +153,43 @@ export default class SellingContents {
                                     <label for="product-category">Category</label>
                                 </div>
                                 <button type="button" class="fancy-select" id="category-select">
-                                    <span id="selected-category">${isEditing && editingListing ? this.getCategoryDisplayName(editingListing.category) : 'Select a category'}</span>
+                                    <span id="selected-category">${currentListing ? this.getCategoryDisplayName(currentListing.category) : 'Select a category'}</span>
                                     <span class="fancy-select-icon">
                                         <i class='bx bx-chevron-down'></i>
                                     </span>
                                 </button>
                                 <div class="fancy-select-options" id="category-options">
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.category === 'smartphones' ? 'selected' : ''}" data-value="smartphones">
+                                    <div class="fancy-option ${currentListing && currentListing.category === 'smartphones' ? 'selected' : ''}" data-value="smartphones">
                                         <span class="fancy-option-icon"><i class='bx bx-mobile-alt'></i></span>
                                         <span>Smartphones</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.category === 'laptops' ? 'selected' : ''}" data-value="laptops">
+                                    <div class="fancy-option ${currentListing && currentListing.category === 'laptops' ? 'selected' : ''}" data-value="laptops">
                                         <span class="fancy-option-icon"><i class='bx bx-laptop'></i></span>
                                         <span>Laptops</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.category === 'tablets' ? 'selected' : ''}" data-value="tablets">
+                                    <div class="fancy-option ${currentListing && currentListing.category === 'tablets' ? 'selected' : ''}" data-value="tablets">
                                         <span class="fancy-option-icon"><i class='bx bx-tablet'></i></span>
                                         <span>Tablets</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.category === 'headphones' ? 'selected' : ''}" data-value="headphones">
+                                    <div class="fancy-option ${currentListing && currentListing.category === 'headphones' ? 'selected' : ''}" data-value="headphones">
                                         <span class="fancy-option-icon"><i class='bx bx-headphone'></i></span>
                                         <span>Headphones</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.category === 'cameras' ? 'selected' : ''}" data-value="cameras">
+                                    <div class="fancy-option ${currentListing && currentListing.category === 'cameras' ? 'selected' : ''}" data-value="cameras">
                                         <span class="fancy-option-icon"><i class='bx bx-camera'></i></span>
                                         <span>Cameras</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.category === 'accessories' ? 'selected' : ''}" data-value="accessories">
+                                    <div class="fancy-option ${currentListing && currentListing.category === 'accessories' ? 'selected' : ''}" data-value="accessories">
                                         <span class="fancy-option-icon"><i class='bx bx-plug'></i></span>
                                         <span>Accessories</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && !['smartphones', 'laptops', 'tablets', 'headphones', 'cameras', 'accessories'].includes(editingListing.category) ? 'selected' : ''}" data-value="other">
+                                    <div class="fancy-option ${currentListing && !['smartphones', 'laptops', 'tablets', 'headphones', 'cameras', 'accessories'].includes(currentListing.category) ? 'selected' : ''}" data-value="other">
                                         <span class="fancy-option-icon"><i class='bx bx-plus-circle'></i></span>
                                         <span>Other</span>
                                     </div>
                                 </div>
-                                <div class="other-input-container ${isEditing && editingListing && !['smartphones', 'laptops', 'tablets', 'headphones', 'cameras', 'accessories'].includes(editingListing.category) ? 'active' : ''}" id="other-category-container">
-                                    <input type="text" id="other-category" placeholder="Specify category" value="${isEditing && editingListing && !['smartphones', 'laptops', 'tablets', 'headphones', 'cameras', 'accessories'].includes(editingListing.category) ? editingListing.category : ''}">
+                                <div class="other-input-container ${currentListing && !['smartphones', 'laptops', 'tablets', 'headphones', 'cameras', 'accessories'].includes(currentListing.category) ? 'active' : ''}" id="other-category-container">
+                                    <input type="text" id="other-category" placeholder="Specify category" value="${currentListing && !['smartphones', 'laptops', 'tablets', 'headphones', 'cameras', 'accessories'].includes(currentListing.category) ? currentListing.category : ''}">
                                 </div>
                             </div>
                             
@@ -208,29 +198,29 @@ export default class SellingContents {
                                     <label for="product-condition">Condition</label>
                                 </div>
                                 <button type="button" class="fancy-select" id="condition-select">
-                                    <span id="selected-condition">${isEditing && editingListing ? editingListing.condition : 'Select condition'}</span>
+                                    <span id="selected-condition">${currentListing ? currentListing.condition : 'Select condition'}</span>
                                     <span class="fancy-select-icon">
                                         <i class='bx bx-chevron-down'></i>
                                     </span>
                                 </button>
                                 <div class="fancy-select-options" id="condition-options">
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.condition === 'New' ? 'selected' : ''}" data-value="New">
+                                     <div class="fancy-option ${currentListing && currentListing.condition === 'New' ? 'selected' : ''}" data-value="New">
                                         <span class="fancy-option-icon"><i class='bx bx-package'></i></span>
                                         <span>New</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.condition === 'Like New' ? 'selected' : ''}" data-value="Like New">
+                                    <div class="fancy-option ${currentListing && currentListing.condition === 'Like New' ? 'selected' : ''}" data-value="Like New">
                                         <span class="fancy-option-icon"><i class='bx bx-like'></i></span>
                                         <span>Like New</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.condition === 'Excellent' ? 'selected' : ''}" data-value="Excellent">
+                                    <div class="fancy-option ${currentListing && currentListing.condition === 'Excellent' ? 'selected' : ''}" data-value="Excellent">
                                         <span class="fancy-option-icon"><i class='bx bx-check-circle'></i></span>
                                         <span>Excellent</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.condition === 'Good' ? 'selected' : ''}" data-value="Good">
+                                    <div class="fancy-option ${currentListing && currentListing.condition === 'Good' ? 'selected' : ''}" data-value="Good">
                                         <span class="fancy-option-icon"><i class='bx bx-check'></i></span>
                                         <span>Good</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.condition === 'Used' ? 'selected' : ''}" data-value="Used">
+                                    <div class="fancy-option ${currentListing && currentListing.condition === 'Used' ? 'selected' : ''}" data-value="Used">
                                         <span class="fancy-option-icon"><i class='bx bx-time'></i></span>
                                         <span>Used</span>
                                     </div>
@@ -240,13 +230,13 @@ export default class SellingContents {
                         
                         <div class="form-group">
                             <label for="product-description">Description</label>
-                            <textarea id="product-description" placeholder="Describe your item in detail, including any flaws or issues">${isEditing && editingListing ? editingListing.description : ''}</textarea>
+                            <textarea id="product-description" placeholder="Describe your item in detail, including any flaws or issues">${currentListing ? currentListing.description : ''}</textarea>
                         </div>
                         
                         <div class="price-brand-model-row">
                             <div class="form-group">
                                 <label for="product-price">Price ($)</label>
-                                <input type="number" id="product-price" placeholder="0.00" min="0" step="0.01" value="${isEditing && editingListing ? editingListing.price : ''}">
+                                <input type="number" id="product-price" placeholder="0.00" min="0" step="0.01" value="${currentListing ? currentListing.price : ''}">
                             </div>
                             
                             <div class="fancy-select-container">
@@ -254,57 +244,57 @@ export default class SellingContents {
                                     <label for="product-brand">Brand</label>
                                 </div>
                                 <button type="button" class="fancy-select" id="brand-select">
-                                    <span id="selected-brand">${isEditing && editingListing ? this.getBrandDisplayName(editingListing.brand) : 'Select a brand'}</span>
+                                    <span id="selected-brand">${currentListing ? this.getBrandDisplayName(currentListing.brand) : 'Select a brand'}</span>
                                     <span class="fancy-select-icon">
                                         <i class='bx bx-chevron-down'></i>
                                     </span>
                                 </button>
                                 <div class="fancy-select-options" id="brand-options">
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.brand === 'apple' ? 'selected' : ''}" data-value="apple">
+                                    <div class="fancy-option ${currentListing && currentListing.brand === 'apple' ? 'selected' : ''}" data-value="apple">
                                         <span class="fancy-option-icon"><i class='bx bxl-apple'></i></span>
                                         <span>Apple</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.brand === 'samsung' ? 'selected' : ''}" data-value="samsung">
+                                    <div class="fancy-option ${currentListing && currentListing.brand === 'samsung' ? 'selected' : ''}" data-value="samsung">
                                         <span class="fancy-option-icon"><i class='bx bxs-component'></i></span>
                                         <span>Samsung</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.brand === 'sony' ? 'selected' : ''}" data-value="sony">
+                                    <div class="fancy-option ${currentListing && currentListing.brand === 'sony' ? 'selected' : ''}" data-value="sony">
                                         <span class="fancy-option-icon"><i class='bx bxs-devices'></i></span>
                                         <span>Sony</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.brand === 'dell' ? 'selected' : ''}" data-value="dell">
+                                    <div class="fancy-option ${currentListing && currentListing.brand === 'dell' ? 'selected' : ''}" data-value="dell">
                                         <span class="fancy-option-icon"><i class='bx bx-desktop'></i></span>
                                         <span>Dell</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.brand === 'lenovo' ? 'selected' : ''}" data-value="lenovo">
+                                    <div class="fancy-option ${currentListing && currentListing.brand === 'lenovo' ? 'selected' : ''}" data-value="lenovo">
                                         <span class="fancy-option-icon"><i class='bx bx-laptop'></i></span>
                                         <span>Lenovo</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.brand === 'jbl' ? 'selected' : ''}" data-value="jbl">
+                                    <div class="fancy-option ${currentListing && currentListing.brand === 'jbl' ? 'selected' : ''}" data-value="jbl">
                                         <span class="fancy-option-icon"><i class='bx bx-speaker'></i></span>
                                         <span>JBL</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && editingListing.brand === 'canon' ? 'selected' : ''}" data-value="canon">
+                                    <div class="fancy-option ${currentListing && currentListing.brand === 'canon' ? 'selected' : ''}" data-value="canon">
                                         <span class="fancy-option-icon"><i class='bx bx-camera'></i></span>
                                         <span>Canon</span>
                                     </div>
-                                    <div class="fancy-option ${isEditing && editingListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(editingListing.brand) ? 'selected' : ''}" data-value="other">
+                                    <div class="fancy-option ${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? 'selected' : ''}" data-value="other">
                                         <span class="fancy-option-icon"><i class='bx bx-plus-circle'></i></span>
                                         <span>Other</span>
                                     </div>
                                 </div>
-                                <div class="other-input-container ${isEditing && editingListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(editingListing.brand) ? 'active' : ''}" id="other-brand-container">
-                                    <input type="text" id="other-brand" placeholder="Specify brand" value="${isEditing && editingListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(editingListing.brand) ? editingListing.brand : ''}">
+                                <div class="other-input-container ${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? 'active' : ''}" id="other-brand-container">
+                                    <input type="text" id="other-brand" placeholder="Specify brand" value="${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? currentListing.brand : ''}">
                                 </div>
                             </div>
                             
                             <div class="form-group">
                                 <label for="product-model">Model</label>
-                                <input type="text" id="product-model" placeholder="Enter model name/number" value="${isEditing && editingListing ? editingListing.model : ''}">
+                                <input type="text" id="product-model" placeholder="Enter model name/number" value="${currentListing ? currentListing.model : ''}">
                             </div>
                              <div class="form-group"> 
                                 <label for="product-quantity">Quantity</label>
-                                <input type="number" id="product-quantity" placeholder="1" min="1" step="1" value="${isEditing && editingListing ? editingListing.quantity : '1'}">
+                                <input type="number" id="product-quantity" placeholder="1" min="0" step="1" value="${currentListing ? currentListing.quantity : '1'}">
                             </div>
                         </div>
                     </div>
@@ -312,9 +302,9 @@ export default class SellingContents {
                     <div class="form-section">
                         <h2>Listing Summary</h2>
                         <div class="listing-summary-container">
-                            <div class="listing-option ${isEditing && editingListing && editingListing.shipping && !editingListing.localPickup ? 'selected' : (!isEditing ? 'selected' : '')}" data-option="shipping">
+                            <div class="listing-option ${currentListing && currentListing.shipping && !currentListing.localPickup ? 'selected' : (!currentListing ? 'selected' : '')}" data-option="shipping">
                                 <div class="option-radio">
-                                    <div class="radio-dot ${isEditing && editingListing && editingListing.shipping && !editingListing.localPickup ? 'selected' : (!isEditing ? 'selected' : '')}"></div>
+                                    <div class="radio-dot ${currentListing && currentListing.shipping && !currentListing.localPickup ? 'selected' : (!currentListing ? 'selected' : '')}"></div>
                                 </div>
                                 <div class="option-details">
                                     <div class="option-name">Offer Shipping</div>
@@ -322,9 +312,9 @@ export default class SellingContents {
                                 </div>
                             </div>
                             
-                            <div class="listing-option ${isEditing && editingListing && !editingListing.shipping && editingListing.localPickup ? 'selected' : ''}" data-option="pickup">
+                            <div class="listing-option ${currentListing && !currentListing.shipping && currentListing.localPickup ? 'selected' : ''}" data-option="pickup">
                                 <div class="option-radio">
-                                    <div class="radio-dot ${isEditing && editingListing && !editingListing.shipping && editingListing.localPickup ? 'selected' : ''}"></div>
+                                    <div class="radio-dot ${currentListing && !currentListing.shipping && currentListing.localPickup ? 'selected' : ''}"></div>
                                 </div>
                                 <div class="option-details">
                                     <div class="option-name">Local Pickup</div>
@@ -332,9 +322,9 @@ export default class SellingContents {
                                 </div>
                             </div>
                             
-                            <div class="listing-option ${isEditing && editingListing && editingListing.shipping && editingListing.localPickup ? 'selected' : ''}" data-option="both">
+                            <div class="listing-option ${currentListing && currentListing.shipping && currentListing.localPickup ? 'selected' : ''}" data-option="both">
                                 <div class="option-radio">
-                                    <div class="radio-dot ${isEditing && editingListing && editingListing.shipping && editingListing.localPickup ? 'selected' : ''}"></div>
+                                    <div class="radio-dot ${currentListing && currentListing.shipping && currentListing.localPickup ? 'selected' : ''}"></div>
                                 </div>
                                 <div class="option-details">
                                     <div class="option-name">Both Options</div>
@@ -355,8 +345,8 @@ export default class SellingContents {
                                 <input type="file" id="image-upload" multiple accept="image/*" style="display: none;">
                             </div>
                             <div class="image-preview-container" id="image-preview-container">
-                                ${isEditing && editingListing && editingListing.images ?
-                editingListing.images.map(img => `
+                                ${currentListing && currentListing.images ?
+                                    currentListing.images.map(img => `
                                         <div class="image-preview">
                                             <img src="${img}" alt="Product image">
                                             <button type="button" class="remove-image-btn">
@@ -364,7 +354,7 @@ export default class SellingContents {
                                             </button>
                                         </div>
                                     `).join('')
-                : ''}
+                                : ''}
                             </div>
                         </div>
                         
@@ -379,7 +369,7 @@ export default class SellingContents {
                     </div>
                     
                     <div class="form-actions">
-                        ${isEditing ? `
+                        ${this.isEditing ? `
                             <button class="save-draft-btn" id="update-draft-btn">
                                 <i class='bx bx-save'></i>
                                 Save as Draft
@@ -421,13 +411,11 @@ export default class SellingContents {
                 </div>
             `;
         }
-        // Sort to show 'sold_out' items at the end
         activeListings.sort((a, b) => {
             if (a.status === 'sold_out' && b.status !== 'sold_out') return 1;
             if (a.status !== 'sold_out' && b.status === 'sold_out') return -1;
-            return new Date(b.dateListed) - new Date(a.dateListed); // Or other primary sort
+            return new Date(b.dateListed) - new Date(a.dateListed);
         });
-
 
         return `
             <div class="listings-grid">
@@ -450,10 +438,6 @@ export default class SellingContents {
                             <div class="listing-image">
                                 <img src="${imageUrl}" alt="${listing.title}">
                                 ${statusBadge}
-                                <span class="views-count">
-                                    <i class='bx bx-show'></i>
-                                    ${listing.views} views
-                                </span>
                             </div>
                             <div class="listing-info">
                                 <h3 class="listing-title">${listing.title}</h3>
@@ -476,7 +460,7 @@ export default class SellingContents {
                                     <button class="edit-btn" data-id="${listing.id}">
                                         <i class='bx bx-edit'></i> Edit
                                     </button>
-                                    ` : `<button class="view-listing-btn" data-id="${listing.id}"><i class='bx bx-search-alt'></i> View</button>`}
+                                    ` : ''}
                                     <button class="remove-btn" data-id="${listing.id}">
                                         <i class='bx bx-trash'></i> Delete
                                     </button>
@@ -488,7 +472,6 @@ export default class SellingContents {
             </div>
         `;
     }
-
 
     renderSoldTab() {
         if (this.soldItems.length === 0) {
@@ -512,20 +495,19 @@ export default class SellingContents {
                 day: 'numeric',
                 year: 'numeric'
             });
-            
+
             const rawImageFromSoldItem = item.images && item.images.length > 0 && item.images[0] ? item.images[0] : null;
             let finalImageUrl;
 
             if (rawImageFromSoldItem) {
-                if (rawImageFromSoldItem.startsWith('http')) { // Absolute URL
+                if (rawImageFromSoldItem.startsWith('http')) {
                     finalImageUrl = rawImageFromSoldItem;
-                } else if (rawImageFromSoldItem.includes('uploads/')) { // Path like 'uploads/products/image.jpg'
-                    finalImageUrl = '../' + rawImageFromSoldItem; 
-                } else if (rawImageFromSoldItem && !rawImageFromSoldItem.includes('/')) { // Just a filename 'image.jpg'
-                    // Assuming images are in 'uploads/products/' similar to active listings
+                } else if (rawImageFromSoldItem.includes('uploads/')) {
+                    finalImageUrl = '../' + rawImageFromSoldItem;
+                } else if (rawImageFromSoldItem && !rawImageFromSoldItem.includes('/')) {
                     finalImageUrl = '../uploads/products/' + rawImageFromSoldItem;
-                } else { // Fallback for other relative paths (e.g., 'backend/uploads/...')
-                    finalImageUrl = '../backend/' + rawImageFromSoldItem; 
+                } else {
+                    finalImageUrl = '../backend/' + rawImageFromSoldItem;
                 }
             } else {
                 finalImageUrl = '../assets/images/products-images/placeholder.svg';
@@ -539,8 +521,8 @@ export default class SellingContents {
                             <div class="listing-info">
                                 <h3 class="listing-title">${item.title}</h3>
                                 <p class="listing-description">${item.description && item.description.length > 52
-                                    ? item.description.substring(0, 52) + '...'
-                                    : item.description || ''}</p>
+                ? item.description.substring(0, 52) + '...'
+                : item.description || ''}</p>
                                 <div class="listing-price">Sold for: $${parseFloat(item.price).toFixed(2)}</div>
                                 <div class="listing-date">
                                     <i class='bx bx-calendar-check'></i>
@@ -555,7 +537,6 @@ export default class SellingContents {
                                     <button class="view-order-btn" data-order-id="${item.orderId}">
                                         <i class='bx bx-receipt'></i> View Order
                                     </button>
-                                    <!-- Add more actions if needed, e.g., contact buyer -->
                                 </div>
                             </div>
                         </div>
@@ -566,48 +547,13 @@ export default class SellingContents {
     }
 
     setupEventListeners() {
-        // Tab switching
         document.addEventListener('click', e => {
             const tabButton = e.target.closest('.tab-button');
             if (tabButton) {
                 this.activeTab = tabButton.dataset.tab;
-                this.editingListingId = null; // Cancel editing when switching tabs
+                this.isEditing = false;
+                this.editingListing = null;
                 this.render();
-            }
-
-            // Handle create new listing button in empty state
-            if (e.target.closest('.create-listing-btn')) {
-                this.activeTab = 'create';
-                this.render();
-            }
-
-            // Handle edit listing
-            if (e.target.closest('.edit-btn')) {
-                const listingId = parseInt(e.target.closest('.edit-btn').dataset.id);
-                this.editListing(listingId);
-            }
-
-            // Handle remove listing
-            if (e.target.closest('.remove-btn')) {
-                const listingId = parseInt(e.target.closest('.remove-btn').dataset.id);
-                this.removeListing(listingId);
-            }
-
-            // Handle view details of sold item
-            if (e.target.closest('.view-details-btn')) {
-                const itemId = parseInt(e.target.closest('.view-details-btn').dataset.id);
-                this.viewSoldItemDetails(itemId);
-            }
-
-            if (e.target.closest('.view-order-btn')) {
-                const orderId = e.target.closest('.view-order-btn').dataset.orderId;
-                // You'll need a way to show order details.
-                // This could be a new modal, or redirecting to a purchase history page with the order focused.
-                // For now, an alert or console log:
-                console.log("View Order ID:", orderId);
-                alert(`Placeholder: View details for Order ID: ${orderId}. You would typically open a modal or navigate.`);
-                // If you have a PurchaseHistory class instance available or a global way to show its modal:
-                // purchaseHistoryInstance.viewOrderDetails(orderId);
             }
 
             if (e.target.closest('.create-listing-btn-empty')) {
@@ -616,18 +562,31 @@ export default class SellingContents {
                 this.editingListing = null;
                 this.imageFiles = [];
                 this.render();
-                this.setupTabSpecificEventListeners();
+            }
+
+            if (e.target.closest('.edit-btn')) {
+                const listingId = parseInt(e.target.closest('.edit-btn').dataset.id);
+                this.editListing(listingId);
+            }
+
+            if (e.target.closest('.remove-btn')) {
+                const listingId = parseInt(e.target.closest('.remove-btn').dataset.id);
+                this.removeListing(listingId);
+            }
+
+            if (e.target.closest('.view-order-btn')) {
+                const orderId = e.target.closest('.view-order-btn').dataset.orderId;
+                console.log("View Order ID:", orderId);
+                alert(`Placeholder: View details for Order ID: ${orderId}. You would typically open a modal or navigate.`);
             }
         });
     }
 
     setupCreateTabEventListeners() {
-        // Setup fancy select for category
         const categorySelect = document.getElementById('category-select');
         const categoryOptions = document.getElementById('category-options');
         const selectedCategory = document.getElementById('selected-category');
         const otherCategoryContainer = document.getElementById('other-category-container');
-        const otherCategoryInput = document.getElementById('other-category');
 
         if (categorySelect && categoryOptions) {
             categorySelect.addEventListener('click', () => {
@@ -640,26 +599,15 @@ export default class SellingContents {
                 item.addEventListener('click', () => {
                     const value = item.dataset.value;
                     selectedCategory.textContent = item.querySelector('span:last-child').textContent;
-
-                    // Highlight selected option
                     categoryItems.forEach(opt => opt.classList.remove('selected'));
                     item.classList.add('selected');
-
-                    // Handle "Other" option
-                    if (value === 'other') {
-                        otherCategoryContainer.classList.add('active');
-                    } else {
-                        otherCategoryContainer.classList.remove('active');
-                    }
-
-                    // Close dropdown
+                    otherCategoryContainer.classList.toggle('active', value === 'other');
                     categorySelect.classList.remove('active');
                     categoryOptions.classList.remove('active');
                 });
             });
         }
 
-        // Setup fancy select for condition
         const conditionSelect = document.getElementById('condition-select');
         const conditionOptions = document.getElementById('condition-options');
         const selectedCondition = document.getElementById('selected-condition');
@@ -669,61 +617,42 @@ export default class SellingContents {
                 conditionSelect.classList.toggle('active');
                 conditionOptions.classList.toggle('active');
             });
-
             const conditionItems = conditionOptions.querySelectorAll('.fancy-option');
             conditionItems.forEach(item => {
                 item.addEventListener('click', () => {
                     selectedCondition.textContent = item.querySelector('span:last-child').textContent;
-
-                    // Highlight selected option
                     conditionItems.forEach(opt => opt.classList.remove('selected'));
                     item.classList.add('selected');
-
-                    // Close dropdown
                     conditionSelect.classList.remove('active');
                     conditionOptions.classList.remove('active');
                 });
             });
         }
 
-        // Setup fancy select for brand
         const brandSelect = document.getElementById('brand-select');
         const brandOptions = document.getElementById('brand-options');
         const selectedBrand = document.getElementById('selected-brand');
         const otherBrandContainer = document.getElementById('other-brand-container');
-        const otherBrandInput = document.getElementById('other-brand');
 
         if (brandSelect && brandOptions) {
             brandSelect.addEventListener('click', () => {
                 brandSelect.classList.toggle('active');
                 brandOptions.classList.toggle('active');
             });
-
             const brandItems = brandOptions.querySelectorAll('.fancy-option');
             brandItems.forEach(item => {
                 item.addEventListener('click', () => {
                     const value = item.dataset.value;
                     selectedBrand.textContent = item.querySelector('span:last-child').textContent;
-
-                    // Highlight selected option
                     brandItems.forEach(opt => opt.classList.remove('selected'));
                     item.classList.add('selected');
-
-                    // Handle "Other" option
-                    if (value === 'other') {
-                        otherBrandContainer.classList.add('active');
-                    } else {
-                        otherBrandContainer.classList.remove('active');
-                    }
-
-                    // Close dropdown
+                    otherBrandContainer.classList.toggle('active', value === 'other');
                     brandSelect.classList.remove('active');
                     brandOptions.classList.remove('active');
                 });
             });
         }
 
-        // Setup listing options (shipping/pickup)
         const listingOptions = document.querySelectorAll('.listing-option');
         listingOptions.forEach(option => {
             option.addEventListener('click', () => {
@@ -731,13 +660,11 @@ export default class SellingContents {
                     opt.classList.remove('selected');
                     opt.querySelector('.radio-dot').classList.remove('selected');
                 });
-
                 option.classList.add('selected');
                 option.querySelector('.radio-dot').classList.add('selected');
             });
         });
 
-        // Image upload functionality
         const imageUploadArea = document.getElementById('image-upload-area');
         const imageUploadInput = document.getElementById('image-upload');
         const imagePreviewContainer = document.getElementById('image-preview-container');
@@ -746,35 +673,37 @@ export default class SellingContents {
             imageUploadArea.addEventListener('click', () => {
                 imageUploadInput.click();
             });
-
             imageUploadInput.addEventListener('change', () => {
                 this.handleImageUpload(imageUploadInput, imagePreviewContainer);
             });
         }
 
-        // Remove image button event listener
         document.addEventListener('click', e => {
             if (e.target.closest('.remove-image-btn')) {
                 const imagePreview = e.target.closest('.image-preview');
                 if (imagePreview) {
+                    const imgSrc = imagePreview.querySelector('img').src;
+                    if (this.editingListing && this.editingListing.images) {
+                        this.editingListing.images = this.editingListing.images.filter(url => url !== imgSrc);
+                    }
+                    this.imageFiles = this.imageFiles.filter(file => file.previewUrl !== imgSrc);
                     imagePreview.remove();
                 }
             }
         });
 
-        // Save as draft button
+
         const saveDraftBtn = document.querySelector('.save-draft-btn');
         if (saveDraftBtn) {
             saveDraftBtn.addEventListener('click', () => {
-                if (this.editingListingId) {
-                    this.updateListing(this.editingListingId, true); // Save as draft
+                if (this.isEditing) {
+                    this.updateListing(this.editingListing.id, true);
                 } else {
                     this.saveListing('draft');
                 }
             });
         }
 
-        // Publish button or Update listing button
         const publishBtn = document.querySelector('.publish-btn');
         if (publishBtn) {
             publishBtn.addEventListener('click', () => {
@@ -785,18 +714,16 @@ export default class SellingContents {
         const updateListingBtn = document.querySelector('.update-listing-btn');
         if (updateListingBtn) {
             updateListingBtn.addEventListener('click', () => {
-                this.updateListing(this.editingListingId);
+                this.updateListing(this.editingListing.id);
             });
         }
 
-        // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
-            // Check if click is outside a fancy-select component
             if (!e.target.closest('.fancy-select-container')) {
-                document.querySelectorAll('.fancy-select-options').forEach(dropdown => {
+                document.querySelectorAll('.fancy-select-options.active').forEach(dropdown => {
                     dropdown.classList.remove('active');
                 });
-                document.querySelectorAll('.fancy-select').forEach(select => {
+                document.querySelectorAll('.fancy-select.active').forEach(select => {
                     select.classList.remove('active');
                 });
             }
@@ -808,95 +735,75 @@ export default class SellingContents {
         if (!files || files.length === 0) return;
 
         const maxImages = 8;
-        const currentImages = previewContainer.querySelectorAll('.image-preview').length;
-        const allowedFiles = Math.min(files.length, maxImages - currentImages);
+        const currentImageCount = previewContainer.querySelectorAll('.image-preview').length + this.imageFiles.length;
 
-        if (currentImages >= maxImages) {
-            alert('Maximum 8 images allowed');
+        if (currentImageCount >= maxImages) {
+            alert(`Maximum ${maxImages} images allowed.`);
+            inputElement.value = '';
             return;
         }
 
-        for (let i = 0; i < allowedFiles; i++) {
-            const file = files[i];
-            if (!file.type.startsWith('image/')) continue;
+        const filesToProcess = Array.from(files).slice(0, maxImages - currentImageCount);
+
+        filesToProcess.forEach(file => {
+            if (!file.type.startsWith('image/')) return;
 
             const reader = new FileReader();
             reader.onload = (e) => {
-                const imagePreview = document.createElement('div');
-                imagePreview.className = 'image-preview';
-                imagePreview.innerHTML = `
-                    <img src="${e.target.result}" alt="Product image">
-                    <button type="button" class="remove-image-btn">
-                        <i class='bx bx-x'></i>
-                    </button>
+                const previewUrl = e.target.result;
+                this.imageFiles.push({ file, previewUrl });
+
+                const imagePreviewDiv = document.createElement('div');
+                imagePreviewDiv.className = 'image-preview';
+                imagePreviewDiv.innerHTML = `
+                    <img src="${previewUrl}" alt="Product image">
+                    <button type="button" class="remove-image-btn"><i class='bx bx-x'></i></button>
                 `;
-                previewContainer.appendChild(imagePreview);
+                previewContainer.appendChild(imagePreviewDiv);
             };
             reader.readAsDataURL(file);
-        }
-
-        // Reset input so same file can be selected again
+        });
         inputElement.value = '';
     }
 
     async saveListing(type) {
         const formData = new FormData();
 
-        // Add text data
         formData.append('title', document.getElementById('product-title').value);
         formData.append('description', document.getElementById('product-description').value);
         formData.append('price', document.getElementById('product-price').value);
-        formData.append('quantity', document.getElementById('product-quantity').value); // Added quantity
+        formData.append('quantity', document.getElementById('product-quantity').value);
 
-        // Get category value
         const categoryOption = document.querySelector('#category-options .fancy-option.selected');
         let category = categoryOption ? categoryOption.dataset.value : '';
-        if (category === 'other') {
-            category = document.getElementById('other-category').value;
-        }
+        if (category === 'other') category = document.getElementById('other-category').value;
         formData.append('category', category);
 
-        // Get brand value
         const brandOption = document.querySelector('#brand-options .fancy-option.selected');
         let brand = brandOption ? brandOption.dataset.value : '';
-        if (brand === 'other') {
-            brand = document.getElementById('other-brand').value;
-        }
+        if (brand === 'other') brand = document.getElementById('other-brand').value;
         formData.append('brand', brand);
 
-        // Get condition value
         const conditionOption = document.querySelector('#condition-options .fancy-option.selected');
         const condition = conditionOption ? conditionOption.dataset.value : '';
         formData.append('condition', condition);
 
         formData.append('model', document.getElementById('product-model').value);
 
-        // Get listing option
         const selectedListingOption = document.querySelector('.listing-option.selected');
-        const listingOption = selectedListingOption ? selectedListingOption.dataset.option : 'shipping';
-
-        formData.append('shipping', listingOption === 'shipping' || listingOption === 'both');
-        formData.append('localPickup', listingOption === 'pickup' || listingOption === 'both');
-
-        // Add status (draft or active)
+        const listingOptionValue = selectedListingOption ? selectedListingOption.dataset.option : 'shipping';
+        formData.append('shipping', listingOptionValue === 'shipping' || listingOptionValue === 'both');
+        formData.append('localPickup', listingOptionValue === 'pickup' || listingOptionValue === 'both');
         formData.append('status', type === 'draft' ? 'draft' : 'active');
 
-        // Add images
-        const imagePreviews = document.querySelectorAll('#image-preview-container img');
-        for (let i = 0; i < imagePreviews.length; i++) {
-            const img = imagePreviews[i];
-            if (img.src.startsWith('data:')) {
-                // Convert base64 to blob
-                const blob = await fetch(img.src).then(r => r.blob());
-                formData.append('image[]', blob, `image${i}.jpg`);
-            }
-        }
+        this.imageFiles.forEach((imgData, index) => {
+            formData.append(`images[${index}]`, imgData.file);
+        });
 
-        // Basic validation
         if (!formData.get('title') || !formData.get('category') || !formData.get('condition') ||
             !formData.get('description') || !formData.get('price') || !formData.get('brand') ||
-            !formData.get('model') || !formData.get('quantity') || parseInt(formData.get('quantity')) < 1) { // Added quantity validation
-            alert('Please fill in all required fields and ensure quantity is at least 1.');
+            !formData.get('model') || !formData.get('quantity') || parseInt(formData.get('quantity')) < 0) {
+            alert('Please fill in all required fields. Quantity cannot be negative.');
             return;
         }
 
@@ -905,17 +812,11 @@ export default class SellingContents {
                 method: 'POST',
                 body: formData
             });
-
             const data = await response.json();
-
             if (data.success) {
-                // Update local listings
-                await this.loadListings(); // Reload listings from server
-
-                // Show confirmation
+                await this.loadListings();
                 alert('Listing created successfully!');
-
-                // Switch to active listings tab
+                this.imageFiles = [];
                 this.activeTab = 'active';
                 this.render();
             } else {
@@ -927,56 +828,47 @@ export default class SellingContents {
         }
     }
 
+
     editListing(listingId) {
-        this.editingListingId = listingId;
-        this.activeTab = 'create';
-        this.render();
+        const listingToEdit = this.listings.find(listing => listing.id === listingId);
+        if (listingToEdit) {
+            this.editingListing = { ...listingToEdit };
+            this.isEditing = true;
+            this.activeTab = 'create';
+            this.imageFiles = [];
+            this.render();
+        } else {
+            console.error("Listing not found for editing:", listingId);
+        }
     }
 
     async updateListing(listingId, asDraft = false) {
-        // Get form values (similar to saveListing)
         const title = document.getElementById('product-title').value;
-
-        // Get category from fancy select
         const categoryOption = document.querySelector('#category-options .fancy-option.selected');
         let category = categoryOption ? categoryOption.dataset.value : '';
-        if (category === 'other') {
-            category = document.getElementById('other-category').value;
-        }
+        if (category === 'other') category = document.getElementById('other-category').value;
 
-        // Get condition from fancy select
         const conditionOption = document.querySelector('#condition-options .fancy-option.selected');
         const condition = conditionOption ? conditionOption.dataset.value : '';
-
         const description = document.getElementById('product-description').value;
         const price = parseFloat(document.getElementById('product-price').value);
-        const quantity = parseInt(document.getElementById('product-quantity').value); // Added quantity
+        const quantity = parseInt(document.getElementById('product-quantity').value);
 
-        // Get brand from fancy select
         const brandOption = document.querySelector('#brand-options .fancy-option.selected');
         let brand = brandOption ? brandOption.dataset.value : '';
-        if (brand === 'other') {
-            brand = document.getElementById('other-brand').value;
-        }
-
+        if (brand === 'other') brand = document.getElementById('other-brand').value;
         const model = document.getElementById('product-model').value;
 
-        // Get listing option
         const selectedListingOption = document.querySelector('.listing-option.selected');
-        const listingOption = selectedListingOption ? selectedListingOption.dataset.option : 'shipping';
+        const listingOptionValue = selectedListingOption ? selectedListingOption.dataset.option : 'shipping';
+        const shipping = listingOptionValue === 'shipping' || listingOptionValue === 'both';
+        const localPickup = listingOptionValue === 'pickup' || listingOptionValue === 'both';
 
-        // Determine shipping and local pickup based on listing option
-        const shipping = listingOption === 'shipping' || listingOption === 'both';
-        const localPickup = listingOption === 'pickup' || listingOption === 'both';
-
-        // Basic validation
-        if (!title || !category || !condition ||
-            !description || isNaN(price) || price <= 0 || !brand || !model || isNaN(quantity) || quantity < 1) { // Added quantity validation
-            alert('Please fill in all required fields and ensure quantity is at least 1.');
+        if (!title || !category || !condition || !description || isNaN(price) || price <= 0 || !brand || !model || isNaN(quantity) || quantity < 0) {
+            alert('Please fill in all required fields. Price must be positive. Quantity cannot be negative.');
             return;
         }
 
-        // Create FormData object for the update
         const formData = new FormData();
         formData.append('listing_id', listingId);
         formData.append('title', title);
@@ -986,42 +878,34 @@ export default class SellingContents {
         formData.append('condition', condition);
         formData.append('brand', brand);
         formData.append('model', model);
-        formData.append('quantity', quantity); // Added quantity
+        formData.append('quantity', quantity);
         formData.append('shipping', shipping);
         formData.append('localPickup', localPickup);
-        formData.append('status', asDraft ? 'draft' : 'active');
+        formData.append('status', asDraft ? 'draft' : (quantity === 0 ? 'sold_out' : 'active'));
 
-        // Add images
-        const imagePreviews = document.querySelectorAll('#image-preview-container img');
-        for (let i = 0; i < imagePreviews.length; i++) {
-            const img = imagePreviews[i];
-            if (img.src.startsWith('data:')) {
-                // Convert base64 to blob for new images
-                const blob = await fetch(img.src).then(r => r.blob());
-                formData.append('image[]', blob, `image${i}.jpg`);
-            } else {
-                // For existing images, just send the URL
-                formData.append('existing_images[]', img.src);
-            }
-        }
+        const existingImageElements = document.querySelectorAll('#image-preview-container .image-preview img');
+        const existingImageUrls = Array.from(existingImageElements)
+            .map(img => img.src)
+            .filter(src => !src.startsWith('data:'));
+        existingImageUrls.forEach(url => formData.append('existing_images[]', url));
+
+        this.imageFiles.forEach((imgData, index) => {
+            formData.append(`new_images[${index}]`, imgData.file);
+        });
+
 
         try {
             const response = await fetch('../backend/api/listings/update_listing.php', {
                 method: 'POST',
                 body: formData
             });
-
             const data = await response.json();
-
             if (data.success) {
-                // Update local listing
-                await this.loadListings(); // Reload listings from server
-
-                // Show confirmation
+                await this.loadListings();
                 alert('Listing updated successfully!');
-
-                // Reset editing state and switch back to active listings tab
-                this.editingListingId = null;
+                this.editingListing = null;
+                this.isEditing = false;
+                this.imageFiles = [];
                 this.activeTab = 'active';
                 this.render();
             } else {
@@ -1036,11 +920,9 @@ export default class SellingContents {
     async removeListing(listingId) {
         if (confirm('Are you sure you want to remove this listing?')) {
             try {
-                // Create FormData
                 const formData = new FormData();
                 formData.append('listing_id', listingId);
 
-                // Send delete request to backend
                 const response = await fetch('../backend/api/listings/delete_listing.php', {
                     method: 'POST',
                     body: formData
@@ -1049,16 +931,8 @@ export default class SellingContents {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Find and remove from local listings array
-                    const index = this.listings.findIndex(item => item.id === listingId);
-                    if (index !== -1) {
-                        this.listings.splice(index, 1);
-                    }
-
-                    // Re-render the active listings tab
+                    this.listings = this.listings.filter(item => item.id !== listingId);
                     this.render();
-
-                    // Show success notification
                     this.showNotification({
                         id: listingId,
                         title: 'Listing removed successfully'
@@ -1073,8 +947,7 @@ export default class SellingContents {
         }
     }
 
-    showNotification(listing) {
-        // Create notification container if it doesn't exist
+    showNotification(notificationData) {
         let container = document.querySelector('.notification-container');
         if (!container) {
             container = document.createElement('div');
@@ -1082,16 +955,20 @@ export default class SellingContents {
             document.body.appendChild(container);
         }
 
-        // Create notification element
         const notification = document.createElement('div');
         notification.className = 'notification fade-in';
-        notification.dataset.id = listing.id;
+        notification.dataset.id = notificationData.id || Date.now();
+        const iconClass = notificationData.type === 'error' ? 'bx-error-circle' : 'bx-check-circle';
+        const titleText = notificationData.title || 'Success';
+        const messageText = notificationData.message || 'Operation completed.';
+
 
         notification.innerHTML = `
             <div class="notification-content">
-                <i class='bx bx-check-circle notification-icon'></i>
+                <i class='bx ${iconClass} notification-icon ${notificationData.type === 'error' ? 'error' : ''}'></i>
                 <div class="notification-text">
-                    <p>Listing removed successfully</p>
+                    <p class="notification-title">${titleText}</p>
+                    <p>${messageText}</p>
                 </div>
                 <button class="close-notification-btn">
                     <i class='bx bx-x'></i>
@@ -1100,19 +977,16 @@ export default class SellingContents {
             <div class="notification-progress"></div>
         `;
 
-        // Add to container
         container.appendChild(notification);
 
-        // Set up auto-dismiss timer
         setTimeout(() => {
-            this.removeNotification(listing.id);
-        }, 3000);
+            this.removeNotification(notification.dataset.id);
+        }, 5000);
 
-        // Add event listener for close button
         const closeBtn = notification.querySelector('.close-notification-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
-                this.removeNotification(listing.id);
+                this.removeNotification(notification.dataset.id);
             });
         }
     }
@@ -1122,9 +996,11 @@ export default class SellingContents {
         if (notification) {
             notification.classList.remove('fade-in');
             notification.classList.add('fade-out');
-
             setTimeout(() => {
                 notification.remove();
+                if (!document.querySelector('.notification-container .notification')) {
+                    document.querySelector('.notification-container')?.remove();
+                }
             }, 300);
         }
     }
@@ -1151,8 +1027,7 @@ export default class SellingContents {
             'cameras': 'Cameras',
             'accessories': 'Accessories'
         };
-
-        return categories[value] || value;
+        return categories[value] || value || 'Select a category';
     }
 
     getBrandDisplayName(value) {
@@ -1165,7 +1040,6 @@ export default class SellingContents {
             'jbl': 'JBL',
             'canon': 'Canon'
         };
-
-        return brands[value] || value;
+        return brands[value] || value || 'Select a brand';
     }
 }

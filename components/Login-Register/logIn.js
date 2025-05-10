@@ -173,33 +173,36 @@ export default class LogIn {
         }
     }
 
-    login(username, password, remember) {
+    async login(username, password, remember) {
         const loginBtn = document.querySelector('.btn-login');
         loginBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i><span>Logging in...</span>';
         loginBtn.disabled = true;
 
-        const data = {
+        // Renamed this variable to avoid conflict
+        const requestPayload = {
             username: username,
             password: password
         };
 
-        fetch('../backend/api/auth/login.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+        try {
+            const response = await fetch('../backend/api/auth/login.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestPayload) // Use the renamed variable
+            });
+
+            const responseData = await response.json(); // Use a different name for response data
+
+            if (responseData.success) { // Use responseData here
                 sessionStorage.setItem('user', JSON.stringify({
-                    id: data.user.id,
-                    username: data.user.username,
-                    email: data.user.email,
-                    first_name: data.user.first_name,
-                    last_name: data.user.last_name,
-                    is_admin: data.user.is_admin 
+                    id: responseData.user.id,
+                    username: responseData.user.username,
+                    email: responseData.user.email,
+                    first_name: responseData.user.first_name,
+                    last_name: responseData.user.last_name,
+                    is_admin: responseData.user.is_admin 
                 }));
 
                 if (remember) {
@@ -208,17 +211,16 @@ export default class LogIn {
                     localStorage.removeItem('rememberedUser');
                 }
 
-                window.location.href = 'Home.html';
+                window.location.href = '../HTML-Pages/ExplorePage.html'; 
             } else {
-                throw new Error(data.message || 'Login failed');
+                throw new Error(responseData.message || 'Login failed'); // Use responseData here
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Login error:', error);
             loginBtn.innerHTML = '<i class="bx bx-log-in"></i><span>Log In</span>';
             loginBtn.disabled = false;
             this.showError(error.message || 'Login failed. Please try again.');
-        });
+        }
     }
 
     showError(message) {

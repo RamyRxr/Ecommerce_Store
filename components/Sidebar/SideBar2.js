@@ -19,7 +19,6 @@ export default class SideBar2 {
         const user = JSON.parse(sessionStorage.getItem('user') || '{}');
         this.isAdmin = Boolean(user.is_admin);
 
-        console.log('SideBar2 render - isAdmin:', this.isAdmin);
 
         const sidebarHTML = `
             <div class="sidebar collapsed">
@@ -36,12 +35,6 @@ export default class SideBar2 {
                 </div>
 
                 <ul class="menu">
-                    <li class="${this.activeMenuItem === 'home' ? 'active' : ''}">
-                        <a href="../HTML-Pages/Home.html">
-                            <i class='bx bx-home'></i>
-                            <span class="links_name">Home</span>
-                        </a>
-                    </li>
                     <li class="${this.activeMenuItem === 'explore' ? 'active' : ''}">
                         <a href="../HTML-Pages/ExplorePage.html">
                             <i class='bx bx-compass'></i>

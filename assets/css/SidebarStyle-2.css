@@ -1,6 +1,3 @@
-/* Styling for the explore sidebar - always collapsed */
-
-/* Special styling for the explore sidebar top section */
 .sidebar.collapsed .explore-top {
     display: flex;
     justify-content: center;
@@ -10,7 +7,7 @@
 }
 
 .sidebar.collapsed .explore-top .logo {
-    display: block; /* Override the default hide behavior for collapsed sidebar logo */
+    display: block; 
 }
 
 .sidebar.collapsed .explore-top .logo img {
@@ -21,7 +18,6 @@
     margin: 0 auto;
 }
 
-/* Prevent any accidental expansion methods */
 .sidebar.collapsed #toggle-btn {
     display: none !important;
 }
