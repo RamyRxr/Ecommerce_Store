@@ -13,7 +13,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Simple query to get cart items
     $stmt = $conn->prepare("
         SELECT c.id, c.quantity, p.title, p.price, p.id as product_id
         FROM cart_items c

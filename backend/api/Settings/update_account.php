@@ -17,20 +17,17 @@ try {
     $response = ['success' => false];
 
     if ($action === 'update_personal') {
-        // Validate required fields
         if (empty($_POST['username']) || empty($_POST['first_name']) || 
             empty($_POST['last_name']) || empty($_POST['email'])) {
             throw new Exception('Required fields are missing');
         }
 
-        // Check if email is already used by another user
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
         $stmt->execute([$_POST['email'], $userId]);
         if ($stmt->rowCount() > 0) {
             throw new Exception('Email already in use by another account.');
         }
         
-        // Check if username is already used by another user
         $stmtUser = $conn->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
         $stmtUser->execute([$_POST['username'], $userId]);
         if ($stmtUser->rowCount() > 0) {
@@ -40,16 +37,14 @@ try {
         $profileImagePath = null;
         $oldProfileImagePath = null;
 
-        // Get current profile image path to delete later if a new one is uploaded
         $stmtOldImage = $conn->prepare("SELECT profile_image FROM users WHERE id = ?");
         $stmtOldImage->execute([$userId]);
         $userRow = $stmtOldImage->fetch(PDO::FETCH_ASSOC);
         if ($userRow && $userRow['profile_image']) {
-            $oldProfileImagePath = '../../' . $userRow['profile_image']; // Path relative to this script for deletion
+            $oldProfileImagePath = '../../' . $userRow['profile_image']; 
         }
 
 
-        // Handle profile image upload
         if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == UPLOAD_ERR_OK) {
             $uploadDir = '../../uploads/avatars/';
             if (!file_exists($uploadDir)) {
@@ -62,7 +57,7 @@ try {
                 throw new Exception('Invalid image file type. Allowed types: JPG, JPEG, PNG, GIF.');
             }
 
-            if ($_FILES['profile_image']['size'] > 2 * 1024 * 1024) { // Max 2MB
+            if ($_FILES['profile_image']['size'] > 2 * 1024 * 1024) { 
                 throw new Exception('Image file size exceeds 2MB limit.');
             }
             
@@ -70,9 +65,8 @@ try {
             $targetFilePath = $uploadDir . $fileName;
 
             if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $targetFilePath)) {
-                $profileImagePath = 'uploads/avatars/' . $fileName; // Path to store in DB (relative to backend root)
+                $profileImagePath = 'uploads/avatars/' . $fileName; 
 
-                // Delete old profile picture if a new one is successfully uploaded
                 if ($oldProfileImagePath && file_exists($oldProfileImagePath) && $oldProfileImagePath !== '../../' . $profileImagePath) {
                     unlink($oldProfileImagePath);
                 }
@@ -81,7 +75,6 @@ try {
             }
         }
 
-        // Update personal information
         $sql = "UPDATE users SET 
                     username = :username, 
                     first_name = :first_name, 
@@ -119,7 +112,7 @@ try {
             if ($profileImagePath === null && $stmt->errorInfo()[0] == "00000") {
                     $response['success'] = true;
                     $response['message'] = 'Personal information is already up to date.';
-                    $response['updated_user'] = [ // Still send back current username
+                    $response['updated_user'] = [ 
                         'username' => $_POST['username'],
                         'profile_image' => $userRow ? $userRow['profile_image'] : null
                 ];
@@ -129,7 +122,6 @@ try {
         }
 
     } elseif ($action === 'update_shipping') {
-        // Validate required fields
         if (empty($_POST['address']) || empty($_POST['city']) || 
             empty($_POST['state']) || empty($_POST['zip_code']) || empty($_POST['country'])) {
             throw new Exception('Required shipping fields are missing');

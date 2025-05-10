@@ -1,5 +1,4 @@
 <?php
-// filepath: c:\xampp\htdocs\Project-Web\backend\api\products\get_product_sold_count.php
 session_start();
 require_once '../../config/database.php';
 
@@ -52,7 +51,6 @@ try {
         $response['sold_count'] = (int)$result['total_sold'];
         $response['message'] = 'Sold count fetched successfully.';
     } else {
-        // This case should ideally not happen with COALESCE, but as a fallback
         $response['message'] = 'Could not retrieve sold count.';
     }
 

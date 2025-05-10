@@ -5,14 +5,12 @@ session_start();
 require_once '../../config/database.php';
 
 try {
-    // Check if user is logged in
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
         throw new Exception('User not logged in');
     }
 
     $userId = $_SESSION['user']['id'];
     
-    // Get data from request body
     $data = json_decode(file_get_contents('php://input'), true);
     
     if (!isset($data['order_id']) || !isset($data['rating'])) {
@@ -23,7 +21,6 @@ try {
     $rating = intval($data['rating']);
     $comments = isset($data['comments']) ? $data['comments'] : '';
     
-    // Validate rating
     if ($rating < 1 || $rating > 5) {
         throw new Exception('Rating must be between 1 and 5');
     }
@@ -31,7 +28,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Verify the order belongs to this user
     $orderSql = "SELECT id FROM orders WHERE id = :order_id AND user_id = :user_id AND status = 'delivered'";
     $orderStmt = $conn->prepare($orderSql);
     $orderStmt->bindParam(':order_id', $orderId);
@@ -42,7 +38,6 @@ try {
         throw new Exception('Order not found or not eligible for rating');
     }
     
-    // Check if order has already been rated
     $checkSql = "SELECT id FROM order_ratings WHERE order_id = :order_id";
     $checkStmt = $conn->prepare($checkSql);
     $checkStmt->bindParam(':order_id', $orderId);
@@ -52,7 +47,6 @@ try {
         throw new Exception('This order has already been rated');
     }
     
-    // Add the rating
     $sql = "INSERT INTO order_ratings (order_id, user_id, rating, comments, created_at) 
             VALUES (:order_id, :user_id, :rating, :comments, NOW())";
     

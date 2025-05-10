@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 session_start();
 
-require_once '../../config/database.php'; // Adjust path
+require_once '../../config/database.php'; 
 
 $response = ['success' => false, 'data' => [], 'message' => ''];
 
@@ -19,9 +19,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Fetch sold items for the logged-in seller
-    // Join with products to get title and other details
-    // Join with product_images to get the first image
     $sql = "SELECT 
                 si.id as sold_item_id,
                 si.product_id,
@@ -41,7 +38,6 @@ try {
             JOIN users u_buyer ON si.buyer_id = u_buyer.id 
             WHERE si.seller_id = :seller_id
             ORDER BY si.sold_at DESC";
-            // Consider adding JOIN users u_buyer ON si.buyer_id = u_buyer.id if you need buyer info
 
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':seller_id', $seller_id, PDO::PARAM_INT);
@@ -52,18 +48,15 @@ try {
     $formattedSoldItems = array_map(function($item) {
         $raw_image_path = null;
         if (!empty($item['product_image_url'])) {
-            // Get the first image path if multiple are comma-separated
             $raw_image_path = explode(',', $item['product_image_url'])[0];
         }
 
-        $final_image_path_for_json = ''; // Default to empty string
+        $final_image_path_for_json = ''; 
 
         if ($raw_image_path) {
-            // Check if it's a full URL or already contains a path separator
             if (str_starts_with($raw_image_path, 'http://') || str_starts_with($raw_image_path, 'https://') || str_contains($raw_image_path, '/')) {
                 $final_image_path_for_json = $raw_image_path;
             } else {
-                // If it's just a filename, assume it's in the default 'uploads/products/' directory
                 $final_image_path_for_json = 'uploads/products/' . $raw_image_path;
             }
         }
@@ -78,7 +71,7 @@ try {
             'quantitySold' => (int)$item['quantity_sold'],
             'dateSold' => $item['sold_at'],
             'buyerUsername' => $item['buyer_username'] ?? 'N/A',
-            'images' => [$final_image_path_for_json] // Send the processed path
+            'images' => [$final_image_path_for_json] 
         ];
     }, $soldItems);
 

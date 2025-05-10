@@ -20,7 +20,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // First verify current password
     $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -29,7 +28,6 @@ try {
         throw new Exception('Current password is incorrect');
     }
 
-    // Hash new password and update
     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
     
     $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");

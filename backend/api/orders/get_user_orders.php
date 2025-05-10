@@ -14,8 +14,6 @@ try {
 
     $db = new Database();
     $conn = $db->getConnection();
-    // Ensure PDO throws exceptions for easier debugging
-    // $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Recommended
 
     if ($isAdmin) {
         $sql = "SELECT o.id, o.user_id, u.username, o.shipping_method, o.total_price as totalAmount, 
@@ -68,9 +66,6 @@ try {
             $actualDelivery = clone $orderDate;
             $actualDelivery->modify('+' . rand(5, 10) . ' days'); 
             $order['actualDelivery'] = $actualDelivery->format('Y-m-d H:i:s');
-            // Order rating logic removed. Product ratings are separate.
-            // If you need a placeholder for 'rated' for UI consistency, you can add:
-            // $order['rated'] = false; // Or determine based on product reviews if applicable
         }
 
         if ($order['status'] === 'cancelled') {
@@ -79,17 +74,17 @@ try {
         }
         
         $itemsSql = "SELECT oi.id, oi.product_id, oi.price, oi.quantity, oi.product_title,
-                     (oi.price * oi.quantity) as total,
-                     GROUP_CONCAT(pi.image_url) as images
-                     FROM order_items oi
-                     LEFT JOIN products p ON oi.product_id = p.id
-                     LEFT JOIN product_images pi ON oi.product_id = pi.product_id
-                     WHERE oi.order_id = :order_id
-                     GROUP BY oi.id";
+                        (oi.price * oi.quantity) as total,
+                        GROUP_CONCAT(pi.image_url) as images
+                        FROM order_items oi
+                        LEFT JOIN products p ON oi.product_id = p.id
+                        LEFT JOIN product_images pi ON oi.product_id = pi.product_id
+                        WHERE oi.order_id = :order_id
+                        GROUP BY oi.id";
         
         $itemsStmt = $conn->prepare($itemsSql);
         if (!$itemsStmt) {
-             throw new Exception("Failed to prepare items statement: " . implode(" ", $conn->errorInfo()));
+                throw new Exception("Failed to prepare items statement: " . implode(" ", $conn->errorInfo()));
         }
         $itemsStmt->bindParam(':order_id', $order['id']);
         $itemsStmt->execute();
@@ -115,7 +110,7 @@ try {
     echo json_encode([
         'success' => false,
         'message' => 'Server error in get_user_orders.php: ' . $e->getMessage(),
-        'trace' => $e->getTraceAsString() // Optional: for more detailed debugging during development
+        'trace' => $e->getTraceAsString() 
     ]);
 }
 ?>

@@ -30,16 +30,14 @@ try {
     $condition = $_POST['condition'] ?? null;
     $brand = $_POST['brand'] ?? null;
     $model = $_POST['model'] ?? null;
-    $quantity = $_POST['quantity'] ?? null; // Add quantity
+    $quantity = $_POST['quantity'] ?? null; 
     $shipping = isset($_POST['shipping']) && $_POST['shipping'] === 'true' ? 1 : 0;
     $localPickup = isset($_POST['localPickup']) && $_POST['localPickup'] === 'true' ? 1 : 0;
     $status = $_POST['status'] ?? 'active';
     
-    // Connect to database
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Verify the product exists and belongs to this admin
     $verifyStmt = $conn->prepare("SELECT id FROM products WHERE id = ? AND seller_id = ?");
     $verifyStmt->execute([$listingId, $_SESSION['user']['id']]);
     
@@ -47,12 +45,10 @@ try {
         throw new Exception('You do not have permission to edit this listing');
     }
     
-    // Validate required fields
     if (!$listingId || !$title || !$price || !$category || !$condition || !$brand || !$model || !isset($_POST['quantity']) || intval($_POST['quantity']) < 1) { // Add quantity validation
         throw new Exception('All required fields must be filled, and quantity must be at least 1');
     }
 
-    // Update product using backticks for 'condition' as it's a reserved word
     $sql = "UPDATE products SET 
                 title = ?, 
                 description = ?, 
@@ -61,7 +57,7 @@ try {
                 `condition` = ?, 
                 brand = ?, 
                 model = ?, 
-                quantity = ?, -- Add quantity here
+                quantity = ?, 
                 shipping = ?, 
                 local_pickup = ?, 
                 status = ?, 
@@ -71,25 +67,21 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute([
         $title, $description, $price, $category,
-        $condition, $brand, $model, (int)$quantity, // Add quantity to execute parameters
+        $condition, $brand, $model, (int)$quantity,
         $shipping, $localPickup, $status,
         $listingId, $_SESSION['user']['id']
     ]);
 
-    // Handle new image uploads
     $uploadedImages = [];
     
     if (!empty($_FILES['image']) && is_array($_FILES['image']['name'])) {
-        // Create directory if it doesn't exist
         $uploadDir = '../../uploads/products/';
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
         
-        // Prepare image insert statement
         $imageStmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, ?)");
         
-        // Get count of existing images for display order
         $countStmt = $conn->prepare("SELECT COUNT(*) FROM product_images WHERE product_id = ?");
         $countStmt->execute([$listingId]);
         $displayOrder = $countStmt->fetchColumn();
@@ -99,7 +91,6 @@ try {
                 $fileName = time() . '_' . $_FILES['image']['name'][$i];
                 $filePath = $uploadDir . $fileName;
                 
-                // Move uploaded file
                 if (move_uploaded_file($_FILES['image']['tmp_name'][$i], $filePath)) {
                     $imageUrl = 'backend/uploads/products/' . $fileName;
                     $imageStmt->execute([$listingId, $imageUrl, $displayOrder + $i]);
@@ -109,16 +100,13 @@ try {
         }
     }
     
-    // Handle existing images - if not specified in existing_images, delete them
     if (isset($_POST['existing_images']) && is_array($_POST['existing_images'])) {
         $existingImages = $_POST['existing_images'];
         
-        // Get all current images
         $currentImagesStmt = $conn->prepare("SELECT id, image_url FROM product_images WHERE product_id = ?");
         $currentImagesStmt->execute([$listingId]);
         $currentImages = $currentImagesStmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Delete images that are not in the existing_images list
         $deleteImageStmt = $conn->prepare("DELETE FROM product_images WHERE id = ?");
         
         foreach ($currentImages as $image) {

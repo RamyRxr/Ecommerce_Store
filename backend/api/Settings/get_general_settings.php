@@ -13,7 +13,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Get user settings
     $stmt = $conn->prepare("
         SELECT * FROM user_settings 
         WHERE user_id = ?
@@ -22,7 +21,6 @@ try {
     $stmt->execute([$userId]);
     $settings = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // If no settings exist, create default settings
     if (!$settings) {
         $stmt = $conn->prepare("
             INSERT INTO user_settings (user_id)

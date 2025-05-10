@@ -23,7 +23,6 @@ $response = [
 ];
 
 try {
-    // Fetch basic user data using the actual column names from your schema
     $stmt = $conn->prepare("SELECT id, username, email, first_name, last_name, profile_image, address, city, state, zip_code, country, created_at FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -33,12 +32,10 @@ try {
             'id' => $user['id'],
             'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: $user['username'],
             'username' => $user['username'],
-            // Ensure the path is correct based on where you store images and how your web server is configured
             'image' => $user['profile_image'] ? '../backend/' . $user['profile_image'] : '../assets/images/general-image/RamyRxr.png', 
-            // Construct a display address. The frontend might need adjustment if it expects a very specific format.
-            'address' => trim(implode(', ', array_filter([$user['city'], $user['state']]))), // Simplified display address
-            'fullAddress' => [ // Provide the full address components
-                'street' => $user['address'], // Using the 'address' column for street
+            'address' => trim(implode(', ', array_filter([$user['city'], $user['state']]))), 
+            'fullAddress' => [ 
+                'street' => $user['address'], 
                 'city' => $user['city'],
                 'state' => $user['state'],
                 'zip' => $user['zip_code'],
@@ -50,7 +47,6 @@ try {
             'isAdmin' => $isAdmin
         ];
 
-        // User-specific stats
         $stmtOrders = $conn->prepare("SELECT COUNT(*) as count FROM orders WHERE user_id = ?");
         $stmtOrders->execute([$userId]);
         $response['userStats']['ordersCount'] = (int)$stmtOrders->fetchColumn();
@@ -65,7 +61,6 @@ try {
             $response['userStats']['savedItemsCount'] = (int)$stmtSaved->fetchColumn();
         }
 
-        // Admin-specific stats (if applicable)
         if ($isAdmin) {
             $stmtTotalOrders = $conn->prepare("SELECT COUNT(*) as count FROM orders");
             $stmtTotalOrders->execute();
@@ -75,7 +70,7 @@ try {
             $stmtTotalReviews->execute();
             $response['adminStats']['totalReviewsCount'] = (int)$stmtTotalReviews->fetchColumn();
             
-            $stmtTotalListed = $conn->prepare("SELECT COUNT(*) as count FROM products"); // Assuming 'products' table represents listed items
+            $stmtTotalListed = $conn->prepare("SELECT COUNT(*) as count FROM products"); 
             $stmtTotalListed->execute();
             $response['adminStats']['totalListedItemsCount'] = (int)$stmtTotalListed->fetchColumn();
         }

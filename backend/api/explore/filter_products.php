@@ -8,12 +8,10 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Get current user ID from session
     $currentUserId = $_SESSION['user']['id'] ?? null;
 
     $data = json_decode(file_get_contents('php://input'), true);
     
-    // Basic query to get products
     $sql = "SELECT p.*, 
             GROUP_CONCAT(pi.image_url) as images,
             u.username as seller_name,
@@ -25,7 +23,6 @@ try {
     
     $params = [];
 
-    // Add filter conditions
     if (!empty($data['categories'])) {
         $placeholders = str_repeat('?,', count($data['categories']) - 1) . '?';
         $sql .= " AND p.category IN ($placeholders)";
@@ -61,7 +58,6 @@ try {
     $stmt->execute($params);
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get saved items for the current user (if logged in)
     $savedItems = [];
     if ($currentUserId) {
         $savedStmt = $conn->prepare("SELECT product_id FROM saved_items WHERE user_id = ?");
@@ -69,13 +65,10 @@ try {
         $savedItems = $savedStmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    // Format the products
     $filteredProducts = [];
     foreach ($products as $product) {
-        // Convert comma-separated image URLs to array
         $product['images'] = $product['images'] ? explode(',', $product['images']) : [];
         
-        // Set default rating if not provided
         if (!isset($product['rating'])) {
             $product['rating'] = 0;
         }
@@ -83,7 +76,6 @@ try {
             $product['rating_count'] = 0;
         }
         
-        // Mark as saved if in saved items
         $product['isSaved'] = in_array($product['id'], $savedItems);
         
         $filteredProducts[] = $product;

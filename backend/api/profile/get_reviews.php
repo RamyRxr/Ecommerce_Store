@@ -1,5 +1,4 @@
 <?php
-// filepath: c:\xampp\htdocs\Project-Web\backend\api\profile\get_reviews.php
 header('Content-Type: application/json');
 session_start();
 
@@ -10,7 +9,7 @@ if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
     exit;
 }
 
-$currentUserId = $_SESSION['user']['id']; // Get current user ID for checking likes
+$currentUserId = $_SESSION['user']['id'];
 $isAdmin = isset($_SESSION['user']['is_admin']) ? (bool)$_SESSION['user']['is_admin'] : false;
 
 $db = new Database();
@@ -23,13 +22,12 @@ $success = false;
 try {
     $imageSubQuery = "(SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.display_order ASC, pi.id ASC LIMIT 1)";
     
-    // Subquery to check if the current user liked the review
     $currentUserLikedSubQuery = "(EXISTS(SELECT 1 FROM review_likes rl WHERE rl.review_id = r.id AND rl.user_id = :currentUserId))";
 
     if ($isAdmin) {
         $sql = "SELECT r.id, r.user_id, r.product_id, r.rating, r.review_text, r.created_at as date,
-                        r.likes_count, -- ADDED likes_count
-                        {$currentUserLikedSubQuery} as currentUserLiked, -- ADDED check if current user liked
+                        r.likes_count, 
+                        {$currentUserLikedSubQuery} as currentUserLiked, 
                         u.username as reviewer_username, 
                         u.profile_image as reviewerAvatarUrl,
                         p.title as productName, 
@@ -39,11 +37,11 @@ try {
                 JOIN products p ON r.product_id = p.id
                 ORDER BY r.created_at DESC";
         $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':currentUserId', $currentUserId, PDO::PARAM_INT); // Bind for subquery
+        $stmt->bindParam(':currentUserId', $currentUserId, PDO::PARAM_INT); 
     } else {
         $sql = "SELECT r.id, r.user_id, r.product_id, r.rating, r.review_text, r.created_at as date,
-                        r.likes_count, -- ADDED likes_count
-                        {$currentUserLikedSubQuery} as currentUserLiked, -- ADDED check if current user liked
+                        r.likes_count,
+                        {$currentUserLikedSubQuery} as currentUserLiked, 
                         u.username as reviewer_username,
                         u.profile_image as reviewerAvatarUrl,
                         p.title as productName, 
@@ -54,8 +52,8 @@ try {
                 WHERE r.user_id = :requestingUserId 
                 ORDER BY r.created_at DESC";
         $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':requestingUserId', $currentUserId, PDO::PARAM_INT); // User's own reviews
-        $stmt->bindParam(':currentUserId', $currentUserId, PDO::PARAM_INT); // Bind for subquery
+        $stmt->bindParam(':requestingUserId', $currentUserId, PDO::PARAM_INT); 
+        $stmt->bindParam(':currentUserId', $currentUserId, PDO::PARAM_INT); 
     }
     
     $stmt->execute();
@@ -71,15 +69,13 @@ try {
             'productImage' => $productImageToReturn, 
             'rating' => (int)$review['rating'],
             'date' => date('F j, Y', strtotime($review['date'])),
-            'reviewText' => $review['review_text'],
-            // 'helpful' => 0, // You can decide if you still need this
-            // 'verified' => false, 
+            'reviewText' => $review['review_text'], 
             'productId' => $review['product_id'],
             'userId' => $review['user_id'],
             'reviewerUsername' => $review['reviewer_username'] ?? null,
             'reviewerAvatarUrl' => $review['reviewerAvatarUrl'] ?? null,
-            'likes_count' => (int)$review['likes_count'], // ADDED
-            'currentUserLiked' => (bool)$review['currentUserLiked'] // ADDED
+            'likes_count' => (int)$review['likes_count'],
+            'currentUserLiked' => (bool)$review['currentUserLiked'] 
         ];
     }
     $success = true;

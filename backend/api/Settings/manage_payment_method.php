@@ -16,18 +16,15 @@ try {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
-        // Validate required fields
         if (empty($_POST['card_type']) || empty($_POST['card_number']) || 
             empty($_POST['expiry_month']) || empty($_POST['expiry_year']) || 
             empty($_POST['card_holder'])) {
             throw new Exception('All fields are required');
         }
 
-        // Get last 4 digits of card number
         $cardNumber = preg_replace('/\D/', '', $_POST['card_number']);
         $last_four = substr($cardNumber, -4);
 
-        // Insert new payment method
         $stmt = $conn->prepare("
             INSERT INTO payment_methods (
                 user_id, card_type, last_four, 

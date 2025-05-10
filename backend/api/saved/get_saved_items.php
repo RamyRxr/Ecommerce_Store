@@ -13,7 +13,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Get saved items with complete product details
     $sql = "SELECT s.id as saved_id, s.product_id, p.*, GROUP_CONCAT(pi.image_url) as images
             FROM saved_items s
             JOIN products p ON s.product_id = p.id
@@ -26,15 +25,14 @@ try {
     $stmt->execute([$userId]);
     $savedItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Format the data
     foreach ($savedItems as &$item) {
         $item['images'] = $item['images'] ? explode(',', $item['images']) : [];
-        $item['id'] = $item['product_id']; // Ensure id is product_id for frontend
-        $item['saved_id'] = intval($item['saved_id']); // Keep saved_id for deletion
+        $item['id'] = $item['product_id']; 
+        $item['saved_id'] = intval($item['saved_id']); 
         $item['price'] = floatval($item['price']);
         $item['rating'] = floatval($item['rating'] ?? 0);
         $item['rating_count'] = intval($item['rating_count'] ?? 0);
-        $item['name'] = $item['title']; // Map title to name for frontend
+        $item['name'] = $item['title']; 
     }
 
     echo json_encode([

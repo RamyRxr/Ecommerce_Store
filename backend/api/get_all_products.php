@@ -8,10 +8,8 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Get current user ID from session
     $currentUserId = $_SESSION['user']['id'] ?? null;
 
-    // Get all active products
     $sql = "SELECT p.*, 
             GROUP_CONCAT(pi.image_url) as images,
             u.username as seller_name,
@@ -27,12 +25,9 @@ try {
     $stmt->execute();
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Process products to format images array
     foreach ($products as &$product) {
-        // Convert comma-separated image URLs to array
         $product['images'] = $product['images'] ? explode(',', $product['images']) : [];
         
-        // Set default rating if not provided
         if (!isset($product['rating'])) {
             $product['rating'] = 0;
         }

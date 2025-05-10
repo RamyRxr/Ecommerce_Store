@@ -17,7 +17,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Delete the cart item
     $stmt = $conn->prepare("DELETE FROM cart_items WHERE id = ? AND user_id = ?");
     $stmt->execute([$itemId, $_SESSION['user']['id']]);
 

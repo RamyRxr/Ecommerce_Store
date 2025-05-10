@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 session_start();
 
-require_once '../../config/database.php'; // Adjust path as needed
+require_once '../../config/database.php'; 
 
 try {
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
@@ -15,13 +15,12 @@ try {
         throw new Exception('Item ID and quantity change are required');
     }
 
-    $item_id = (int)$data['item_id']; // This is cart_item.id
+    $item_id = (int)$data['item_id']; 
     $quantity_change = (int)$data['quantity_change'];
 
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Get current cart item and product stock
     $stmt_check = $conn->prepare("
         SELECT ci.quantity AS current_cart_quantity, ci.product_id, p.quantity AS available_stock
         FROM cart_items ci
@@ -42,18 +41,15 @@ try {
     
     $new_quantity = $current_cart_quantity + $quantity_change;
 
-    // Ensure quantity doesn't go below 1
     if ($new_quantity < 1) {
         $new_quantity = 1;
     }
 
-    // Ensure quantity doesn't exceed available stock
     if ($new_quantity > $available_stock) {
         $new_quantity = $available_stock;
         $message = 'Quantity adjusted to available stock.';
     }
 
-    // Update the cart item quantity
     $stmt_update = $conn->prepare("UPDATE cart_items SET quantity = :new_quantity WHERE id = :item_id AND user_id = :user_id");
     $stmt_update->bindParam(':new_quantity', $new_quantity);
     $stmt_update->bindParam(':item_id', $item_id);
@@ -63,13 +59,13 @@ try {
         echo json_encode([
             'success' => true, 
             'message' => $message ?? 'Quantity updated successfully',
-            'new_quantity' => $new_quantity // Send back the actual new quantity
+            'new_quantity' => $new_quantity 
         ]);
     } else {
         throw new Exception('Failed to update quantity in database');
     }
 
 } catch (Exception $e) {
-    http_response_code(400); // Or 500 for server errors
+    http_response_code(400);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

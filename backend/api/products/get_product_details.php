@@ -1,5 +1,4 @@
 <?php
-// filepath: c:\xampp\htdocs\Project-Web\backend\api\products\get_product_details.php
 session_start();
 require_once '../../config/database.php';
 
@@ -77,7 +76,6 @@ try {
             $product['images'] = [];
         }
         
-        // Ensure numeric types are correct
         $product['id'] = (int)$product['id'];
         $product['price'] = (float)$product['price'];
         $product['original_price'] = $product['original_price'] ? (float)$product['original_price'] : null;

@@ -15,18 +15,15 @@ try {
     
     $type = $_POST['type'] ?? '';
 
-    // First check if user has settings
     $stmt = $conn->prepare("SELECT id FROM user_settings WHERE user_id = ?");
     $stmt->execute([$userId]);
     
     if (!$stmt->fetch()) {
-        // Create default settings if they don't exist
         $stmt = $conn->prepare("INSERT INTO user_settings (user_id) VALUES (?)");
         $stmt->execute([$userId]);
     }
 
     if ($type === 'notifications') {
-        // Convert checkbox values to boolean integers
         $orderUpdates = isset($_POST['order_updates']) ? 1 : 0;
         $promotions = isset($_POST['promotions']) ? 1 : 0;
         $newsletter = isset($_POST['newsletter']) ? 1 : 0;

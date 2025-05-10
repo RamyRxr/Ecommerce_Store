@@ -5,14 +5,12 @@ session_start();
 require_once '../../config/database.php';
 
 try {
-    // Check if user is logged in
     if (!isset($_SESSION['user']) || !isset($_SESSION['user']['id'])) {
         throw new Exception('User not logged in');
     }
 
     $userId = $_SESSION['user']['id'];
     
-    // Get data from request body
     $data = json_decode(file_get_contents('php://input'), true);
     
     if (!isset($data['order_id']) || !isset($data['status'])) {
@@ -23,7 +21,6 @@ try {
     $status = $data['status'];
     $reason = isset($data['reason']) ? $data['reason'] : '';
     
-    // Only allow users to cancel orders
     if ($status !== 'cancelled') {
         throw new Exception('Invalid status update request');
     }
@@ -31,7 +28,6 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Verify the order belongs to this user and is in a status that can be cancelled
     $orderSql = "SELECT id, status FROM orders WHERE id = :order_id AND user_id = :user_id";
     $orderStmt = $conn->prepare($orderSql);
     $orderStmt->bindParam(':order_id', $orderId);
@@ -48,7 +44,6 @@ try {
         throw new Exception('Only pending orders can be cancelled');
     }
     
-    // Update the order status
     $updateSql = "UPDATE orders SET 
                     status = :status, 
                     cancellation_reason = :reason,
