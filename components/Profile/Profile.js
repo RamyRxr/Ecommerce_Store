@@ -238,17 +238,22 @@ export default class Profile {
     }
 
     renderReviewsTab() {
-        if (this.reviewsData.length === 0) {
+        if (!this.reviewsData || this.reviewsData.length === 0) {
+            const message = this.currentUser.isAdmin 
+                ? "No reviews found across all users." 
+                : "You haven't written any reviews yet. Your product reviews will appear here once you share your thoughts.";
+            const actionText = this.currentUser.isAdmin ? "View All Products" : "Browse Products";
+
             return `
                 <div class="empty-state">
                     <div class="empty-state-icon">
                         <i class='bx bx-star'></i>
                     </div>
                     <h3 class="empty-state-title">No Reviews Yet</h3>
-                    <p class="empty-state-message">You haven't written any reviews yet. Your product reviews will appear here once you share your thoughts.</p>
+                    <p class="empty-state-message">${message}</p>
                     <a href="../HTML-Pages/HomePage.html" class="empty-state-action">
                         <i class='bx bx-shopping-bag'></i>
-                        Browse Products
+                        ${actionText}
                     </a>
                 </div>
             `;
@@ -262,36 +267,45 @@ export default class Profile {
             ).join('');
 
             const displayImageSrc = this.getDisplayImageUrl(review.productImage);
+            
+            const likesCount = review.likes_count || 0;
+            const currentUserLikedThisReview = review.currentUserLiked || false;
+            const likeIconClass = currentUserLikedThisReview ? 'bxs-like' : 'bx-like';
+
+            // Determine if the current user is the author of the review
+            const isOwnReview = this.currentUser.id === review.userId;
 
             return `
                 <div class="review-item" data-id="${review.id}">
                     <div class="review-item-header">
                         <div class="product-image">
-                            <img src="${displayImageSrc}" alt="${review.productName}">
+                            <img src="${displayImageSrc}" alt="${review.productName || 'Product'}">
                         </div>
                         <div class="review-details">
-                            <h3 class="product-name">${review.productName}</h3>
+                            <h3 class="product-name">${review.productName || 'N/A'}</h3>
                             <div class="rating-date">
                                 <div class="stars">${stars}</div>
                                 <div class="review-date">${review.date}</div>
                             </div>
+                            ${this.currentUser.isAdmin && review.reviewerUsername ? `<div class="reviewer-info-admin">Reviewed by: <strong>${review.reviewerUsername}</strong></div>` : ''}
                         </div>
                     </div>
                     
                     <div class="review-text">
-                        <p class="review-content">${review.reviewText}</p>
+                        <p class="review-content">${review.reviewText || 'No review text.'}</p>
                     </div>
                     
                     <div class="review-actions">
-                        <div class="helpful">
-                            <i class='bx bx-like'></i>
-                            <span>${review.helpful} found this helpful</span>
+                        <div class="likes-display">
+                            <i class='bx ${likeIconClass}'></i>
+                            <span>${likesCount} ${likesCount === 1 ? 'Like' : 'Likes'}</span>
                         </div>
                         <div class="action-buttons">
                             <button class="view-product-btn" data-product-id="${review.productId}">
                                 <i class='bx bx-link-external'></i>
                                 View Product
                             </button>
+                            ${isOwnReview || this.currentUser.isAdmin ? `
                             <button class="edit-review-btn" data-review-id="${review.id}">
                                 <i class='bx bx-edit'></i>
                                 Edit
@@ -300,6 +314,7 @@ export default class Profile {
                                 <i class='bx bx-trash'></i>
                                 Delete
                             </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>

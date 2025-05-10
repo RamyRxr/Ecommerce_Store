@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS payment_methods;
 DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS review_likes;
 DROP TABLE IF EXISTS sold_items;
 DROP TABLE IF EXISTS order_ratings;
 DROP TABLE IF EXISTS cancelled_orders_log;
@@ -77,10 +78,22 @@ CREATE TABLE reviews (
     product_id INT NOT NULL,
     rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
     review_text TEXT,
+    likes_count INT DEFAULT 0, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+-- Create review_likes table
+CREATE TABLE review_likes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    review_id INT NOT NULL,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_review_like (user_id, review_id) -- Ensures a user can like a review only once
 );
 
 -- Create order_ratings table
@@ -231,6 +244,7 @@ CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_payment_methods_user ON payment_methods(user_id);
 CREATE INDEX idx_user_settings_user ON user_settings(user_id);
 CREATE INDEX idx_reviews_user_product ON reviews(user_id, product_id);
+CREATE INDEX idx_review_likes_review_user ON review_likes(review_id, user_id);
 CREATE INDEX idx_order_ratings_order_user ON order_ratings(order_id, user_id);
 
 

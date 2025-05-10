@@ -375,6 +375,8 @@ body.item-details-page {
     padding: 22px;
     box-shadow: var(--card-shadow);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
+    display: flex; /* Added for footer alignment */
+    flex-direction: column; /* Added for footer alignment */
 }
 .review-card:hover {
     transform: translateY(-4px);
@@ -432,61 +434,73 @@ body.item-details-page {
     font-size: 14.5px;
     line-height: 1.65;
     color: var(--text-dark);
+    flex-grow: 1; /* Allow text to take available space */
+    margin-bottom: 15px; /* Add some space before footer */
 }
 
-.no-reviews {
-    text-align: center;
-    padding: 45px 25px;
-    font-size: 16px;
-    color: var(--text-secondary-light);
-    background-color: #f9fafb;
-    border-radius: var(--card-radius);
-    border: 1px dashed var(--border-light);
-}
-.no-reviews i {
-    font-size: 36px;
-    margin-bottom: 15px;
-    display: block;
-    color: var(--border-light);
-}
-
-.item-details-loading,
-.item-details-error {
+.review-footer {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 60px 25px;
-    text-align: center;
+    justify-content: flex-start; /* Align items to the start */
+    margin-top: auto; /* Pushes footer to the bottom if card has fixed height or content varies */
+    padding-top: 10px;
+    border-top: 1px solid var(--border-light); /* Optional: separator */
+}
+
+.like-review-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-light);
     color: var(--text-secondary-light);
-}
-.item-details-loading i,
-.item-details-error i {
-    font-size: 50px; 
-    color: var(--accent);
-    margin-bottom: 20px;
-}
-.item-details-loading p,
-.item-details-error p {
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-.retry-button {
-    padding: 11px 25px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-    color: var(--text-light);
-    border: none;
+    padding: 6px 12px;
     border-radius: var(--card-radius);
-    font-size: 16px;
-    font-weight: 500;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
     transition: all 0.2s ease;
-    box-shadow: 0 3px 8px rgba(var(--accent-rgb), 0.2);
 }
-.retry-button:hover {
-    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-    transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(var(--accent-rgb), 0.3);
+
+.like-review-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background-color: rgba(var(--accent-rgb), 0.05);
+}
+
+.like-review-btn.liked {
+    border-color: var(--accent);
+    color: var(--accent);
+    background-color: rgba(var(--accent-rgb), 0.1);
+}
+
+.like-review-btn i {
+    font-size: 18px; /* Adjust icon size */
+}
+
+.like-review-btn .like-count {
+    font-weight: 500;
+}
+
+/* Dark Mode Styles for Like Button */
+body.dark-mode .review-footer {
+    border-top-color: var(--border-dark);
+}
+
+body.dark-mode .like-review-btn {
+    border-color: var(--border-dark);
+    color: var(--text-secondary-dark);
+}
+
+body.dark-mode .like-review-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background-color: rgba(var(--accent-rgb), 0.1);
+}
+
+body.dark-mode .like-review-btn.liked {
+    border-color: var(--accent);
+    color: var(--accent);
+    background-color: rgba(var(--accent-rgb), 0.15);
 }
 
 body.dark-mode .item-details-page {

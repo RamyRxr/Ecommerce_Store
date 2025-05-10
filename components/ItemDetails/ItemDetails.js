@@ -284,39 +284,34 @@ class ItemDetails {
     
     renderReviews() {
         if (!Array.isArray(this.reviews) || this.reviews.length === 0) {
-            // Updated message to reflect potential filtering or auth issues
             return '<p class="no-reviews">No reviews found for this product, or you may need to log in to see reviews.</p>';
         }
         
-        // This processAvatarPath function will handle the avatar URLs
         const processAvatarPath = (avatarPathString) => {
              if (!avatarPathString || typeof avatarPathString !== 'string' || avatarPathString.trim() === '') {
-                // Use a generic placeholder if no specific avatar path is provided or if it's invalid.
-                // Ensure 'generic-avatar.png' (or your chosen default) exists in the specified path.
                 return '../assets/images/general-image/generic-avatar.png'; 
             }
             const pathStr = avatarPathString.replace(/\\/g, '/').trim();
-            if (pathStr.startsWith('http://') || pathStr.startsWith('https://')) return pathStr; // Absolute URL
-            if (pathStr.startsWith('backend/')) return `../${pathStr}`; // Path relative from project root
-            // Assuming paths like 'uploads/users/avatar.jpg' or just 'avatar.jpg' (from profile_image)
-            // should be prefixed to point to the backend uploads folder.
+            if (pathStr.startsWith('http://') || pathStr.startsWith('https://')) return pathStr;
+            if (pathStr.startsWith('backend/')) return `../${pathStr}`;
+            if (pathStr.startsWith('uploads/users/')) return `../backend/${pathStr}`; 
             if (pathStr.startsWith('uploads/')) return `../backend/${pathStr}`; 
-            return `../backend/uploads/users/${pathStr}`; // Default assumption for a filename
+            return `../backend/uploads/users/${pathStr}`; 
         };
 
         return `
             <div class="product-reviews-list">
                 ${this.reviews.map(review => {
-                    // Use reviewerAvatarUrl and reviewerUsername from the review object (provided by modified get_reviews.php)
                     const avatarSrc = processAvatarPath(review.reviewerAvatarUrl);
-                    const reviewerName = review.reviewerUsername || 'User'; // Fallback name
-
-                    // 'date' and 'reviewText' are also from the review object
+                    const reviewerName = review.reviewerUsername || 'User';
                     const reviewDate = review.date; 
                     const reviewContent = review.reviewText || '';
+                    const likesCount = review.likes_count || 0;
+                    // currentUserLiked should come from get_reviews.php
+                    const userLikedThisReview = review.currentUserLiked || false; 
 
                     return `
-                        <div class="review-card">
+                        <div class="review-card" data-review-id="${review.id}">
                             <div class="review-header">
                                 <div class="reviewer-info">
                                     <img src="${avatarSrc}" alt="${reviewerName}" class="reviewer-avatar">
@@ -328,6 +323,12 @@ class ItemDetails {
                                 ${this.renderStars(parseFloat(review.rating))}
                             </div>
                             <p class="review-text">${reviewContent}</p>
+                            <div class="review-footer">
+                                <button class="like-review-btn ${userLikedThisReview ? 'liked' : ''}" data-review-id="${review.id}">
+                                    <i class='bx ${userLikedThisReview ? 'bxs-like' : 'bx-like'}'></i> 
+                                    <span class="like-count">${likesCount}</span>
+                                </button>
+                            </div>
                         </div>
                     `;
                 }).join('')}
@@ -370,6 +371,20 @@ class ItemDetails {
                 }
             });
         });
+
+        // ADDED: Listener for like buttons
+        const reviewList = this.container.querySelector('.product-reviews-list');
+        if (reviewList) {
+            reviewList.addEventListener('click', (event) => {
+                const likeButton = event.target.closest('.like-review-btn');
+                if (likeButton) {
+                    const reviewId = likeButton.dataset.reviewId;
+                    if (reviewId) {
+                        this.handleLikeReview(reviewId, likeButton);
+                    }
+                }
+            });
+        }
     }
 
     async handleAddToCart() {
@@ -476,6 +491,81 @@ class ItemDetails {
             }
             document.dispatchEvent(new CustomEvent('updateSavedBadge'));
             alert(error.message || 'An error occurred while saving the item.');
+        }
+    }
+
+    async handleLikeReview(reviewId, buttonElement) {
+        if (!this.user || !this.user.id) {
+            alert('Please log in to like reviews.');
+            // Optionally redirect: window.location.href = '../HTML-Pages/LoginPage.html';
+            return;
+        }
+
+        const icon = buttonElement.querySelector('i');
+        const countSpan = buttonElement.querySelector('.like-count');
+        let currentLikes = parseInt(countSpan.textContent);
+        let currentlyLiked = buttonElement.classList.contains('liked');
+
+        // Optimistic UI update
+        if (currentlyLiked) {
+            buttonElement.classList.remove('liked');
+            icon.className = 'bx bx-like';
+            countSpan.textContent = Math.max(0, currentLikes - 1);
+        } else {
+            buttonElement.classList.add('liked');
+            icon.className = 'bx bxs-like';
+            countSpan.textContent = currentLikes + 1;
+        }
+        // buttonElement.disabled = true; // Optional: disable while processing
+
+        try {
+            const response = await fetch('../backend/api/products/like_review.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ review_id: reviewId })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                // Update UI with confirmed data from server
+                buttonElement.classList.toggle('liked', data.currentUserLiked);
+                icon.className = data.currentUserLiked ? 'bx bxs-like' : 'bx bx-like';
+                countSpan.textContent = data.likes_count;
+
+                // Update the local reviews array if needed for consistency
+                const reviewIndex = this.reviews.findIndex(r => String(r.id) === String(reviewId));
+                if (reviewIndex > -1) {
+                    this.reviews[reviewIndex].likes_count = data.likes_count;
+                    this.reviews[reviewIndex].currentUserLiked = data.currentUserLiked;
+                }
+            } else {
+                // Revert optimistic update on failure
+                alert(data.message || 'Failed to update like.');
+                if (currentlyLiked) { // Was liked, tried to unlike, failed
+                    buttonElement.classList.add('liked');
+                    icon.className = 'bx bxs-like';
+                    countSpan.textContent = currentLikes; // Revert to original count before -1
+                } else { // Was not liked, tried to like, failed
+                    buttonElement.classList.remove('liked');
+                    icon.className = 'bx bx-like';
+                    countSpan.textContent = currentLikes; // Revert to original count before +1
+                }
+            }
+        } catch (error) {
+            console.error('Error liking review:', error);
+            alert('An error occurred.');
+            // Revert optimistic update on error
+             if (currentlyLiked) {
+                buttonElement.classList.add('liked');
+                icon.className = 'bx bxs-like';
+                countSpan.textContent = currentLikes;
+            } else {
+                buttonElement.classList.remove('liked');
+                icon.className = 'bx bx-like';
+                countSpan.textContent = currentLikes;
+            }
+        } finally {
+            // buttonElement.disabled = false; // Re-enable button
         }
     }
 }
