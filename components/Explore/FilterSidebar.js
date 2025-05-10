@@ -14,15 +14,14 @@ export default class FilterSidebar {
             'Intel', 'AMD', 'Nvidia', 'Western Digital', 'SanDisk'
         ];
         this.minPrice = 0;
-        this.maxPrice = 10000; // Increased to 10,000 for high-end electronics
+        this.maxPrice = 10000;
         this.currentMinPrice = 0;
-        this.currentMaxPrice = 10000; // Default max also increased
+        this.currentMaxPrice = 10000;
         this.isUnlimited = false;
         this.init();
     }
 
     async init() {
-        // We'll skip the dynamic fetch and use our predefined lists
         this.render();
         this.setupEventListeners();
     }
@@ -48,11 +47,9 @@ export default class FilterSidebar {
                 </div>
                 
                 <div class="filter-section">
-
                     <div class="Categoris-header">
                         <h2>Price Range</h2>
                     </div>
-
                     <div class="price-slider-container">
                         <div class="price-range-track">
                             <div class="price-range-progress"></div>
@@ -81,11 +78,9 @@ export default class FilterSidebar {
                 </div>
                 
                 <div class="filter-section">
-
                     <div class="Categoris-header">
                         <h2>Brand</h2>
                     </div>
-
                     ${this.brands.map(brand => `
                         <div>
                             <input type="checkbox" id="brand-${brand.toLowerCase().replace(/\s+/g, '-')}" name="brand" value="${brand}"> 
@@ -95,11 +90,9 @@ export default class FilterSidebar {
                 </div>
                 
                 <div class="filter-section">
-
                     <div class="Categoris-header">
                         <h2>Rating</h2>
                     </div>
-                    
                     <div class="rating-options">
                         <div>
                             <input type="radio" id="rating-any" name="rating" value="0" checked> 
@@ -123,6 +116,16 @@ export default class FilterSidebar {
                         </div>
                     </div>
                 </div>
+
+                <div class="filter-section">
+                    <div class="Categoris-header">
+                        <h2>Availability</h2>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="show-out-of-stock" name="availability" checked>
+                        <label for="show-out-of-stock">Include out of stock</label>
+                    </div>
+                </div>
                 
                 <button id="apply-filters" class="apply-button">Apply Filters</button>
                 <button id="reset-filters" class="reset-button">Reset</button>
@@ -133,7 +136,6 @@ export default class FilterSidebar {
         filterContainer.className = 'filter-sidebar';
         filterContainer.innerHTML = filterHTML;
 
-        // Check if filter sidebar already exists
         const existingFilter = document.querySelector('.filter-sidebar');
         if (existingFilter) {
             existingFilter.replaceWith(filterContainer);
@@ -143,7 +145,6 @@ export default class FilterSidebar {
     }
 
     setupEventListeners() {
-        // Price range slider functionality
         const minPriceRange = document.getElementById('min-price-range');
         const maxPriceRange = document.getElementById('max-price-range');
         const minPrice = document.getElementById('min-price');
@@ -152,11 +153,9 @@ export default class FilterSidebar {
         const rangeProgress = document.querySelector('.price-range-progress');
         const unlimitedCheckbox = document.getElementById('unlimited-price');
 
-        // Initialize the range progress bar
         this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
 
         if (minPriceRange && maxPriceRange && minPrice && maxPrice && priceDisplay && rangeProgress) {
-            // Sync range sliders with input fields and update display
             minPriceRange.addEventListener('input', () => {
                 const minVal = parseInt(minPriceRange.value);
                 let maxVal = this.isUnlimited ? this.maxPrice : parseInt(maxPriceRange.value);
@@ -189,7 +188,6 @@ export default class FilterSidebar {
                 });
             }
 
-            // Sync input fields with range sliders
             minPrice.addEventListener('change', () => {
                 const minVal = parseInt(minPrice.value);
                 let maxVal = this.isUnlimited ? this.maxPrice : parseInt(maxPrice.value);
@@ -229,23 +227,20 @@ export default class FilterSidebar {
             }
         }
 
-        // Handle unlimited price option
         if (unlimitedCheckbox && maxPrice && maxPriceRange) {
             unlimitedCheckbox.addEventListener('change', () => {
                 this.isUnlimited = unlimitedCheckbox.checked;
 
                 if (this.isUnlimited) {
-                    // Enable unlimited mode
                     maxPrice.disabled = true;
                     maxPriceRange.disabled = true;
-                    maxPrice.value = this.maxPrice; // Keep the numerical value for the filter
+                    maxPrice.value = this.maxPrice;
                     maxPriceRange.value = this.maxPrice;
 
                     if (priceDisplay) {
                         priceDisplay.textContent = `$${minPrice.value} - Unlimited`;
                     }
                 } else {
-                    // Disable unlimited mode
                     maxPrice.disabled = false;
                     maxPriceRange.disabled = false;
 
@@ -253,28 +248,26 @@ export default class FilterSidebar {
                         priceDisplay.textContent = `$${minPrice.value} - $${maxPrice.value}`;
                     }
                 }
-
-                // Update the progress bar
                 this.updateRangeProgress(minPriceRange, maxPriceRange, rangeProgress);
             });
         }
 
-        // Reset filters
         const resetButton = document.getElementById('reset-filters');
         if (resetButton) {
             resetButton.addEventListener('click', () => {
                 this.resetAllFilters();
-
-                // Trigger custom event for product grid to update
-                document.dispatchEvent(new CustomEvent('filtersReset'));
+                document.dispatchEvent(new CustomEvent('resetAllFiltersInSidebar'));
             });
         }
 
-        // Apply filters
+        document.addEventListener('resetAllFiltersInSidebar', () => {
+            this.resetAllFilters();
+        });
+
         const applyButton = document.getElementById('apply-filters');
         if (applyButton) {
             applyButton.addEventListener('click', async () => {
-                // Get selected filters
+                const showOutOfStockCheckbox = document.getElementById('show-out-of-stock');
                 const filters = {
                     categories: Array.from(document.querySelectorAll('input[name="category"]:checked')).map(el => el.value),
                     brands: Array.from(document.querySelectorAll('input[name="brand"]:checked')).map(el => el.value),
@@ -283,46 +276,29 @@ export default class FilterSidebar {
                         min: parseInt(document.getElementById('min-price').value) || 0,
                         max: document.getElementById('unlimited-price').checked ? 'unlimited' :
                             parseInt(document.getElementById('max-price').value)
-                    }
+                    },
+                    showOutOfStock: showOutOfStockCheckbox ? showOutOfStockCheckbox.checked : true
                 };
 
-                try {
-                    const response = await fetch('../backend/api/explore/filter_products.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(filters)
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        // Dispatch event with filtered products
-                        document.dispatchEvent(new CustomEvent('filtersApplied', {
-                            detail: {
-                                products: data.data.products
-                            }
-                        }));
-                    } else {
-                        throw new Error(data.message);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Failed to apply filters');
-                }
+                document.dispatchEvent(new CustomEvent('filtersAppliedFromSidebar', {
+                    detail: { filters }
+                }));
             });
         }
     }
 
     resetAllFilters() {
-        // Reset checkboxes
         document.querySelectorAll('input[name="category"]:checked, input[name="brand"]:checked').forEach(checkbox => {
             checkbox.checked = false;
         });
 
-        // Reset radio buttons - set "Any rating" as checked
-        document.getElementById('rating-any').checked = true;
+        const ratingAny = document.getElementById('rating-any');
+        if (ratingAny) ratingAny.checked = true;
 
-        // Reset unlimited checkbox and ranges
+        const showOutOfStockCheckbox = document.getElementById('show-out-of-stock');
+        if (showOutOfStockCheckbox) showOutOfStockCheckbox.checked = true;
+
+
         const unlimitedCheckbox = document.getElementById('unlimited-price');
         const minPriceRange = document.getElementById('min-price-range');
         const maxPriceRange = document.getElementById('max-price-range');
@@ -336,7 +312,6 @@ export default class FilterSidebar {
             this.isUnlimited = false;
         }
 
-        // Reset price range
         if (minPriceRange && maxPriceRange && minPrice && maxPrice && priceDisplay && rangeProgress) {
             minPriceRange.value = this.minPrice;
             maxPriceRange.value = this.maxPrice;

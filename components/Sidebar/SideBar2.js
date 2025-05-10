@@ -24,7 +24,7 @@ export default class SideBar2 {
             <div class="sidebar collapsed">
                 <div class="explore-top">
                     <span class="logo">
-                        <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR" class="logo-img">
+                        <img src="../assets/images/RamyRxr.png" alt="RamyRXR" class="logo-img">
                     </span>
                 </div>
 
@@ -87,7 +87,7 @@ export default class SideBar2 {
 
                 <div class="profile">
                     <div class="profile-details">
-                        <img src="../assets/images/general-image/RamyRxr.png" alt="RamyRXR">
+                        <img src="../assets/images/RamyRxr.png" alt="RamyRXR">
                         <div class="info">
                             <span id="username-display">User</span>
                             <small id="role-display">${this.isAdmin ? 'Administrator' : 'Customer'}</small>

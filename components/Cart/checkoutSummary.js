@@ -1,7 +1,7 @@
 export default class CheckoutSummary {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.cartItems = []; // Initialize as empty array
+        this.cartItems = [];
         this.shippingMethod = 'standard';
         this.promoCode = '';
         this.promoDiscount = 0;
@@ -42,7 +42,6 @@ export default class CheckoutSummary {
         let subtotal = 0;
         let itemCount = 0;
 
-        // Check if cartItems exists and is an array
         if (Array.isArray(this.cartItems)) {
             this.cartItems.forEach(item => {
                 if (item && item.price && item.quantity) {
@@ -209,18 +208,14 @@ export default class CheckoutSummary {
                 return;
             }
 
-            // Check if user shipping information is complete first
-            // Use a path from the domain root
             const userResponse = await fetch('/Project-Web/backend/api/Settings/get_user_settings.php');
 
             if (!userResponse.ok) {
                 let errorMsg = `Failed to load user data. Status: ${userResponse.status}`;
                 try {
-                    // Try to parse error response if server sends JSON error
                     const errorData = await userResponse.json();
                     errorMsg = errorData.message || errorMsg;
                 } catch (e) {
-                    // If parsing errorData as JSON fails, use the original errorMsg
                 }
                 throw new Error(errorMsg);
             }
@@ -245,7 +240,7 @@ export default class CheckoutSummary {
                 total_price: parseFloat(totals.total),
                 shipping_method: this.shippingMethod,
                 shipping_cost: this.shippingRates[this.shippingMethod],
-                payment_method: 'credit_card', // Assuming this is fixed for now, or get from user input
+                payment_method: 'credit_card',
                 shipping_address: user.address,
                 shipping_city: user.city,
                 shipping_state: user.state,
@@ -258,7 +253,6 @@ export default class CheckoutSummary {
                 }))
             };
 
-            // Use a path from the domain root
             const response = await fetch('/Project-Web/backend/api/orders/create_order.php', {
                 method: 'POST',
                 headers: {
@@ -273,7 +267,6 @@ export default class CheckoutSummary {
                     const errorData = await response.json();
                     errorMsg = errorData.message || errorMsg;
                 } catch (e) {
-                    // If parsing errorData as JSON fails, use the original errorMsg
                 }
                 throw new Error(errorMsg);
             }
@@ -281,7 +274,6 @@ export default class CheckoutSummary {
             const data = await response.json();
 
             if (data.success) {
-                // Show success animation
                 const animContainer = document.createElement('div');
                 animContainer.className = 'success-animation-container';
                 animContainer.innerHTML = `
@@ -292,29 +284,23 @@ export default class CheckoutSummary {
 
                 document.body.appendChild(animContainer);
 
-                // Add active class after a small delay
                 setTimeout(() => {
                     animContainer.classList.add('active');
                 }, 10);
 
-                // Hide animation and update UI
                 setTimeout(() => {
                     animContainer.classList.remove('active');
                     setTimeout(() => {
                         animContainer.remove();
 
-                        // Hide checkout summary
                         this.hide();
 
-                        // Clear cart items locally
                         this.cartItems = [];
 
-                        // Update cart badge to show 0
                         document.dispatchEvent(new CustomEvent('updateCartBadge', {
                             detail: { count: 0 }
                         }));
 
-                        // Update cart page content immediately
                         document.dispatchEvent(new CustomEvent('cartUpdated', {
                             detail: {
                                 items: [],
@@ -337,7 +323,6 @@ export default class CheckoutSummary {
         }
     }
 
-    // Add this new method to show incomplete information notification
     showIncompleteInfoNotification() {
         const animContainer = document.createElement('div');
         animContainer.className = 'success-animation-container';
@@ -349,12 +334,10 @@ export default class CheckoutSummary {
 
         document.body.appendChild(animContainer);
 
-        // Add active class after a small delay
         setTimeout(() => {
             animContainer.classList.add('active');
         }, 10);
 
-        // Create and show an error message
         const errorMessage = document.createElement('div');
         errorMessage.className = 'notification fade-in';
         errorMessage.innerHTML = `
@@ -366,7 +349,6 @@ export default class CheckoutSummary {
             </div>
         `;
 
-        // Create or get notification container
         let container = document.querySelector('.global-notification-container');
         if (!container) {
             container = document.createElement('div');
@@ -376,7 +358,6 @@ export default class CheckoutSummary {
 
         container.appendChild(errorMessage);
 
-        // Hide animation after a delay
         setTimeout(() => {
             animContainer.classList.remove('active');
             setTimeout(() => {
@@ -386,7 +367,6 @@ export default class CheckoutSummary {
             }, 300);
         }, 2000);
 
-        // Remove notification after a delay
         setTimeout(() => {
             errorMessage.classList.remove('fade-in');
             errorMessage.classList.add('fade-out');

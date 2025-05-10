@@ -2,9 +2,9 @@ export default class CartItem2 {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.cartItems = [];
-        this.deletedItems = {}; // Track deleted items for undo functionality
-        this.deleteTimers = {}; // Track deletion timers
-        this.progressIntervals = {}; // Track progress bar intervals
+        this.deletedItems = {};
+        this.deleteTimers = {};
+        this.progressIntervals = {};
         this.createNotificationContainer();
         this.init();
     }
@@ -27,12 +27,12 @@ export default class CartItem2 {
                 this.cartItems = data.data.map(item => {
                     const images = item.images || [];
                     return {
-                        id: item.id, // cart_item_id
+                        id: item.id,
                         product_id: item.product_id,
                         name: item.name,
                         price: parseFloat(item.price),
-                        quantity: parseInt(item.quantity), // Current quantity in cart
-                        available_stock: parseInt(item.available_stock), // Max available stock
+                        quantity: parseInt(item.quantity),
+                        available_stock: parseInt(item.available_stock),
                         image: images.length > 0 && images[0]
                             ? `${images[0].includes('uploads/')
                                 ? '../' + images[0]
@@ -51,7 +51,6 @@ export default class CartItem2 {
         } catch (error) {
             console.error('Error loading cart items:', error);
             this.cartItems = [];
-            // Optionally show error to user
             this.showErrorMessage(error.message);
         }
     }
@@ -64,13 +63,11 @@ export default class CartItem2 {
             <span>${message}</span>
         `;
 
-        // Remove any existing error message
         const existingError = document.querySelector('.error-message');
         if (existingError) {
             existingError.remove();
         }
 
-        // Add the new error message
         const cartHeader = document.querySelector('.cart-header');
         if (cartHeader) {
             cartHeader.after(errorDiv);
@@ -105,7 +102,7 @@ export default class CartItem2 {
                     
                     <div class="cart-items-list">
                         <div class="notification-container">
-                            <!-- Deleted item notifications will be displayed here -->
+                            
                         </div>
                         
                         ${this.cartItems.length > 0 ? '' : `
@@ -121,7 +118,7 @@ export default class CartItem2 {
                                 </a>
                             </div>
                         `}
-                        <!-- Cart item rows will be inserted here -->
+                        
                     </div>
                     
                     ${this.cartItems.length > 0 ? `
@@ -145,7 +142,6 @@ export default class CartItem2 {
         const cartContainer = document.createElement('div');
         cartContainer.innerHTML = cartHTML;
 
-        // Check if cart content already exists
         const existingCartContent = document.querySelector('.cart-content-v2');
         if (existingCartContent) {
             existingCartContent.replaceWith(cartContainer.firstElementChild);
@@ -161,14 +157,13 @@ export default class CartItem2 {
         if (!cartItemsList) return;
 
         if (this.cartItems.length === 0) {
-            // Handled by render method's empty cart display
             return;
         }
 
         const notificationContainer = cartItemsList.querySelector('.notification-container');
-        cartItemsList.innerHTML = ''; // Clear previous items
+        cartItemsList.innerHTML = '';
         if (notificationContainer) {
-            cartItemsList.appendChild(notificationContainer); // Re-add notification container
+            cartItemsList.appendChild(notificationContainer);
         } else {
             const newNotificationContainer = document.createElement('div');
             newNotificationContainer.className = 'notification-container';
@@ -179,7 +174,7 @@ export default class CartItem2 {
         this.cartItems.forEach(item => {
             const itemRow = document.createElement('div');
             itemRow.className = 'cart-item';
-            itemRow.dataset.id = item.id; // cart_item.id
+            itemRow.dataset.id = item.id;
 
             itemRow.innerHTML = `
                 <div class="item-image">
@@ -211,7 +206,6 @@ export default class CartItem2 {
     }
 
     setupEventListeners() {
-        // Quantity change buttons
         document.addEventListener('click', (e) => {
             if (e.target.closest('.increase-qty') || e.target.closest('.decrease-qty')) {
                 const itemRow = e.target.closest('.cart-item');
@@ -224,7 +218,6 @@ export default class CartItem2 {
             }
         });
 
-        // Remove item button
         document.addEventListener('click', (e) => {
             if (e.target.closest('.remove-btn')) {
                 const itemRow = e.target.closest('.cart-item');
@@ -235,7 +228,6 @@ export default class CartItem2 {
             }
         });
 
-        // Undo button in notification
         document.addEventListener('click', (e) => {
             if (e.target.closest('.undo-btn')) {
                 const itemId = parseInt(e.target.closest('.undo-btn').dataset.id);
@@ -243,13 +235,11 @@ export default class CartItem2 {
             }
         });
 
-        // Close notification button
         document.addEventListener('click', (e) => {
             if (e.target.closest('.close-notification-btn')) {
                 const notification = e.target.closest('.notification');
                 if (notification) {
                     const itemId = parseInt(notification.dataset.id);
-                    // Clear the delete timer when manually closed
                     if (this.deleteTimers[itemId]) {
                         clearTimeout(this.deleteTimers[itemId]);
                         this.permanentlyDeleteItem(itemId);
@@ -259,11 +249,9 @@ export default class CartItem2 {
             }
         });
 
-        // Proceed to checkout button
         document.addEventListener('click', (e) => {
             if (e.target.closest('#proceed-btn')) {
                 if (this.cartItems.length > 0) {
-                    // Dispatch event to show checkout summary
                     document.dispatchEvent(new CustomEvent('showCheckoutSummary', {
                         detail: {
                             items: this.cartItems
@@ -279,10 +267,6 @@ export default class CartItem2 {
         const item = this.cartItems.find(i => i.id === itemId);
         if (!item) return;
 
-        // Optimistic UI update for disabling button can be done here,
-        // but backend is the source of truth.
-        // The button disabling in render/updateCartItemsList is key.
-
         try {
             const response = await fetch('../backend/api/cart/update_quantity.php', {
                 method: 'POST',
@@ -290,26 +274,22 @@ export default class CartItem2 {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    item_id: itemId, // cart_item.id
+                    item_id: itemId,
                     quantity_change: change
                 })
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({})); // Try to parse error
+                const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Failed to update quantity');
             }
 
             const data = await response.json();
             if (data.success) {
-                // Reload cart items to get the true state from the backend,
-                // including potentially capped quantities.
                 await this.loadCartItems(); 
-                this.render(); // Re-render the whole cart
+                this.render();
                 document.dispatchEvent(new CustomEvent('updateCartBadge'));
                 if (data.message && data.message !== 'Quantity updated successfully') {
-                    // Optionally, show a specific message if quantity was capped
-                    // For example, using a small, non-intrusive notification
                     console.log("Server message:", data.message);
                 }
             } else {
@@ -318,7 +298,6 @@ export default class CartItem2 {
         } catch (error) {
             console.error('Error updating quantity:', error);
             this.showErrorMessage(error.message || 'Failed to update quantity');
-            // Revert optimistic UI or reload to be safe
             await this.loadCartItems();
             this.render();
         }
@@ -326,7 +305,6 @@ export default class CartItem2 {
 
     async removeItem(itemId) {
         try {
-            // Store item info before removal
             const itemIndex = this.cartItems.findIndex(item => item.id === itemId);
             const deletedItem = this.cartItems[itemIndex];
             this.deletedItems[itemId] = {
@@ -334,22 +312,17 @@ export default class CartItem2 {
                 index: itemIndex
             };
 
-            // Remove item from cart array
             this.cartItems.splice(itemIndex, 1);
 
-            // Show notification with undo option
             this.showNotification(itemId);
 
-            // Set timer for permanent deletion
             this.deleteTimers[itemId] = setTimeout(() => {
                 this.permanentlyDeleteItem(itemId);
-            }, 5000); // 5 seconds delay
+            }, 5000);
 
-            // Update the UI immediately
             this.render();
             document.dispatchEvent(new CustomEvent('updateCartBadge'));
 
-            // Make the actual API call
             const response = await fetch('../backend/api/cart/remove_item.php', {
                 method: 'POST',
                 headers: {
@@ -373,59 +346,46 @@ export default class CartItem2 {
     }
 
     undoRemove(itemId) {
-        // Check if the item exists in deletedItems
         if (!this.deletedItems[itemId]) return;
 
-        // Clear the delete timer
         if (this.deleteTimers[itemId]) {
             clearTimeout(this.deleteTimers[itemId]);
             delete this.deleteTimers[itemId];
         }
 
-        // Clear the progress interval if it exists
         if (this.progressIntervals[itemId]) {
             clearInterval(this.progressIntervals[itemId]);
             delete this.progressIntervals[itemId];
         }
 
-        // Get the deleted item info
         const { item, index } = this.deletedItems[itemId];
 
-        // Re-insert the item at the original position if possible, or at the beginning
         if (index < this.cartItems.length) {
             this.cartItems.splice(index, 0, item);
         } else {
             this.cartItems.push(item);
         }
 
-        // Remove from deletedItems
         delete this.deletedItems[itemId];
 
-        // Update localStorage
         localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
 
-        // Dispatch event to update cart badge
         document.dispatchEvent(new CustomEvent('updateCartBadge'));
 
-        // Remove the notification
         this.removeNotification(itemId);
 
-        // Update the UI
         this.render();
     }
 
     permanentlyDeleteItem(itemId) {
-        // Clear the progress interval if it exists
         if (this.progressIntervals[itemId]) {
             clearInterval(this.progressIntervals[itemId]);
             delete this.progressIntervals[itemId];
         }
 
-        // Remove from deletedItems
         delete this.deletedItems[itemId];
         delete this.deleteTimers[itemId];
 
-        // Remove the notification
         this.removeNotification(itemId);
     }
 
@@ -438,7 +398,6 @@ export default class CartItem2 {
         notification.className = 'notification fade-in';
         notification.dataset.id = itemId;
 
-        // Calculate time remaining - 5 seconds
         const secondsRemaining = 5;
 
         notification.innerHTML = `
@@ -458,18 +417,16 @@ export default class CartItem2 {
 
         notificationContainer.appendChild(notification);
 
-        // Initialize progress bar
         const progressBar = notification.querySelector('.notification-progress');
         if (progressBar) {
             progressBar.style.transition = 'width 5s linear';
-            void progressBar.offsetWidth; // Force reflow
+            void progressBar.offsetWidth;
             progressBar.style.width = '100%';
             setTimeout(() => {
                 progressBar.style.width = '0%';
             }, 50);
         }
 
-        // Update timer display
         const timeDisplay = notification.querySelector('.notification-time');
         let timeLeft = secondsRemaining;
 
@@ -481,12 +438,10 @@ export default class CartItem2 {
             if (timeLeft <= 0) {
                 clearInterval(this.progressIntervals[itemId]);
                 delete this.progressIntervals[itemId];
-                // Remove notification when timer ends
                 this.removeNotification(itemId);
             }
         }, 1000);
 
-        // Add event listeners for this specific notification
         notification.querySelector('.close-notification-btn').addEventListener('click', () => {
             if (this.deleteTimers[itemId]) {
                 clearTimeout(this.deleteTimers[itemId]);
@@ -517,11 +472,9 @@ export default class CartItem2 {
     }
 
     createNotificationContainer() {
-        // Remove any existing notification container
         const existingContainer = document.querySelector('.global-notification-container');
         if (existingContainer) return;
 
-        // Create a new container appended to body
         const container = document.createElement('div');
         container.className = 'notification-container global-notification-container';
         document.body.appendChild(container);

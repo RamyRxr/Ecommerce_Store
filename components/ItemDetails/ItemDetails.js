@@ -5,27 +5,24 @@ class ItemDetails {
         this.productData = null;
         this.reviews = [];
         this.soldCount = 0;
-        this.savedItemIds = new Set(); // For tracking saved items
+        this.savedItemIds = new Set();
         this.user = JSON.parse(sessionStorage.getItem('user') || '{}');
-
         this.init();
     }
 
     async init() {
         const urlParams = new URLSearchParams(window.location.search);
         this.productId = urlParams.get('id');
-
         if (!this.productId) {
             this.renderError('Product ID not found.');
             return;
         }
-        
-        this.applyInitialDarkMode(); // Apply dark mode first
-        this.setupEventListeners(); // Then setup listeners that might depend on initial state
-        await this.loadSavedItems(); 
+        this.applyInitialDarkMode();
+        this.setupEventListeners();
+        await this.loadSavedItems();
         await this.loadProductDetails();
     }
-    
+
     applyInitialDarkMode() {
         const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
         document.body.classList.toggle('dark-mode', darkModeEnabled);
@@ -43,7 +40,6 @@ class ItemDetails {
         if (backButton) {
             backButton.addEventListener('click', () => window.history.back());
         }
-
         const darkModeToggle = document.getElementById('dark-mode-toggle-details');
         if (darkModeToggle) {
             darkModeToggle.addEventListener('click', () => {
@@ -56,23 +52,19 @@ class ItemDetails {
                 }
             });
         }
-        // Event listeners for product elements (like add to cart, save) will be added
-        // in addEventListenersToProductElements() after the product is rendered.
     }
 
     async loadSavedItems() {
         if (!this.user || !this.user.id) return;
         try {
-            const response = await fetch('../backend/api/saved/get_saved_items.php'); 
+            const response = await fetch('../backend/api/saved/get_saved_items.php');
             if (!response.ok) throw new Error('Failed to fetch saved items');
             const data = await response.json();
-            if (data.success && Array.isArray(data.data)) { 
+            if (data.success && Array.isArray(data.data)) {
                 data.data.forEach(item => this.savedItemIds.add(String(item.product_id)));
-            } else if (!data.success) {
-                console.warn('API indicated failure in fetching saved items:', data.message);
             }
         } catch (error) {
-            console.error('Error loading saved items:', error);
+            // console.error('Error loading saved items:', error);
         }
     }
 
@@ -80,7 +72,6 @@ class ItemDetails {
         if (!this.container) return;
         this.renderLoading();
         try {
-            // Fetch Product Details
             const detailsRes = await fetch(`../backend/api/products/get_product_details.php?id=${this.productId}`);
             if (!detailsRes.ok) {
                 throw new Error(`Failed to load product details: ${detailsRes.statusText} (Status: ${detailsRes.status})`);
@@ -89,59 +80,44 @@ class ItemDetails {
             if (!detailsData.success || !detailsData.product) {
                 throw new Error(detailsData.message || 'Product not found.');
             }
-            
             this.productData = detailsData.product;
             if (typeof this.productData.images === 'string') {
                 try {
                     this.productData.images = JSON.parse(this.productData.images);
                 } catch (e) {
-                    console.error("Failed to parse product images JSON:", e);
-                    this.productData.images = []; 
+                    this.productData.images = [];
                 }
             } else if (!Array.isArray(this.productData.images)) {
-                this.productData.images = []; 
+                this.productData.images = [];
             }
 
-            // Fetch Reviews using profile/get_reviews.php
             const reviewsRes = await fetch(`../backend/api/profile/get_reviews.php`);
             if (reviewsRes.ok) {
                 const reviewsData = await reviewsRes.json();
                 if (reviewsData.success && Array.isArray(reviewsData.reviews)) {
-                    // Filter reviews client-side for the current product
-                    this.reviews = reviewsData.reviews.filter(review => 
+                    this.reviews = reviewsData.reviews.filter(review =>
                         String(review.productId) === String(this.productId)
                     );
                 } else {
-                    console.warn('Reviews data not in expected format or not successful from profile/get_reviews.php.');
                     this.reviews = [];
                 }
             } else {
-                if (reviewsRes.status === 401 || reviewsRes.status === 403) {
-                    console.warn(`User not authenticated or authorized to fetch reviews via profile/get_reviews.php. Status: ${reviewsRes.status}`);
-                } else {
-                    console.warn(`Failed to load reviews via profile/get_reviews.php: ${reviewsRes.statusText} (Status: ${reviewsRes.status})`);
-                }
                 this.reviews = [];
             }
 
-            // Fetch Product Sold Count
             const soldCountRes = await fetch(`../backend/api/products/get_product_sold_count.php?product_id=${this.productId}`);
             if (soldCountRes.ok) {
                 const soldCountData = await soldCountRes.json();
                 if (soldCountData.success && soldCountData.sold_count !== undefined) {
                     this.soldCount = parseInt(soldCountData.sold_count, 10) || 0;
                 } else {
-                     console.warn('Product sold count data not in expected format or not successful.');
-                     this.soldCount = 0;
+                    this.soldCount = 0;
                 }
             } else {
-                console.warn(`Failed to load product sold count: ${soldCountRes.statusText} (Status: ${soldCountRes.status})`);
                 this.soldCount = 0;
             }
-
             this.renderProduct();
         } catch (error) {
-            console.error('Error loading product details:', error);
             this.renderError(error.message);
         }
     }
@@ -172,49 +148,33 @@ class ItemDetails {
             this.renderError('Product data is not available to render.');
             return;
         }
-
         const { name, images, rating_avg, review_count, price, description, stock_quantity } = this.productData;
-        
         const processImagePath = (imgPathString) => {
             if (!imgPathString || typeof imgPathString !== 'string') {
-                return '../assets/images/general-image/DefaultProduct.png'; // Default for invalid input
+                return '../assets/images/general-image/DefaultProduct.png';
             }
-
-            // Normalize backslashes to forward slashes and trim whitespace
             const pathStr = imgPathString.replace(/\\/g, '/').trim();
-
             if (pathStr.startsWith('http://') || pathStr.startsWith('https://')) {
-                return pathStr; // It's already an absolute URL
+                return pathStr;
             }
-
             if (pathStr.startsWith('backend/')) {
-                // Path is like 'backend/uploads/products/image.jpg' (relative from project root)
-                // HTML is in HTML-Pages/, so ../ gets to project root
-                return `../${pathStr}`; 
+                return `../${pathStr}`;
             } else if (pathStr.startsWith('uploads/')) {
-                // Path is like 'uploads/products/image.jpg' (relative to backend folder)
                 return `../backend/${pathStr}`;
             } else if (pathStr.includes('/')) {
-                // Path might be 'some_folder/image.jpg' (assume relative to backend)
                 return `../backend/${pathStr}`;
             } else {
-                // Path is just a filename 'image.jpg' (assume it's in backend/uploads/products/)
                 return `../backend/uploads/products/${pathStr}`;
             }
         };
-        
         const mainImageSrc = Array.isArray(images) && images.length > 0
             ? processImagePath(images[0])
             : '../assets/images/general-image/DefaultProduct.png';
-        
         const allImageSources = Array.isArray(images)
-            ? images.map(img => processImagePath(img)).filter(src => src !== '../assets/images/general-image/DefaultProduct.png' || images.length === 1) // Keep default if it's the only one
+            ? images.map(img => processImagePath(img)).filter(src => src !== '../assets/images/general-image/DefaultProduct.png' || images.length === 1)
             : [];
-
         const shortDescription = description ? description.split('\n').slice(0, 2).join('\n') + (description.split('\n').length > 2 ? '...' : '') : 'No description available.';
-        
         const isSaved = this.savedItemIds.has(String(this.productId));
-
         const productHTML = `
             <div class="product-layout">
                 <div class="product-images-section">
@@ -225,7 +185,6 @@ class ItemDetails {
                         </div>
                     ` : ''}
                 </div>
-
                 <div class="product-info-section">
                     <h1 class="product-info-name">${name || 'Product Name'}</h1>
                     <div class="product-stats">
@@ -250,7 +209,6 @@ class ItemDetails {
                     </div>
                 </div>
             </div>
-
             <div class="product-tabs-section">
                 <div class="product-tabs-nav">
                     <button class="product-tab-button active" data-tab="description">Description</button>
@@ -273,44 +231,39 @@ class ItemDetails {
     renderStars(rating) {
         let starsHTML = '';
         const fullStars = Math.floor(rating);
-        const halfStar = rating % 1 >= 0.5; 
+        const halfStar = rating % 1 >= 0.5;
         const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-
         for (let i = 0; i < fullStars; i++) starsHTML += "<i class='bx bxs-star'></i>";
         if (halfStar) starsHTML += "<i class='bx bxs-star-half'></i>";
         for (let i = 0; i < emptyStars; i++) starsHTML += "<i class='bx bx-star'></i>";
         return starsHTML;
     }
-    
+
     renderReviews() {
         if (!Array.isArray(this.reviews) || this.reviews.length === 0) {
             return '<p class="no-reviews">No reviews found for this product, or you may need to log in to see reviews.</p>';
         }
-        
         const processAvatarPath = (avatarPathString) => {
-             if (!avatarPathString || typeof avatarPathString !== 'string' || avatarPathString.trim() === '') {
-                return '../assets/images/general-image/generic-avatar.png'; 
+            if (!avatarPathString || typeof avatarPathString !== 'string' || avatarPathString.trim() === '') {
+                return '../assets/images/general-image/generic-avatar.png';
             }
             const pathStr = avatarPathString.replace(/\\/g, '/').trim();
             if (pathStr.startsWith('http://') || pathStr.startsWith('https://')) return pathStr;
             if (pathStr.startsWith('backend/')) return `../${pathStr}`;
-            if (pathStr.startsWith('uploads/users/')) return `../backend/${pathStr}`; 
-            if (pathStr.startsWith('uploads/')) return `../backend/${pathStr}`; 
-            return `../backend/uploads/users/${pathStr}`; 
+            if (pathStr.startsWith('uploads/users/')) return `../backend/${pathStr}`;
+            if (pathStr.startsWith('uploads/')) return `../backend/${pathStr}`;
+            return `../backend/uploads/users/${pathStr}`;
         };
-
         return `
             <div class="product-reviews-list">
                 ${this.reviews.map(review => {
-                    const avatarSrc = processAvatarPath(review.reviewerAvatarUrl);
-                    const reviewerName = review.reviewerUsername || 'User';
-                    const reviewDate = review.date; 
-                    const reviewContent = review.reviewText || '';
-                    const likesCount = review.likes_count || 0;
-                    // currentUserLiked should come from get_reviews.php
-                    const userLikedThisReview = review.currentUserLiked || false; 
-
-                    return `
+            const avatarSrc = processAvatarPath(review.reviewerAvatarUrl);
+            const reviewerName = review.reviewerUsername || 'User';
+            const reviewDate = review.date;
+            const reviewContent = review.reviewText || '';
+            const likesCount = review.likes_count || 0;
+            const userLikedThisReview = review.currentUserLiked || false;
+            return `
                         <div class="review-card" data-review-id="${review.id}">
                             <div class="review-header">
                                 <div class="reviewer-info">
@@ -331,7 +284,7 @@ class ItemDetails {
                             </div>
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
     }
@@ -346,23 +299,19 @@ class ItemDetails {
                 thumb.classList.add('active');
             });
         });
-
         const addToCartBtn = document.getElementById('add-to-cart-btn');
         if (addToCartBtn) {
             addToCartBtn.addEventListener('click', () => this.handleAddToCart());
         }
-
         const saveItemBtn = document.getElementById('save-item-btn');
         if (saveItemBtn) {
             saveItemBtn.addEventListener('click', () => this.handleSaveItem());
         }
-
         const tabButtons = document.querySelectorAll('.product-tab-button');
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
                 document.querySelectorAll('.product-tab-button.active').forEach(activeBtn => activeBtn.classList.remove('active'));
                 document.querySelectorAll('.product-tab-content.active').forEach(activeContent => activeContent.classList.remove('active'));
-                
                 button.classList.add('active');
                 const tabId = button.dataset.tab + '-tab-content';
                 const tabContentElement = document.getElementById(tabId);
@@ -371,8 +320,6 @@ class ItemDetails {
                 }
             });
         });
-
-        // ADDED: Listener for like buttons
         const reviewList = this.container.querySelector('.product-reviews-list');
         if (reviewList) {
             reviewList.addEventListener('click', (event) => {
@@ -390,21 +337,18 @@ class ItemDetails {
     async handleAddToCart() {
         if (!this.user || !this.user.id) {
             alert('Please log in to add items to your cart.');
-            // Consider redirecting: window.location.href = '../HTML-Pages/LoginPage.html';
             return;
         }
         if (!this.productData || this.productData.stock_quantity <= 0) {
             alert('This item is out of stock.');
             return;
         }
-
         const btn = document.getElementById('add-to-cart-btn');
         const originalButtonText = btn ? btn.innerHTML : '';
-        if(btn) {
+        if (btn) {
             btn.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i> Adding...`;
             btn.disabled = true;
         }
-
         try {
             const response = await fetch('../backend/api/cart/add_to_cart.php', {
                 method: 'POST',
@@ -414,25 +358,22 @@ class ItemDetails {
             const data = await response.json();
             if (data.success) {
                 alert(data.message || 'Item added to cart!');
-                document.dispatchEvent(new CustomEvent('updateCartBadge')); // For global cart updates
-                if(btn) btn.innerHTML = `<i class='bx bx-check'></i> Added!`;
-                 setTimeout(() => {
-                    if(btn) btn.innerHTML = originalButtonText;
+                document.dispatchEvent(new CustomEvent('updateCartBadge'));
+                if (btn) btn.innerHTML = `<i class='bx bx-check'></i> Added!`;
+                setTimeout(() => {
+                    if (btn) btn.innerHTML = originalButtonText;
                 }, 2000);
             } else {
                 alert(data.message || 'Failed to add item to cart.');
-                 if(btn) btn.innerHTML = originalButtonText;
+                if (btn) btn.innerHTML = originalButtonText;
             }
         } catch (error) {
-            console.error('Error adding to cart:', error);
             alert('An error occurred while adding to cart.');
-            if(btn) btn.innerHTML = originalButtonText;
+            if (btn) btn.innerHTML = originalButtonText;
         } finally {
-            // Re-enable button only if not successfully added and timed out
-            if(btn && !btn.innerHTML.includes('Added!')) {
-                 btn.disabled = this.productData.stock_quantity <= 0;
+            if (btn && !btn.innerHTML.includes('Added!')) {
+                btn.disabled = this.productData.stock_quantity <= 0;
             } else if (btn && btn.innerHTML.includes('Added!')) {
-                // Keep it disabled for a bit if "Added!" is shown, then re-evaluate
                 setTimeout(() => {
                     if (btn) btn.disabled = this.productData.stock_quantity <= 0;
                 }, 2000);
@@ -443,14 +384,11 @@ class ItemDetails {
     async handleSaveItem() {
         if (!this.user || !this.user.id) {
             alert('Please log in to save items.');
-            // Consider redirecting: window.location.href = '../HTML-Pages/LoginPage.html';
             return;
         }
         const btn = document.getElementById('save-item-btn');
         const isCurrentlySaved = this.savedItemIds.has(String(this.productId));
         const action = isCurrentlySaved ? 'remove' : 'add';
-
-        // Optimistic UI update
         if (btn) {
             if (isCurrentlySaved) {
                 this.savedItemIds.delete(String(this.productId));
@@ -463,9 +401,8 @@ class ItemDetails {
             }
         }
         document.dispatchEvent(new CustomEvent('updateSavedBadge'));
-
         try {
-            const response = await fetch(`../backend/api/saved/add_to_saved.php`, { 
+            const response = await fetch(`../backend/api/saved/add_to_saved.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ product_id: this.productId, action: action })
@@ -474,17 +411,14 @@ class ItemDetails {
             if (!data.success) {
                 throw new Error(data.message || 'Failed to update saved state on server.');
             }
-            // Optional: show success toast: alert(data.message || `Item ${action === 'add' ? 'saved' : 'unsaved'}!`);
         } catch (error) {
-            console.error('Error saving item:', error);
-            // Revert UI on error
             if (btn) {
-                if (isCurrentlySaved) { // If it was saved, and we tried to unsave but failed
-                    this.savedItemIds.add(String(this.productId)); 
+                if (isCurrentlySaved) {
+                    this.savedItemIds.add(String(this.productId));
                     btn.classList.add('saved');
                     btn.innerHTML = `<i class='bx bxs-heart'></i> Saved`;
-                } else { // If it was unsaved, and we tried to save but failed
-                    this.savedItemIds.delete(String(this.productId)); 
+                } else {
+                    this.savedItemIds.delete(String(this.productId));
                     btn.classList.remove('saved');
                     btn.innerHTML = `<i class='bx bx-heart'></i> Save`;
                 }
@@ -497,16 +431,12 @@ class ItemDetails {
     async handleLikeReview(reviewId, buttonElement) {
         if (!this.user || !this.user.id) {
             alert('Please log in to like reviews.');
-            // Optionally redirect: window.location.href = '../HTML-Pages/LoginPage.html';
             return;
         }
-
         const icon = buttonElement.querySelector('i');
         const countSpan = buttonElement.querySelector('.like-count');
         let currentLikes = parseInt(countSpan.textContent);
         let currentlyLiked = buttonElement.classList.contains('liked');
-
-        // Optimistic UI update
         if (currentlyLiked) {
             buttonElement.classList.remove('liked');
             icon.className = 'bx bx-like';
@@ -516,8 +446,6 @@ class ItemDetails {
             icon.className = 'bx bxs-like';
             countSpan.textContent = currentLikes + 1;
         }
-        // buttonElement.disabled = true; // Optional: disable while processing
-
         try {
             const response = await fetch('../backend/api/products/like_review.php', {
                 method: 'POST',
@@ -525,37 +453,30 @@ class ItemDetails {
                 body: JSON.stringify({ review_id: reviewId })
             });
             const data = await response.json();
-
             if (data.success) {
-                // Update UI with confirmed data from server
                 buttonElement.classList.toggle('liked', data.currentUserLiked);
                 icon.className = data.currentUserLiked ? 'bx bxs-like' : 'bx bx-like';
                 countSpan.textContent = data.likes_count;
-
-                // Update the local reviews array if needed for consistency
                 const reviewIndex = this.reviews.findIndex(r => String(r.id) === String(reviewId));
                 if (reviewIndex > -1) {
                     this.reviews[reviewIndex].likes_count = data.likes_count;
                     this.reviews[reviewIndex].currentUserLiked = data.currentUserLiked;
                 }
             } else {
-                // Revert optimistic update on failure
                 alert(data.message || 'Failed to update like.');
-                if (currentlyLiked) { // Was liked, tried to unlike, failed
+                if (currentlyLiked) {
                     buttonElement.classList.add('liked');
                     icon.className = 'bx bxs-like';
-                    countSpan.textContent = currentLikes; // Revert to original count before -1
-                } else { // Was not liked, tried to like, failed
+                    countSpan.textContent = currentLikes;
+                } else {
                     buttonElement.classList.remove('liked');
                     icon.className = 'bx bx-like';
-                    countSpan.textContent = currentLikes; // Revert to original count before +1
+                    countSpan.textContent = currentLikes;
                 }
             }
         } catch (error) {
-            console.error('Error liking review:', error);
             alert('An error occurred.');
-            // Revert optimistic update on error
-             if (currentlyLiked) {
+            if (currentlyLiked) {
                 buttonElement.classList.add('liked');
                 icon.className = 'bx bxs-like';
                 countSpan.textContent = currentLikes;
@@ -564,8 +485,6 @@ class ItemDetails {
                 icon.className = 'bx bx-like';
                 countSpan.textContent = currentLikes;
             }
-        } finally {
-            // buttonElement.disabled = false; // Re-enable button
         }
     }
 }
