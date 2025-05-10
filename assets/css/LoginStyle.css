@@ -97,10 +97,10 @@
 }
 
 .form-group label {
-    display: block;  /* Make label a block element */
+    display: block; 
     position: relative;
     left: 20px;
-    margin-bottom: 10px;  /* This will now work correctly */
+    margin-bottom: 10px;  
     font-size: 16px;
     font-weight: 600;
     color: var(--text-dark);
@@ -167,10 +167,10 @@
     cursor: pointer;
     transition: var(--transition-fast);
     z-index: 2;
-    display: flex; /* Add this */
-    align-items: center; /* Add this */
-    justify-content: center; /* Add this */
-    width: 28px; /* Add explicit width */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    width: 28px;
     height: 28px;
 }
 

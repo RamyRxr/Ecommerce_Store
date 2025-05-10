@@ -375,8 +375,8 @@ body.item-details-page {
     padding: 22px;
     box-shadow: var(--card-shadow);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
-    display: flex; /* Added for footer alignment */
-    flex-direction: column; /* Added for footer alignment */
+    display: flex; 
+    flex-direction: column; 
 }
 .review-card:hover {
     transform: translateY(-4px);
@@ -434,17 +434,17 @@ body.item-details-page {
     font-size: 14.5px;
     line-height: 1.65;
     color: var(--text-dark);
-    flex-grow: 1; /* Allow text to take available space */
-    margin-bottom: 15px; /* Add some space before footer */
+    flex-grow: 1;
+    margin-bottom: 15px; 
 }
 
 .review-footer {
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* Align items to the start */
-    margin-top: auto; /* Pushes footer to the bottom if card has fixed height or content varies */
+    justify-content: flex-start; 
+    margin-top: auto; 
     padding-top: 10px;
-    border-top: 1px solid var(--border-light); /* Optional: separator */
+    border-top: 1px solid var(--border-light); 
 }
 
 .like-review-btn {
@@ -474,14 +474,13 @@ body.item-details-page {
 }
 
 .like-review-btn i {
-    font-size: 18px; /* Adjust icon size */
+    font-size: 18px; 
 }
 
 .like-review-btn .like-count {
     font-weight: 500;
 }
 
-/* Dark Mode Styles for Like Button */
 body.dark-mode .review-footer {
     border-top-color: var(--border-dark);
 }

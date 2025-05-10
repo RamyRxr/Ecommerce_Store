@@ -1,4 +1,3 @@
-/* Purchase History Content Layout */
 .purchase-history-content {
     position: fixed;
     left: calc(var(--sidebar-collapsed-width) + 10px);
@@ -7,13 +6,11 @@
     transition: var(--transition-normal);
 }
 
-/* When sidebar is collapsed */
 .sidebar.collapsed+.purchase-history-content,
 .sidebar.collapsed~.purchase-history-content {
     left: calc(var(--sidebar-collapsed-width) + 10px);
 }
 
-/* Main content container */
 .main-content-container {
     background: var(--light-bg);
     height: calc(100vh - 40px);
@@ -31,7 +28,6 @@
     box-shadow: var(--sidebar-hover-shadow);
 }
 
-/* Custom scrollbar for main content */
 .main-content-container::-webkit-scrollbar {
     width: 5px;
 }
@@ -45,7 +41,6 @@
     border-radius: 5px;
 }
 
-/* Purchase Header */
 .purchase-header {
     display: flex;
     justify-content: space-between;
@@ -67,7 +62,6 @@
     color: #666;
 }
 
-/* Purchase Tabs */
 .purchase-tabs {
     display: flex;
     padding: 0 30px;
@@ -118,7 +112,6 @@
     background-color: var(--accent);
 }
 
-/* Purchase Content Body with Fancy Scrollbar */
 .purchase-content-body {
     flex: 1;
     overflow-y: auto;
@@ -152,14 +145,12 @@
     background-clip: padding-box;
 }
 
-/* Orders Container */
 .orders-container {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Order Card */
 .order-card {
     background: white;
     border-radius: 10px;
@@ -173,7 +164,6 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-/* Order Header */
 .order-header {
     display: flex;
     justify-content: space-between;
@@ -240,7 +230,6 @@
     font-size: 16px;
 }
 
-/* Order Items */
 .order-items {
     padding: 15px 20px;
     border-bottom: 1px solid #eee;
@@ -428,7 +417,6 @@
     font-size: 16px;
 }
 
-/* Empty State */
 .no-orders {
     padding: 60px 40px;
     text-align: center;
@@ -506,7 +494,6 @@
     font-size: 18px;
 }
 
-/* Order Details Modal */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -779,7 +766,6 @@ body.dark-mode .tax {
     background-color: #e0e0e0;
 }
 
-/* Rating Modal */
 .rating-modal {
     background: white;
     border-radius: 12px;
@@ -898,7 +884,6 @@ body.dark-mode .tax {
     cursor: not-allowed;
 }
 
-/* Dark Mode Styles */
 body.dark-mode .main-content-container {
     background: var(--dark-bg);
 }
@@ -1011,9 +996,6 @@ body.dark-mode .summary-label {
     color: #aaa;
 }
 
-
-
-
 body.dark-mode .shipping-address h3,
 body.dark-mode .payment-method h3,
 body.dark-mode .order-items-section h3 {
@@ -1114,7 +1096,6 @@ body.dark-mode .browse-products-btn:hover {
     box-shadow: 0 8px 20px rgba(49, 130, 206, 0.4);
 }
 
-/* Responsive adjustments */
 @media screen and (max-width: 768px) {
     
     .order-header {
@@ -1184,24 +1165,24 @@ body.dark-mode .browse-products-btn:hover {
 }
 
 .mark-shipped-btn {
-    background-color: #e3f2fd; /* Light blue */
-    color: #2196f3; /* Blue */
+    background-color: #e3f2fd;
+    color: #2196f3;
 }
 .mark-shipped-btn:hover {
     background-color: #d1eafd;
 }
 
 .mark-delivered-btn {
-    background-color: #e8f5e9; /* Light green */
-    color: #4caf50; /* Green */
+    background-color: #e8f5e9; 
+    color: #4caf50; 
 }
 .mark-delivered-btn:hover {
     background-color: #dcf0dd;
 }
 
 .admin-cancel-btn {
-    background-color: #feecec; /* Light red */
-    color: #f44336; /* Red */
+    background-color: #feecec;
+    color: #f44336; 
 }
 .admin-cancel-btn:hover {
     background-color: #fdd9d7;
@@ -1215,27 +1196,26 @@ body.dark-mode .browse-products-btn:hover {
 }
 
 .admin-action-btn {
-    padding: 8px 15px; /* Slightly more padding */
-    border: 1px solid transparent; /* Base border */
-    margin-right: 10px; /* Space between buttons */
-    border-radius: 8px; /* More rounded */
+    padding: 8px 15px;
+    border: 1px solid transparent; 
+    margin-right: 10px; 
+    border-radius: 8px; 
     cursor: pointer;
-    font-size: 13px; /* Adjust as needed */
+    font-size: 13px; 
     font-weight: 500;
     display: inline-flex;
     align-items: center;
-    gap: 8px; /* Space between icon and text */
-    transition: all 0.2s ease-in-out; /* Smooth transition for all properties */
+    gap: 8px; 
+    transition: all 0.2s ease-in-out; 
     text-transform: capitalize;
 }
 
 .admin-action-btn i {
-    font-size: 18px; /* Icon size */
-}
+    font-size: 18px; 
 
 .admin-action-btn:hover {
-    transform: translateY(-2px); /* Subtle lift effect */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow on hover */
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
 }
 
 .admin-action-btn:active {
@@ -1243,10 +1223,9 @@ body.dark-mode .browse-products-btn:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* Specific Admin Button Styles */
 .admin-action-btn.mark-shipped-btn {
-    background-color: #e0f2fe; /* Lighter, softer blue */
-    color: #0ea5e9; /* Sky blue */
+    background-color: #e0f2fe; 
+    color: #0ea5e9;
     border-color: #bae6fd;
 }
 .admin-action-btn.mark-shipped-btn:hover {
@@ -1255,8 +1234,8 @@ body.dark-mode .browse-products-btn:hover {
 }
 
 .admin-action-btn.mark-delivered-btn {
-    background-color: #dcfce7; /* Lighter, softer green */
-    color: #22c55e; /* Emerald green */
+    background-color: #dcfce7;
+    color: #22c55e;
     border-color: #bbf7d0;
 }
 .admin-action-btn.mark-delivered-btn:hover {
@@ -1265,8 +1244,8 @@ body.dark-mode .browse-products-btn:hover {
 }
 
 .admin-action-btn.admin-cancel-btn {
-    background-color: #ffe4e6; /* Lighter, softer red */
-    color: #ef4444; /* Red */
+    background-color: #ffe4e6; 
+    color: #ef4444; 
     border-color: #fecdd3;
 }
 .admin-action-btn.admin-cancel-btn:hover {
@@ -1274,12 +1253,12 @@ body.dark-mode .browse-products-btn:hover {
     color: #dc2626;
 }
 
-/* Ensure customer-facing buttons also have a nice style if not already */
+
 .order-action .rate-order-btn,
 .order-action .cancel-order-btn,
 .order-action .rated-btn {
     padding: 8px 15px;
-    border: 1px solid #e2e8f0; /* Light gray border */
+    border: 1px solid #e2e8f0; 
     border-radius: 8px;
     cursor: pointer;
     font-size: 13px;
@@ -1289,12 +1268,12 @@ body.dark-mode .browse-products-btn:hover {
     gap: 8px;
     transition: all 0.2s ease-in-out;
     background-color: #ffffff;
-    color: #334155; /* Dark gray text */
+    color: #334155; 
 }
 
 .order-action .rate-order-btn:hover,
 .order-action .cancel-order-btn:hover {
-    background-color: #f8fafc; /* Very light gray background on hover */
+    background-color: #f8fafc; 
     border-color: #cbd5e1;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);

@@ -91,7 +91,6 @@ body {
     width: 100%;
     margin-bottom: 15px;
     height: 160px;
-    /* Increased height */
     overflow: hidden;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -105,7 +104,6 @@ body {
 
 .newest-carousel .item-card {
     display: none;
-    /* Hide all slides by default */
     opacity: 0;
     position: absolute;
     top: 0;
@@ -123,15 +121,6 @@ body {
     opacity: 1;
 }
 
-/* Compact layout for item cards */
-
-
-
-
-
-
-
-/* Carousel navigation buttons */
 .newest-carousel-btn {
     position: absolute;
     top: 50%;
@@ -331,16 +320,13 @@ body.dark-mode .newest-dot.active {
     display: flex;
     align-items: center;
     margin-right: 10px;
-    /* Reduced from 15px */
     font-size: 10px;
-    /* Reduced from 12px */
     color: #888;
 }
 
 .item-stat i {
     margin-right: 3px;
     font-size: 12px;
-    /* Reduced from 14px */
     background: linear-gradient(135deg, var(--accent, #1e88e5), #5e35b1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -424,7 +410,6 @@ body.dark-mode .newest-dot {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Refined Glass Morphism Newest Items Carousel */
 .newest-carousel {
     position: relative;
     height: 150px;
@@ -435,7 +420,6 @@ body.dark-mode .newest-dot {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Fixed glass card styling with proper containment */
 .newest-carousel .item-card {
     position: absolute;
     top: 0;
@@ -462,7 +446,6 @@ body.dark-mode .newest-dot {
     z-index: 5;
 }
 
-/* Improved shimmer effect */
 .newest-carousel .item-card::before {
     content: '';
     position: absolute;
@@ -479,7 +462,6 @@ body.dark-mode .newest-dot {
     animation: shimmerEffect 6s infinite ease-in-out;
 }
 
-/* Fixed image styling */
 .newest-carousel .item-img {
     width: 80px;
     height: 80px;
@@ -501,7 +483,6 @@ body.dark-mode .newest-dot {
     transition: transform 0.4s ease;
 }
 
-/* Fixed badge styling */
 .newest-carousel .new-badge {
     position: absolute;
     top: -4px;
@@ -516,7 +497,6 @@ body.dark-mode .newest-dot {
     z-index: 2;
 }
 
-/* Fixed item info container */
 .newest-carousel .item-info {
     flex: 1;
     padding: 10px 10px 8px 0;
@@ -527,7 +507,6 @@ body.dark-mode .newest-dot {
     overflow: hidden;
 }
 
-/* Fixed typography with proper containment */
 .newest-carousel .item-info h4 {
     font-size: 12px;
     margin: 0 0 2px;
@@ -569,7 +548,7 @@ body.dark-mode .newest-dot {
     max-height: 24px;
 }
 
-/* Fixed stats styling */
+
 .newest-carousel .item-stats {
     display: flex;
     align-items: center;
@@ -593,7 +572,6 @@ body.dark-mode .newest-dot {
     -webkit-text-fill-color: transparent;
 }
 
-/* Improved navigation buttons */
 .newest-carousel-btn {
     width: 28px;
     height: 28px;
@@ -629,7 +607,6 @@ body.dark-mode .newest-dot {
     right: 8px;
 }
 
-/* Fixed dots positioning */
 .newest-carousel-dots {
     display: flex;
     justify-content: center;
@@ -656,7 +633,6 @@ body.dark-mode .newest-dot {
     box-shadow: 0 2px 4px rgba(30, 136, 229, 0.3);
 }
 
-/* Fixed dark mode support */
 body.dark-mode .newest-carousel .item-card {
     background: rgba(25, 25, 35, 0.6);
     border-color: rgba(60, 60, 70, 0.3);
@@ -680,7 +656,6 @@ body.dark-mode .newest-dot {
     background-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Refined Premium Glass Morphism Carousel - Larger and More Readable */
 .newest-carousel {
     position: relative;
     height: 180px;
@@ -692,7 +667,6 @@ body.dark-mode .newest-dot {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Glass card styling with proper containment */
 .newest-carousel .item-card {
     position: absolute;
     top: 0;
@@ -713,7 +687,6 @@ body.dark-mode .newest-dot {
     z-index: 1;
 }
 
-/* Larger image styling */
 .newest-carousel .item-img {
     width: 120px;
     height: 120px;
@@ -728,10 +701,8 @@ body.dark-mode .newest-dot {
     justify-content: center;
 }
 
-/* More readable typography */
 .newest-carousel .item-info h4 {
     font-size: 15px;
-    /* Increased from 12px */
     margin: 0 0 5px;
     font-weight: 600;
     background: linear-gradient(135deg, #333, #777);
@@ -745,7 +716,6 @@ body.dark-mode .newest-dot {
 
 .newest-carousel .price {
     font-size: 18px;
-    /* Increased from 14px */
     font-weight: 700;
     margin: 4px 0;
     color: var(--accent, #1e88e5);
@@ -756,14 +726,12 @@ body.dark-mode .newest-dot {
 .newest-carousel .price::before {
     content: '$';
     font-size: 12px;
-    /* Increased from 10px */
     margin-right: 2px;
     opacity: 0.8;
 }
 
 .newest-carousel .item-desc {
     font-size: 12px;
-    /* Increased from 9px */
     color: #666;
     margin: 0 0 5px;
     line-height: 1.4;
@@ -774,7 +742,6 @@ body.dark-mode .newest-dot {
     max-height: 34px;
 }
 
-/* More readable stats */
 .newest-carousel .item-stats {
     display: flex;
     align-items: center;
@@ -786,20 +753,17 @@ body.dark-mode .newest-dot {
     align-items: center;
     margin-right: 12px;
     font-size: 12px;
-    /* Increased from 9px */
     color: #888;
 }
 
 .newest-carousel .item-stat i {
     margin-right: 4px;
     font-size: 14px;
-    /* Increased from 10px */
     background: linear-gradient(135deg, var(--accent, #1e88e5), #5e35b1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-/* More prominent navigation buttons */
 .newest-carousel-btn {
     width: 34px;
     height: 34px;
@@ -821,7 +785,6 @@ body.dark-mode .newest-dot {
     transition: all 0.2s ease;
 }
 
-/* Refined Premium Glass Morphism Carousel with Smaller Images */
 .newest-carousel {
     position: relative;
     height: 180px;
@@ -832,7 +795,6 @@ body.dark-mode .newest-dot {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Glass card styling with adjusted image size */
 .newest-carousel .item-card {
     position: absolute;
     top: 0;
@@ -853,18 +815,13 @@ body.dark-mode .newest-dot {
     z-index: 1;
 }
 
-/* Smaller image styling with reduced margins */
 .newest-carousel .item-img {
     width: 90px;
-    /* Reduced from 120px */
     height: 90px;
-    /* Reduced from 120px */
     margin: 10px;
-    /* Reduced from 15px */
     position: relative;
     overflow: hidden;
     border-radius: 8px;
-    /* Slightly smaller radius */
     flex-shrink: 0;
     background: none;
     display: flex;
@@ -879,11 +836,9 @@ body.dark-mode .newest-dot {
     transition: transform 0.4s ease;
 }
 
-/* Expanded text area */
 .newest-carousel .item-info {
     flex: 1;
     padding: 12px 15px 12px 5px;
-    /* Increased right padding, reduced left padding */
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -891,7 +846,6 @@ body.dark-mode .newest-dot {
     overflow: hidden;
 }
 
-/* Improved typography sizing */
 .newest-carousel .item-info h4 {
     font-size: 15px;
     margin: 0 0 5px;
@@ -923,10 +877,8 @@ body.dark-mode .newest-dot {
     -webkit-box-orient: vertical;
     overflow: hidden;
     max-height: 34px;
-    /* Allow more description to show now that we have more space */
 }
 
-/* Stats positioned better with more space */
 .newest-carousel .item-stats {
     display: flex;
     align-items: center;
@@ -956,7 +908,6 @@ body.dark-mode .newest-dot {
     right: 8px;
 }
 
-/* Fixed dots positioning */
 .newest-carousel-dots {
     display: flex;
     justify-content: center;
@@ -983,7 +934,6 @@ body.dark-mode .newest-dot {
     box-shadow: 0 2px 4px rgba(30, 136, 229, 0.3);
 }
 
-/* Fixed dark mode support */
 body.dark-mode .newest-carousel .item-card {
     background: rgba(25, 25, 35, 0.6);
     border-color: rgba(60, 60, 70, 0.3);

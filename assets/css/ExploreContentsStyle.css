@@ -441,9 +441,7 @@ body.dark-mode .search-button:hover {
     flex-direction: column;
     flex: 1;
     height: 195px;
-    /* Fixed height for info section */
     overflow: hidden;
-    /* Prevent content from overflowing */
 }
 
 .product-name {
@@ -452,14 +450,11 @@ body.dark-mode .search-button:hover {
     font-weight: 700;
     color: var(--dark-bg);
     height: 45px;
-    /* Increased height for product name */
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
-    /* Show 2 lines */
     -webkit-box-orient: vertical;
     text-overflow: ellipsis;
-    /* Add ellipsis for long names */
     line-height: 1.5;
 }
 
@@ -471,13 +466,10 @@ body.dark-mode .search-button:hover {
     flex-grow: 1;
     display: -webkit-box;
     -webkit-line-clamp: 3;
-    /* Limit to 3 lines */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    /* This adds the "..." automatically */
     height: 55px;
-    /* Slightly reduced to balance with increased name height */
     line-height: 1.4;
 }
 
@@ -681,7 +673,6 @@ body.dark-mode .no-products .no-products-icon {
 
 body.dark-mode .no-products .no-products-icon i {
     color: var(--accent-dark, #58a6ff);
-    /* Changed to match accent color */
 }
 
 body.dark-mode .no-products h3 {
