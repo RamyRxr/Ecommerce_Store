@@ -21,29 +21,30 @@ $message = '';
 $success = false;
 
 try {
-    // This subquery fetches the image_url from the 'product_images' table (aliased as pi)
-    // by matching its 'product_id' with the 'id' of the product (aliased as p).
-    // It orders by 'display_order' and then 'id' to get a consistent image if multiple exist.
     $imageSubQuery = "(SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.display_order ASC, pi.id ASC LIMIT 1)";
 
     if ($isAdmin) {
-        // Admin: Get all reviews
+        // Admin: Get all reviews, including reviewer's username and avatar
         $sql = "SELECT r.id, r.user_id, r.product_id, r.rating, r.review_text, r.created_at as date,
                         u.username as reviewer_username, 
+                        u.profile_image as reviewerAvatarUrl, -- Added reviewer's avatar
                         p.title as productName, 
-                        {$imageSubQuery} as product_image_url -- The result of the subquery is named 'product_image_url'
+                        {$imageSubQuery} as product_image_url
                 FROM reviews r
-                JOIN users u ON r.user_id = u.id
-                JOIN products p ON r.product_id = p.id -- Joins reviews with products
+                JOIN users u ON r.user_id = u.id -- Join to get reviewer's details
+                JOIN products p ON r.product_id = p.id
                 ORDER BY r.created_at DESC";
         $stmt = $conn->prepare($sql);
     } else {
-        // Regular user: Get only their reviews
+        // Regular user: Get only their reviews, including their username and avatar
         $sql = "SELECT r.id, r.user_id, r.product_id, r.rating, r.review_text, r.created_at as date,
+                        u.username as reviewer_username, -- Added current user's username as reviewer
+                        u.profile_image as reviewerAvatarUrl, -- Added current user's avatar as reviewer
                         p.title as productName, 
-                        {$imageSubQuery} as product_image_url -- The result of the subquery is named 'product_image_url'
+                        {$imageSubQuery} as product_image_url
                 FROM reviews r
-                JOIN products p ON r.product_id = p.id -- Joins reviews with products
+                JOIN users u ON r.user_id = u.id -- Join to get current user's details for their reviews
+                JOIN products p ON r.product_id = p.id
                 WHERE r.user_id = :userId
                 ORDER BY r.created_at DESC";
         $stmt = $conn->prepare($sql);
@@ -54,18 +55,8 @@ try {
     $fetchedReviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach($fetchedReviews as $review) {
-        // $review['product_image_url'] contains the image_url fetched by the subquery from product_images,
-        // or NULL if no image was found for that product in the product_images table.
         $rawProductImageFromDb = $review['product_image_url'];
-        $productImageToReturn;
-
-        if (!empty($rawProductImageFromDb)) {
-            // Send the raw path/filename as stored in the database (e.g., "image.jpg" or "uploads/products/image.jpg").
-            $productImageToReturn = $rawProductImageFromDb;
-        } else {
-            // If no image in DB (subquery returned NULL), use the frontend-relative placeholder path.
-            $productImageToReturn = '../assets/images/products-images/default.png';
-        }
+        $productImageToReturn = !empty($rawProductImageFromDb) ? $rawProductImageFromDb : '../assets/images/products-images/default.png';
 
         $reviews[] = [
             'id' => $review['id'],
@@ -77,8 +68,9 @@ try {
             'helpful' => 0, 
             'verified' => false, 
             'productId' => $review['product_id'],
-            'userId' => $review['user_id'],
-            'reviewerUsername' => $isAdmin && isset($review['reviewer_username']) ? $review['reviewer_username'] : null
+            'userId' => $review['user_id'], // User ID of the reviewer
+            'reviewerUsername' => $review['reviewer_username'] ?? null, // Username of the reviewer
+            'reviewerAvatarUrl' => $review['reviewerAvatarUrl'] ?? null // Avatar URL of the reviewer
         ];
     }
     $success = true;

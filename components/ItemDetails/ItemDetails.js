@@ -80,43 +80,52 @@ class ItemDetails {
         if (!this.container) return;
         this.renderLoading();
         try {
-            const [detailsRes, reviewsRes, soldCountRes] = await Promise.all([
-                fetch(`../backend/api/products/get_product_details.php?id=${this.productId}`),
-                fetch(`../backend/api/products/get_product_reviews.php?product_id=${this.productId}`),
-                fetch(`../backend/api/products/get_product_sold_count.php?product_id=${this.productId}`)
-            ]);
-
-            if (!detailsRes.ok) throw new Error(`Failed to load product details: ${detailsRes.statusText} (Status: ${detailsRes.status})`);
+            // Fetch Product Details
+            const detailsRes = await fetch(`../backend/api/products/get_product_details.php?id=${this.productId}`);
+            if (!detailsRes.ok) {
+                throw new Error(`Failed to load product details: ${detailsRes.statusText} (Status: ${detailsRes.status})`);
+            }
             const detailsData = await detailsRes.json();
-            if (!detailsData.success || !detailsData.product) throw new Error(detailsData.message || 'Product not found.');
+            if (!detailsData.success || !detailsData.product) {
+                throw new Error(detailsData.message || 'Product not found.');
+            }
             
             this.productData = detailsData.product;
-            // Ensure images is an array, parsing if it's a JSON string
             if (typeof this.productData.images === 'string') {
                 try {
                     this.productData.images = JSON.parse(this.productData.images);
                 } catch (e) {
                     console.error("Failed to parse product images JSON:", e);
-                    this.productData.images = []; // Default to empty array on error
+                    this.productData.images = []; 
                 }
             } else if (!Array.isArray(this.productData.images)) {
-                this.productData.images = []; // Default if not string or array
+                this.productData.images = []; 
             }
 
-
+            // Fetch Reviews using profile/get_reviews.php
+            const reviewsRes = await fetch(`../backend/api/profile/get_reviews.php`);
             if (reviewsRes.ok) {
                 const reviewsData = await reviewsRes.json();
                 if (reviewsData.success && Array.isArray(reviewsData.reviews)) {
-                     this.reviews = reviewsData.reviews;
+                    // Filter reviews client-side for the current product
+                    this.reviews = reviewsData.reviews.filter(review => 
+                        String(review.productId) === String(this.productId)
+                    );
                 } else {
-                    console.warn('Product reviews data not in expected format or not successful.');
+                    console.warn('Reviews data not in expected format or not successful from profile/get_reviews.php.');
                     this.reviews = [];
                 }
             } else {
-                console.warn(`Failed to load product reviews: ${reviewsRes.statusText} (Status: ${reviewsRes.status})`);
+                if (reviewsRes.status === 401 || reviewsRes.status === 403) {
+                    console.warn(`User not authenticated or authorized to fetch reviews via profile/get_reviews.php. Status: ${reviewsRes.status}`);
+                } else {
+                    console.warn(`Failed to load reviews via profile/get_reviews.php: ${reviewsRes.statusText} (Status: ${reviewsRes.status})`);
+                }
                 this.reviews = [];
             }
 
+            // Fetch Product Sold Count
+            const soldCountRes = await fetch(`../backend/api/products/get_product_sold_count.php?product_id=${this.productId}`);
             if (soldCountRes.ok) {
                 const soldCountData = await soldCountRes.json();
                 if (soldCountData.success && soldCountData.sold_count !== undefined) {
@@ -275,38 +284,50 @@ class ItemDetails {
     
     renderReviews() {
         if (!Array.isArray(this.reviews) || this.reviews.length === 0) {
-            return '<p class="no-reviews">No reviews yet for this product.</p>';
+            // Updated message to reflect potential filtering or auth issues
+            return '<p class="no-reviews">No reviews found for this product, or you may need to log in to see reviews.</p>';
         }
-        // Assuming processImagePath can also be used for review avatars if they follow similar path logic
+        
+        // This processAvatarPath function will handle the avatar URLs
         const processAvatarPath = (avatarPathString) => {
-             if (!avatarPathString || typeof avatarPathString !== 'string') {
-                return '../assets/images/general-image/default-avatar.png';
+             if (!avatarPathString || typeof avatarPathString !== 'string' || avatarPathString.trim() === '') {
+                // Use a generic placeholder if no specific avatar path is provided or if it's invalid.
+                // Ensure 'generic-avatar.png' (or your chosen default) exists in the specified path.
+                return '../assets/images/general-image/generic-avatar.png'; 
             }
             const pathStr = avatarPathString.replace(/\\/g, '/').trim();
-            if (pathStr.startsWith('http://') || pathStr.startsWith('https://')) return pathStr;
-            if (pathStr.startsWith('backend/')) return `../${pathStr}`;
-            if (pathStr.startsWith('uploads/users/')) return `../backend/${pathStr}`; // Specific for user uploads
-            if (pathStr.startsWith('uploads/')) return `../backend/${pathStr}`;
-            return `../backend/uploads/users/${pathStr}`; // Default for just filename
+            if (pathStr.startsWith('http://') || pathStr.startsWith('https://')) return pathStr; // Absolute URL
+            if (pathStr.startsWith('backend/')) return `../${pathStr}`; // Path relative from project root
+            // Assuming paths like 'uploads/users/avatar.jpg' or just 'avatar.jpg' (from profile_image)
+            // should be prefixed to point to the backend uploads folder.
+            if (pathStr.startsWith('uploads/')) return `../backend/${pathStr}`; 
+            return `../backend/uploads/users/${pathStr}`; // Default assumption for a filename
         };
 
         return `
             <div class="product-reviews-list">
                 ${this.reviews.map(review => {
-                    const avatarSrc = processAvatarPath(review.user_avatar);
+                    // Use reviewerAvatarUrl and reviewerUsername from the review object (provided by modified get_reviews.php)
+                    const avatarSrc = processAvatarPath(review.reviewerAvatarUrl);
+                    const reviewerName = review.reviewerUsername || 'User'; // Fallback name
+
+                    // 'date' and 'reviewText' are also from the review object
+                    const reviewDate = review.date; 
+                    const reviewContent = review.reviewText || '';
+
                     return `
                         <div class="review-card">
                             <div class="review-header">
                                 <div class="reviewer-info">
-                                    <img src="${avatarSrc}" alt="${review.username || 'User'}" class="reviewer-avatar">
-                                    <span class="reviewer-name">${review.username || 'Anonymous User'}</span>
+                                    <img src="${avatarSrc}" alt="${reviewerName}" class="reviewer-avatar">
+                                    <span class="reviewer-name">${reviewerName}</span>
                                 </div>
-                                <span class="review-date">${new Date(review.created_at).toLocaleDateString()}</span>
+                                <span class="review-date">${reviewDate}</span>
                             </div>
                             <div class="review-rating">
                                 ${this.renderStars(parseFloat(review.rating))}
                             </div>
-                            <p class="review-text">${review.review_text || ''}</p>
+                            <p class="review-text">${reviewContent}</p>
                         </div>
                     `;
                 }).join('')}
