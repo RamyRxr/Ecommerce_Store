@@ -530,7 +530,6 @@ export default class Profile {
         }
     }
 
-
     openEditModal(reviewId) {
         const review = this.reviewsData.find(r => r.id === reviewId);
         if (!review) return;
