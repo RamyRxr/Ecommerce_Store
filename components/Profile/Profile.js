@@ -1,7 +1,7 @@
 export default class Profile {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.activeTab = 'reviews'; 
+        this.activeTab = 'reviews';
 
         const sessionUser = JSON.parse(sessionStorage.getItem('user') || '{}');
         this.currentUser = {
@@ -10,16 +10,16 @@ export default class Profile {
             username: sessionUser.username
         };
 
-        this.userData = {}; 
-        this.userStats = {}; 
-        this.adminStats = {}; 
-        this.reviewsData = []; 
+        this.userData = {};
+        this.userStats = {};
+        this.adminStats = {};
+        this.reviewsData = [];
 
         this.activityData = {
             savedItems: {
                 icon: 'bx-bookmark',
                 title: 'Saved Items',
-                link: '../HTML-Pages/SavedPage.html', 
+                link: '../HTML-Pages/SavedPage.html',
                 count: 0
             },
             orders: {
@@ -28,16 +28,16 @@ export default class Profile {
                 link: '../HTML-Pages/HistoryPage.html',
                 count: 0
             },
-            listedItems: { 
+            listedItems: {
                 icon: 'bx-store',
                 title: 'Listed Items',
-                link: '../HTML-Pages/SellingPage.html', 
+                link: '../HTML-Pages/SellingPage.html',
                 count: 0
             },
-            reviews: { 
+            reviews: {
                 icon: 'bx-star',
                 title: 'Reviews',
-                link: '#', 
+                link: '#',
                 count: 0
             }
         };
@@ -46,13 +46,13 @@ export default class Profile {
         this.currentEditRating = 0;
 
         this.createNotificationContainer();
-        this.loadProfileData(); 
+        this.loadProfileData();
     }
 
     async loadProfileData() {
         if (!this.currentUser.id) {
             console.error('User ID not found. Cannot load profile data.');
-            this.render(); 
+            this.render();
             return;
         }
 
@@ -97,7 +97,7 @@ export default class Profile {
             this.reviewsData = [];
         } finally {
             this.render();
-            this.setupEventListeners(); 
+            this.setupEventListeners();
         }
     }
 
@@ -109,26 +109,26 @@ export default class Profile {
         container.className = 'notification-container global-notification-container';
         document.body.appendChild(container);
     }
-    
+
     getDisplayImageUrl(imagePathFromPHP) {
         if (!imagePathFromPHP) {
-            return '../assets/images/RamyRxr.png'; 
+            return '../assets/images/RamyRxr.png';
         }
 
         if (imagePathFromPHP.startsWith('../assets/') || imagePathFromPHP.startsWith('../backend/')) {
             return imagePathFromPHP;
         }
 
-        if (imagePathFromPHP.includes('uploads/')) { 
-            return '../' + imagePathFromPHP; 
-        } 
-        else { 
+        if (imagePathFromPHP.includes('uploads/')) {
+            return '../' + imagePathFromPHP;
+        }
+        else {
             return '../backend/uploads/products/' + imagePathFromPHP;
         }
     }
 
     render() {
-        if (!this.userData || !this.currentUser) { 
+        if (!this.userData || !this.currentUser) {
             this.container.innerHTML = `<div class="loading-profile">Loading profile...</div>`;
             return;
         }
@@ -239,8 +239,8 @@ export default class Profile {
 
     renderReviewsTab() {
         if (!this.reviewsData || this.reviewsData.length === 0) {
-            const message = this.currentUser.isAdmin 
-                ? "No reviews found across all users." 
+            const message = this.currentUser.isAdmin
+                ? "No reviews found across all users."
                 : "You haven't written any reviews yet. Your product reviews will appear here once you share your thoughts.";
             const actionText = this.currentUser.isAdmin ? "View All Products" : "Browse Products";
 
@@ -267,12 +267,11 @@ export default class Profile {
             ).join('');
 
             const displayImageSrc = this.getDisplayImageUrl(review.productImage);
-            
+
             const likesCount = review.likes_count || 0;
             const currentUserLikedThisReview = review.currentUserLiked || false;
             const likeIconClass = currentUserLikedThisReview ? 'bxs-like' : 'bx-like';
 
-            // Determine if the current user is the author of the review
             const isOwnReview = this.currentUser.id === review.userId;
 
             return `
@@ -366,11 +365,11 @@ export default class Profile {
     }
 
     getActivityItemGradient(icon) {
-        if (icon.includes('bookmark') || icon.includes('heart')) return 'background: linear-gradient(135deg, #9c27b0, #6a0080);'; 
-        if (icon.includes('package') || icon.includes('history')) return 'background: linear-gradient(135deg, #4caf50, #2e7d32);'; 
-        if (icon.includes('store')) return 'background: linear-gradient(135deg, #ff9800, #e65100);'; 
-        if (icon.includes('star')) return 'background: linear-gradient(135deg, #2196f3, #0d47a1);'; 
-        return 'background: linear-gradient(135deg, #757575, #424242);'; 
+        if (icon.includes('bookmark') || icon.includes('heart')) return 'background: linear-gradient(135deg, #9c27b0, #6a0080);';
+        if (icon.includes('package') || icon.includes('history')) return 'background: linear-gradient(135deg, #4caf50, #2e7d32);';
+        if (icon.includes('store')) return 'background: linear-gradient(135deg, #ff9800, #e65100);';
+        if (icon.includes('star')) return 'background: linear-gradient(135deg, #2196f3, #0d47a1);';
+        return 'background: linear-gradient(135deg, #757575, #424242);';
     }
 
 
@@ -431,8 +430,8 @@ export default class Profile {
     }
 
     setupEventListeners() {
-        document.removeEventListener('click', this.handleDocumentClick); 
-        this.handleDocumentClick = this.handleDocumentClick.bind(this); 
+        document.removeEventListener('click', this.handleDocumentClick);
+        this.handleDocumentClick = this.handleDocumentClick.bind(this);
         document.addEventListener('click', this.handleDocumentClick);
 
         const editModalBackdrop = document.querySelector('.edit-modal-backdrop');
@@ -444,7 +443,7 @@ export default class Profile {
     }
 
     handleModalBackdropClick(e) {
-        if (e.target === e.currentTarget) { 
+        if (e.target === e.currentTarget) {
             this.closeEditModal();
         }
     }
@@ -455,7 +454,7 @@ export default class Profile {
         if (tabBtn) {
             this.activeTab = tabBtn.dataset.tab;
             this.render();
-            this.setupEventListeners(); 
+            this.setupEventListeners();
             return;
         }
 
@@ -469,8 +468,8 @@ export default class Profile {
         }
 
         const reviewItem = e.target.closest('.review-item');
-        const actionBtn = e.target.closest('button'); 
-        if (reviewItem && !actionBtn && !e.target.closest('.action-buttons')) { 
+        const actionBtn = e.target.closest('button');
+        if (reviewItem && !actionBtn && !e.target.closest('.action-buttons')) {
             reviewItem.classList.toggle('expanded');
             return;
         }
@@ -478,7 +477,7 @@ export default class Profile {
         const viewProductBtn = e.target.closest('.view-product-btn');
         if (viewProductBtn) {
             const productId = viewProductBtn.dataset.productId;
-            window.location.href = `../HTML-Pages/ProductPage.html?id=${productId}`;
+            window.location.href = `../HTML-Pages/ItemDetailsPage.html?id=${productId}`;
             return;
         }
 
@@ -525,7 +524,7 @@ export default class Profile {
         if (closeNotificationBtn) {
             const notification = closeNotificationBtn.closest('.notification');
             if (notification) {
-                notification.remove(); 
+                notification.remove();
             }
             return;
         }
@@ -545,7 +544,7 @@ export default class Profile {
         const textareaEl = document.getElementById('edit-review-textarea');
 
         productNameEl.textContent = review.productName;
-        reviewDateEl.textContent = `Reviewed on ${review.date}`;  
+        reviewDateEl.textContent = `Reviewed on ${review.date}`;
         productImageEl.src = this.getDisplayImageUrl(review.productImage);
         productImageEl.alt = review.productName;
         textareaEl.value = review.reviewText;
@@ -604,9 +603,9 @@ export default class Profile {
             const result = await response.json();
 
             if (result.success) {
-                this.showEditSuccessNotification(result.productName || 'Selected Product'); 
+                this.showEditSuccessNotification(result.productName || 'Selected Product');
                 this.closeEditModal();
-                await this.loadProfileData(); 
+                await this.loadProfileData();
             } else {
                 throw new Error(result.message || 'Failed to save review');
             }
@@ -680,7 +679,7 @@ export default class Profile {
                         setTimeout(() => notification.remove(), 300);
                     }, 3000);
                 }
-                await this.loadProfileData(); 
+                await this.loadProfileData();
             } else {
                 throw new Error(result.message || 'Failed to delete review');
             }
