@@ -79,7 +79,7 @@ export default class SellingContents {
                 <div class="main-content-container">
                     <div class="selling-header">
                         <h1>${this.isEditing ? 'Edit Your Listing' : 'Sell Your Tech'}</h1>
-                        <p>${this.isEditing ? '' : `${this.listings.length} Active Listings`}</p>
+                        <p>${this.isEditing ? '' : `${this.listings.filter(l => l.status === 'active').length} Active Listings`}</p>
                     </div>
                     
                     <div class="selling-tabs">
@@ -89,7 +89,7 @@ export default class SellingContents {
                         </button>
                         <button class="tab-button ${this.activeTab === 'active' ? 'active' : ''}" data-tab="active">
                             <i class='bx bx-list-ul'></i>
-                            Active Listings (${this.listings.length})
+                            Active Listings (${this.listings.filter(l => l.status === 'active').length})
                         </button>
                         <button class="tab-button ${this.activeTab === 'sold' ? 'active' : ''}" data-tab="sold">
                             <i class='bx bx-check-circle'></i>
@@ -115,8 +115,12 @@ export default class SellingContents {
         }
 
         if (this.activeTab === 'create') {
-            this.setupCreateTabEventListeners();
+            this.setupCreateTabSpecificListeners();
         }
+        document.addEventListener('click', this.handleDocumentClickForDropdowns.bind(this), { capture: true, once: true });
+    }
+
+    handleDocumentClickForDropdowns(e) {
     }
 
     renderTabContent() {
@@ -233,68 +237,71 @@ export default class SellingContents {
                             <textarea id="product-description" placeholder="Describe your item in detail, including any flaws or issues">${currentListing ? currentListing.description : ''}</textarea>
                         </div>
                         
-                        <div class="price-brand-model-row">
-                            <div class="form-group">
+                        <div class="form-row">
+                            <div class="form-group half">
                                 <label for="product-price">Price ($)</label>
                                 <input type="number" id="product-price" placeholder="0.00" min="0" step="0.01" value="${currentListing ? currentListing.price : ''}">
                             </div>
-                            
-                            <div class="fancy-select-container">
-                                <div class="form-group">
-                                    <label for="product-brand">Brand</label>
-                                </div>
-                                <button type="button" class="fancy-select" id="brand-select">
-                                    <span id="selected-brand">${currentListing ? this.getBrandDisplayName(currentListing.brand) : 'Select a brand'}</span>
-                                    <span class="fancy-select-icon">
-                                        <i class='bx bx-chevron-down'></i>
-                                    </span>
-                                </button>
-                                <div class="fancy-select-options" id="brand-options">
-                                    <div class="fancy-option ${currentListing && currentListing.brand === 'apple' ? 'selected' : ''}" data-value="apple">
-                                        <span class="fancy-option-icon"><i class='bx bxl-apple'></i></span>
-                                        <span>Apple</span>
-                                    </div>
-                                    <div class="fancy-option ${currentListing && currentListing.brand === 'samsung' ? 'selected' : ''}" data-value="samsung">
-                                        <span class="fancy-option-icon"><i class='bx bxs-component'></i></span>
-                                        <span>Samsung</span>
-                                    </div>
-                                    <div class="fancy-option ${currentListing && currentListing.brand === 'sony' ? 'selected' : ''}" data-value="sony">
-                                        <span class="fancy-option-icon"><i class='bx bxs-devices'></i></span>
-                                        <span>Sony</span>
-                                    </div>
-                                    <div class="fancy-option ${currentListing && currentListing.brand === 'dell' ? 'selected' : ''}" data-value="dell">
-                                        <span class="fancy-option-icon"><i class='bx bx-desktop'></i></span>
-                                        <span>Dell</span>
-                                    </div>
-                                    <div class="fancy-option ${currentListing && currentListing.brand === 'lenovo' ? 'selected' : ''}" data-value="lenovo">
-                                        <span class="fancy-option-icon"><i class='bx bx-laptop'></i></span>
-                                        <span>Lenovo</span>
-                                    </div>
-                                    <div class="fancy-option ${currentListing && currentListing.brand === 'jbl' ? 'selected' : ''}" data-value="jbl">
-                                        <span class="fancy-option-icon"><i class='bx bx-speaker'></i></span>
-                                        <span>JBL</span>
-                                    </div>
-                                    <div class="fancy-option ${currentListing && currentListing.brand === 'canon' ? 'selected' : ''}" data-value="canon">
-                                        <span class="fancy-option-icon"><i class='bx bx-camera'></i></span>
-                                        <span>Canon</span>
-                                    </div>
-                                    <div class="fancy-option ${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? 'selected' : ''}" data-value="other">
-                                        <span class="fancy-option-icon"><i class='bx bx-plus-circle'></i></span>
-                                        <span>Other</span>
-                                    </div>
-                                </div>
-                                <div class="other-input-container ${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? 'active' : ''}" id="other-brand-container">
-                                    <input type="text" id="other-brand" placeholder="Specify brand" value="${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? currentListing.brand : ''}">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="product-model">Model</label>
-                                <input type="text" id="product-model" placeholder="Enter model name/number" value="${currentListing ? currentListing.model : ''}">
-                            </div>
-                             <div class="form-group"> 
+                            <div class="form-group half"> 
                                 <label for="product-quantity">Quantity</label>
                                 <input type="number" id="product-quantity" placeholder="1" min="0" step="1" value="${currentListing ? currentListing.quantity : '1'}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <div class="fancy-select-container">
+                                    <div class="form-group">
+                                        <label for="product-brand">Brand</label>
+                                    </div>
+                                    <button type="button" class="fancy-select" id="brand-select">
+                                        <span id="selected-brand">${currentListing ? this.getBrandDisplayName(currentListing.brand) : 'Select a brand'}</span>
+                                        <span class="fancy-select-icon">
+                                            <i class='bx bx-chevron-down'></i>
+                                        </span>
+                                    </button>
+                                    <div class="fancy-select-options" id="brand-options">
+                                        <div class="fancy-option ${currentListing && currentListing.brand === 'apple' ? 'selected' : ''}" data-value="apple">
+                                            <span class="fancy-option-icon"><i class='bx bxl-apple'></i></span>
+                                            <span>Apple</span>
+                                        </div>
+                                        <div class="fancy-option ${currentListing && currentListing.brand === 'samsung' ? 'selected' : ''}" data-value="samsung">
+                                            <span class="fancy-option-icon"><i class='bx bxs-component'></i></span>
+                                            <span>Samsung</span>
+                                        </div>
+                                        <div class="fancy-option ${currentListing && currentListing.brand === 'sony' ? 'selected' : ''}" data-value="sony">
+                                            <span class="fancy-option-icon"><i class='bx bxs-devices'></i></span>
+                                            <span>Sony</span>
+                                        </div>
+                                        <div class="fancy-option ${currentListing && currentListing.brand === 'dell' ? 'selected' : ''}" data-value="dell">
+                                            <span class="fancy-option-icon"><i class='bx bx-desktop'></i></span>
+                                            <span>Dell</span>
+                                        </div>
+                                        <div class="fancy-option ${currentListing && currentListing.brand === 'lenovo' ? 'selected' : ''}" data-value="lenovo">
+                                            <span class="fancy-option-icon"><i class='bx bx-laptop'></i></span>
+                                            <span>Lenovo</span>
+                                        </div>
+                                        <div class="fancy-option ${currentListing && currentListing.brand === 'jbl' ? 'selected' : ''}" data-value="jbl">
+                                            <span class="fancy-option-icon"><i class='bx bx-speaker'></i></span>
+                                            <span>JBL</span>
+                                        </div>
+                                        <div class="fancy-option ${currentListing && currentListing.brand === 'canon' ? 'selected' : ''}" data-value="canon">
+                                            <span class="fancy-option-icon"><i class='bx bx-camera'></i></span>
+                                            <span>Canon</span>
+                                        </div>
+                                        <div class="fancy-option ${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? 'selected' : ''}" data-value="other">
+                                            <span class="fancy-option-icon"><i class='bx bx-plus-circle'></i></span>
+                                            <span>Other</span>
+                                        </div>
+                                    </div>
+                                    <div class="other-input-container ${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? 'active' : ''}" id="other-brand-container">
+                                        <input type="text" id="other-brand" placeholder="Specify brand" value="${currentListing && !['apple', 'samsung', 'sony', 'dell', 'lenovo', 'jbl', 'canon'].includes(currentListing.brand) ? currentListing.brand : ''}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group half">
+                                <label for="product-model">Model</label>
+                                <input type="text" id="product-model" placeholder="Enter model name/number" value="${currentListing ? currentListing.model : ''}">
                             </div>
                         </div>
                     </div>
@@ -346,14 +353,23 @@ export default class SellingContents {
                             </div>
                             <div class="image-preview-container" id="image-preview-container">
                                 ${currentListing && currentListing.images ?
-                                    currentListing.images.map(img => `
-                                        <div class="image-preview">
-                                            <img src="${img}" alt="Product image">
+                                    currentListing.images.map(displayImgPath => {
+                                        if (typeof displayImgPath !== 'string' || displayImgPath.includes('placeholder.svg')) return '';
+                                        
+                                        let dbPath = displayImgPath;
+                                        if (displayImgPath.startsWith('../')) {
+                                            dbPath = displayImgPath.substring(3);
+                                        }
+
+                                        return `
+                                        <div class="image-preview" data-original-path="${dbPath}">
+                                            <img src="${displayImgPath}" alt="Product image">
                                             <button type="button" class="remove-image-btn">
                                                 <i class='bx bx-x'></i>
                                             </button>
                                         </div>
-                                    `).join('')
+                                    `;
+                                    }).join('')
                                 : ''}
                             </div>
                         </div>
@@ -554,6 +570,7 @@ export default class SellingContents {
                 this.isEditing = false;
                 this.editingListing = null;
                 this.render();
+                return; 
             }
 
             if (e.target.closest('.create-listing-btn-empty')) {
@@ -562,27 +579,55 @@ export default class SellingContents {
                 this.editingListing = null;
                 this.imageFiles = [];
                 this.render();
+                return; 
             }
 
-            if (e.target.closest('.edit-btn')) {
-                const listingId = parseInt(e.target.closest('.edit-btn').dataset.id);
+            const editButton = e.target.closest('.edit-btn');
+            if (editButton) {
+                const listingId = parseInt(editButton.dataset.id);
                 this.editListing(listingId);
+                return; 
             }
 
-            if (e.target.closest('.remove-btn')) {
-                const listingId = parseInt(e.target.closest('.remove-btn').dataset.id);
+            const removeButton = e.target.closest('.remove-btn');
+            if (removeButton) {
+                const listingId = parseInt(removeButton.dataset.id);
                 this.removeListing(listingId);
+                return; 
             }
 
-            if (e.target.closest('.view-order-btn')) {
-                const orderId = e.target.closest('.view-order-btn').dataset.orderId;
+            const viewOrderButton = e.target.closest('.view-order-btn');
+            if (viewOrderButton) {
+                const orderId = viewOrderButton.dataset.orderId;
                 console.log("View Order ID:", orderId);
                 alert(`Placeholder: View details for Order ID: ${orderId}. You would typically open a modal or navigate.`);
+                return; 
+            }
+
+            const listingCard = e.target.closest('.listing-card');
+            if (listingCard) {
+                const isActionButtonClick = e.target.closest('.edit-btn, .remove-btn, .view-order-btn');
+                if (!isActionButtonClick) {
+                    let productId;
+                    if (listingCard.classList.contains('sold')) {
+                        productId = listingCard.dataset.productId;
+                    } else {
+                        productId = listingCard.dataset.id;
+                    }
+
+                    if (productId) {
+                        window.location.href = `../HTML-Pages/ItemDetailsPage.html?id=${productId}`;
+                    }
+                }
             }
         });
+
+        if (this.activeTab === 'create') {
+            this.setupCreateTabSpecificListeners(); 
+        }
     }
 
-    setupCreateTabEventListeners() {
+    setupCreateTabSpecificListeners() {
         const categorySelect = document.getElementById('category-select');
         const categoryOptions = document.getElementById('category-options');
         const selectedCategory = document.getElementById('selected-category');
@@ -677,20 +722,23 @@ export default class SellingContents {
                 this.handleImageUpload(imageUploadInput, imagePreviewContainer);
             });
         }
+        
+        const formContainer = document.querySelector('.create-listing-form');
+        if (formContainer) {
+            formContainer.addEventListener('click', e => {
+                 if (e.target.closest('.remove-image-btn')) {
+                    const imagePreview = e.target.closest('.image-preview');
+                    if (imagePreview) {
+                        const imgSrc = imagePreview.querySelector('img').src; 
 
-        document.addEventListener('click', e => {
-            if (e.target.closest('.remove-image-btn')) {
-                const imagePreview = e.target.closest('.image-preview');
-                if (imagePreview) {
-                    const imgSrc = imagePreview.querySelector('img').src;
-                    if (this.editingListing && this.editingListing.images) {
-                        this.editingListing.images = this.editingListing.images.filter(url => url !== imgSrc);
+                        if (imgSrc.startsWith('data:')) {
+                            this.imageFiles = this.imageFiles.filter(file => file.previewUrl !== imgSrc);
+                        }
+                        imagePreview.remove();
                     }
-                    this.imageFiles = this.imageFiles.filter(file => file.previewUrl !== imgSrc);
-                    imagePreview.remove();
                 }
-            }
-        });
+            });
+        }
 
 
         const saveDraftBtn = document.querySelector('.save-draft-btn');
@@ -717,17 +765,6 @@ export default class SellingContents {
                 this.updateListing(this.editingListing.id);
             });
         }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.fancy-select-container')) {
-                document.querySelectorAll('.fancy-select-options.active').forEach(dropdown => {
-                    dropdown.classList.remove('active');
-                });
-                document.querySelectorAll('.fancy-select.active').forEach(select => {
-                    select.classList.remove('active');
-                });
-            }
-        });
     }
 
     handleImageUpload(inputElement, previewContainer) {
@@ -883,14 +920,16 @@ export default class SellingContents {
         formData.append('localPickup', localPickup);
         formData.append('status', asDraft ? 'draft' : (quantity === 0 ? 'sold_out' : 'active'));
 
-        const existingImageElements = document.querySelectorAll('#image-preview-container .image-preview img');
-        const existingImageUrls = Array.from(existingImageElements)
-            .map(img => img.src)
-            .filter(src => !src.startsWith('data:'));
-        existingImageUrls.forEach(url => formData.append('existing_images[]', url));
+        const existingImagePreviewElements = document.querySelectorAll('#image-preview-container .image-preview');
+        existingImagePreviewElements.forEach(previewEl => {
+            const originalDbPath = previewEl.dataset.originalPath;
+            if (originalDbPath) { 
+                formData.append('existing_images[]', originalDbPath); 
+            }
+        });
 
-        this.imageFiles.forEach((imgData, index) => {
-            formData.append(`new_images[${index}]`, imgData.file);
+        this.imageFiles.forEach(imgData => {
+            formData.append('image[]', imgData.file); 
         });
 
 
@@ -901,11 +940,11 @@ export default class SellingContents {
             });
             const data = await response.json();
             if (data.success) {
-                await this.loadListings();
+                await this.loadListings(); 
                 alert('Listing updated successfully!');
                 this.editingListing = null;
                 this.isEditing = false;
-                this.imageFiles = [];
+                this.imageFiles = []; 
                 this.activeTab = 'active';
                 this.render();
             } else {

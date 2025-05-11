@@ -2,29 +2,26 @@ export default class SavedItems {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
         this.savedItems = [];
-        this.deletedItems = {}; // Track deleted items for undo functionality
-        this.deleteTimers = {}; // Track deletion timers
-        this.progressIntervals = {}; // Add this to track progress bar intervals
+        this.deletedItems = {}; 
+        this.deleteTimers = {}; 
+        this.progressIntervals = {}; 
         this.currentPage = 1;
-        this.itemsPerPage = 35; // 5 columns × 7 rows = 35 items per page
-        this.createNotificationContainer(); // Add this line to create global notification container
+        this.itemsPerPage = 35; 
+        this.createNotificationContainer(); 
         this.init();
     }
-    
-    // Add this method to create a global notification container
+
     createNotificationContainer() {
-        // Remove any existing notification container
         const existingContainer = document.querySelector('.global-notification-container');
         if (existingContainer) return;
-        
-        // Create a new container appended to body
+
         const container = document.createElement('div');
         container.className = 'notification-container global-notification-container';
         document.body.appendChild(container);
     }
 
     async init() {
-        await this.loadSavedItems(); // Load items first
+        await this.loadSavedItems(); 
         this.render();
         this.setupEventListeners();
     }
@@ -35,12 +32,11 @@ export default class SavedItems {
             if (!response.ok) throw new Error('Failed to fetch saved items');
 
             const data = await response.json();
-            
+
             if (data.success) {
                 this.savedItems = data.data.map(item => {
-                    // Check if images array exists and has elements
                     const hasImages = item.images && Array.isArray(item.images) && item.images.length > 0;
-                    
+
                     return {
                         id: item.id,
                         name: item.title,
@@ -49,17 +45,15 @@ export default class SavedItems {
                         originalPrice: item.original_price ? parseFloat(item.original_price) : null,
                         rating: parseFloat(item.rating || 0),
                         ratingCount: parseInt(item.rating_count || 0),
-                        // Safely access image URL with fallback - using correct placeholder path
-                        image: hasImages && item.images[0] 
-                            ? `${item.images[0].includes('uploads/') 
-                                ? '../' + item.images[0] 
+                        image: hasImages && item.images[0]
+                            ? `${item.images[0].includes('uploads/')
+                                ? '../' + item.images[0]
                                 : '../backend/uploads/products/' + item.images[0]}`
-                            : '../assets/images/placeholder.svg', // Fixed placeholder path
-                        // Safely map image array with fallback to empty array
+                            : '../assets/images/placeholder.svg', 
                         images: hasImages
                             ? item.images.map(img =>
-                                `${img.includes('uploads/') 
-                                    ? '../' + img 
+                                `${img.includes('uploads/')
+                                    ? '../' + img
                                     : '../backend/uploads/products/' + img}`
                             )
                             : []
@@ -86,7 +80,6 @@ export default class SavedItems {
                     </div>
                     
                     <div class="notification-container">
-                        <!-- Deleted item notifications will be displayed here -->
                     </div>
                     
                     <div class="items-grid">
@@ -103,12 +96,10 @@ export default class SavedItems {
                                 </a>
                             </div>
                         `}
-                        <!-- Saved item cards will be inserted here -->
                     </div>
                     
                     <div class="pagination-container">
                         <div class="pagination">
-                            <!-- Pagination will be inserted here -->
                         </div>
                     </div>
                 </div>
@@ -118,7 +109,6 @@ export default class SavedItems {
         const savedContentContainer = document.createElement('div');
         savedContentContainer.innerHTML = savedContentHTML;
 
-        // Check if saved content already exists
         const existingSavedContent = document.querySelector('.saved-content');
         if (existingSavedContent) {
             existingSavedContent.replaceWith(savedContentContainer.firstElementChild);
@@ -134,12 +124,22 @@ export default class SavedItems {
         const itemsGrid = document.querySelector('.items-grid');
         if (!itemsGrid) return;
 
-        // If there are no saved items, show the no-items message (already handled in render)
         if (this.savedItems.length === 0) {
+            itemsGrid.innerHTML = `
+                            <div class="no-items">
+                                <div class="no-items-icon">
+                                    <i class='bx bx-bookmark-heart'></i>
+                                </div>
+                                <h3>No Saved Items Yet</h3>
+                                <p>Items you save will appear here. Start exploring to find products you love!</p>
+                                <a href="../HTML-Pages/ExplorePage.html" class="explore-btn">
+                                    <i class='bx bx-compass'></i>
+                                    Explore Products
+                                </a>
+                            </div>`;
             return;
         }
 
-        // Clear existing items
         itemsGrid.innerHTML = '';
 
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
@@ -151,7 +151,6 @@ export default class SavedItems {
             itemCard.className = 'item-card';
             itemCard.dataset.id = item.id;
 
-            // Generate stars based on rating
             const fullStars = Math.floor(item.rating);
             const hasHalfStar = item.rating % 1 >= 0.5;
 
@@ -166,10 +165,9 @@ export default class SavedItems {
                 }
             }
 
-            // Truncate description if longer than 52 characters
-            const truncatedDescription = item.description.length > 52
+            const truncatedDescription = item.description && item.description.length > 52
                 ? item.description.substring(0, 52) + '...'
-                : item.description;
+                : item.description || '';
 
             itemCard.innerHTML = `
                 <div class="item-image">
@@ -184,8 +182,8 @@ export default class SavedItems {
                     <div class="item-meta">
                         <div class="price-container">
                             ${item.originalPrice ?
-                                `<span class="old-price">$${item.originalPrice.toFixed(2)}</span>` : ''
-                            }
+                    `<span class="old-price">$${item.originalPrice.toFixed(2)}</span>` : ''
+                }
                             <span class="item-price">$${item.price.toFixed(2)}</span>
                         </div>
                         <div class="item-rating">
@@ -193,18 +191,16 @@ export default class SavedItems {
                             <span class="rating-count">(${item.ratingCount})</span>
                         </div>
                     </div>
-                    <a href="ItemDetail.html?id=${item.id}" class="view-details-btn">
+                    <a href="../HTML-Pages/ItemDetailsPage.html?id=${item.id}" class="view-details-btn">
                         <i class='bx bx-show'></i>
                         View Details
                     </a>
                 </div>
             `;
 
-            // Make entire card clickable
             itemCard.addEventListener('click', (e) => {
-                // Don't navigate if clicking the delete button
                 if (!e.target.closest('.delete-btn')) {
-                    window.location.href = `ItemDetail.html?id=${item.id}`;
+                    window.location.href = `../HTML-Pages/ItemDetailsPage.html?id=${item.id}`;
                 }
             });
 
@@ -213,36 +209,30 @@ export default class SavedItems {
     }
 
     updatePagination() {
-        // Get the outer pagination container
         const paginationContainer = document.querySelector('.pagination-container');
         if (!paginationContainer) return;
-        
-        // Hide pagination if no saved items
+
         if (this.savedItems.length === 0) {
             paginationContainer.style.display = 'none';
             return;
         } else {
             paginationContainer.style.display = 'flex';
         }
-        
-        // Get the inner pagination element
+
         const pagination = document.querySelector('.pagination');
         if (!pagination) return;
-    
+
         const totalPages = Math.max(1, Math.ceil(this.savedItems.length / this.itemsPerPage));
-    
+
         let paginationHTML = '';
-    
-        // Prev button
+
         paginationHTML += `
             <button class="pagination-btn prev-btn" ${this.currentPage === 1 ? 'disabled' : ''}>
                 <i class='bx bx-chevron-left'></i>
             </button>
         `;
-    
-        // Page numbers with dynamic styling
+
         if (totalPages <= 7) {
-            // Show all pages if 7 or fewer
             for (let i = 1; i <= totalPages; i++) {
                 paginationHTML += `
                     <button class="pagination-btn page-number ${i === this.currentPage ? 'active' : ''}" 
@@ -252,19 +242,17 @@ export default class SavedItems {
                 `;
             }
         } else {
-            // Show first page, current page and neighbors, and last page
             paginationHTML += `
                 <button class="pagination-btn page-number ${this.currentPage === 1 ? 'active' : ''}" data-page="1">1</button>
             `;
-    
+
             if (this.currentPage > 3) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
-    
-            // Pages around current page
+
             const start = Math.max(2, this.currentPage - 1);
             const end = Math.min(totalPages - 1, this.currentPage + 1);
-    
+
             for (let i = start; i <= end; i++) {
                 paginationHTML += `
                     <button class="pagination-btn page-number ${i === this.currentPage ? 'active' : ''}" 
@@ -273,11 +261,11 @@ export default class SavedItems {
                     </button>
                 `;
             }
-    
+
             if (this.currentPage < totalPages - 2) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
-    
+
             paginationHTML += `
                 <button class="pagination-btn page-number ${this.currentPage === totalPages ? 'active' : ''}" 
                         data-page="${totalPages}">
@@ -285,35 +273,31 @@ export default class SavedItems {
                 </button>
             `;
         }
-    
-        // Next button
+
         paginationHTML += `
             <button class="pagination-btn next-btn" ${this.currentPage === totalPages ? 'disabled' : ''}>
                 <i class='bx bx-chevron-right'></i>
             </button>
         `;
-    
+
         pagination.innerHTML = paginationHTML;
     }
 
     setupEventListeners() {
-        // Delete button click event
         document.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-btn');
             if (deleteBtn) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 const itemCard = deleteBtn.closest('.item-card');
                 const itemId = parseInt(itemCard.dataset.id);
-                
+
                 this.removeItem(itemId);
             }
         });
 
-        // Pagination events
         document.addEventListener('click', e => {
-            // Page number buttons
             if (e.target.matches('.pagination-btn.page-number')) {
                 this.currentPage = parseInt(e.target.dataset.page);
                 this.updateItemCards();
@@ -321,7 +305,6 @@ export default class SavedItems {
                 window.scrollTo(0, 0);
             }
 
-            // Prev button
             if (e.target.matches('.prev-btn') || e.target.closest('.prev-btn')) {
                 if (this.currentPage > 1) {
                     this.currentPage--;
@@ -331,7 +314,6 @@ export default class SavedItems {
                 }
             }
 
-            // Next button
             if (e.target.matches('.next-btn') || e.target.closest('.next-btn')) {
                 const totalPages = Math.ceil(this.savedItems.length / this.itemsPerPage);
                 if (this.currentPage < totalPages) {
@@ -343,7 +325,6 @@ export default class SavedItems {
             }
         });
 
-        // Undo button event
         document.addEventListener('click', (e) => {
             const undoBtn = e.target.closest('.undo-btn');
             if (undoBtn) {
@@ -353,10 +334,8 @@ export default class SavedItems {
         });
     }
 
-    // Update the removeItem method
     async removeItem(itemId) {
         try {
-            // Call API to remove item
             const response = await fetch('../backend/api/saved/add_to_saved.php', {
                 method: 'POST',
                 headers: {
@@ -373,37 +352,29 @@ export default class SavedItems {
             const data = await response.json();
             if (!data.success) throw new Error(data.message);
 
-            // Find the item in the savedItems array
             const itemIndex = this.savedItems.findIndex(item => item.id === itemId);
             if (itemIndex === -1) return;
 
-            // Store the item for potential undo
             this.deletedItems[itemId] = {
                 item: this.savedItems[itemIndex],
                 index: itemIndex,
                 timestamp: new Date().getTime()
             };
 
-            // Remove the item from the savedItems array
             this.savedItems.splice(itemIndex, 1);
 
-            // Update the UI
             this.updateItemCards();
             this.updatePagination();
-            
-            // Update item count in header
+
             const itemCountElement = document.querySelector('.saved-header p');
             if (itemCountElement) {
                 itemCountElement.textContent = `${this.savedItems.length} items saved`;
             }
 
-            // Show notification
             this.showNotification(itemId);
 
-            // Update saved badge
             document.dispatchEvent(new CustomEvent('updateSavedBadge'));
 
-            // If no items left, show the empty state
             if (this.savedItems.length === 0) {
                 this.render();
             }
@@ -412,27 +383,22 @@ export default class SavedItems {
         }
     }
 
-    // Update undoRemove method to handle progress intervals
     async undoRemove(itemId) {
         try {
-            // Check if the item exists in deletedItems
             if (!this.deletedItems[itemId]) return;
 
-            // Clear timers and intervals
             if (this.deleteTimers[itemId]) {
                 clearTimeout(this.deleteTimers[itemId]);
                 delete this.deleteTimers[itemId];
             }
-            
+
             if (this.progressIntervals[itemId]) {
                 clearInterval(this.progressIntervals[itemId]);
                 delete this.progressIntervals[itemId];
             }
 
-            // Get the deleted item data
             const { item, index } = this.deletedItems[itemId];
 
-            // Call API to re-add item to saved items
             const response = await fetch('../backend/api/saved/add_to_saved.php', {
                 method: 'POST',
                 headers: {
@@ -449,24 +415,19 @@ export default class SavedItems {
             const data = await response.json();
             if (!data.success) throw new Error(data.message);
 
-            // Reload saved items from server instead of manipulating local array
             await this.loadSavedItems();
 
-            // Clean up
             delete this.deletedItems[itemId];
             this.removeNotification(itemId);
 
-            // Update UI
             this.updateItemCards();
             this.updatePagination();
-            
-            // Update count
+
             const itemCountElement = document.querySelector('.saved-header p');
             if (itemCountElement) {
                 itemCountElement.textContent = `${this.savedItems.length} items saved`;
             }
 
-            // Update badge
             document.dispatchEvent(new CustomEvent('updateSavedBadge'));
 
         } catch (error) {
@@ -479,23 +440,18 @@ export default class SavedItems {
         }
     }
 
-    // Update permanentlyDeleteItem method to clear progress intervals
     permanentlyDeleteItem(itemId) {
-        // Clear the progress interval if it exists
         if (this.progressIntervals[itemId]) {
             clearInterval(this.progressIntervals[itemId]);
             delete this.progressIntervals[itemId];
         }
-        
-        // Remove from deletedItems
+
         delete this.deletedItems[itemId];
         delete this.deleteTimers[itemId];
 
-        // Remove the notification
         this.removeNotification(itemId);
     }
 
-    // Update showNotification method with timer display
     showNotification(itemId) {
         const notificationContainer = document.querySelector('.global-notification-container');
         if (!notificationContainer) {
@@ -508,9 +464,8 @@ export default class SavedItems {
         notification.className = 'notification fade-in';
         notification.dataset.id = itemId;
 
-        // Calculate time remaining - 5 seconds
         const secondsRemaining = 5;
-        
+
         notification.innerHTML = `
             <div class="notification-content">
                 <i class='bx bx-check-circle notification-icon'></i>
@@ -528,43 +483,33 @@ export default class SavedItems {
 
         notificationContainer.appendChild(notification);
 
-        // Initialize timer display and progress bar
         const timeDisplay = notification.querySelector('.notification-time');
         const progressBar = notification.querySelector('.notification-progress');
-        
+
         if (progressBar) {
-            // Use CSS transition for smooth progress bar animation
             progressBar.style.transition = 'width 5s linear';
-            
-            // Force a reflow before changing the width to ensure the transition works
             void progressBar.offsetWidth;
-            
-            // Start with full width
             progressBar.style.width = '100%';
-            
-            // After a tiny delay, set width to 0 to start the animation
             setTimeout(() => {
                 progressBar.style.width = '0%';
             }, 50);
         }
-        
-        // Create a countdown timer that updates every second
+
         let timeLeft = secondsRemaining;
-        
+
         this.progressIntervals[itemId] = setInterval(() => {
             timeLeft--;
-            
+
             if (timeDisplay) {
                 timeDisplay.textContent = `${timeLeft}s`;
             }
-            
+
             if (timeLeft <= 0) {
                 clearInterval(this.progressIntervals[itemId]);
                 delete this.progressIntervals[itemId];
             }
         }, 1000);
 
-        // Add event listeners for this specific notification
         notification.querySelector('.close-notification-btn').addEventListener('click', () => {
             if (this.deleteTimers[itemId]) {
                 clearTimeout(this.deleteTimers[itemId]);
@@ -587,7 +532,7 @@ export default class SavedItems {
         if (notification) {
             notification.classList.remove('fade-in');
             notification.classList.add('fade-out');
-            
+
             setTimeout(() => {
                 notification.remove();
             }, 300);
