@@ -255,3 +255,5 @@ VALUES ('Ramy', 'test@example.com', 'Ramy2024', 'Test', 'User', TRUE);
 -- Rey as regular user
 INSERT INTO users (username, email, password, first_name, last_name, is_admin)
 VALUES ('Rey', 'rey@example.com', 'Rey2024', 'Regular', 'User', FALSE);
+
+
