@@ -25,8 +25,8 @@ try {
     $localPickup = isset($_POST['localPickup']) && $_POST['localPickup'] === 'true' ? 1 : 0;
     $status = $_POST['status'] ?? 'active';
     
-    if (!$title || !$price || !$category || !$condition || !$brand || !$model || !isset($_POST['quantity']) || intval($_POST['quantity']) < 1) {
-        throw new Exception('All required fields must be filled, and quantity must be at least 1');
+    if (!$title || !$price || !$category || !$condition || !$brand || !$model || !isset($_POST['quantity']) || intval($_POST['quantity']) < 0) {
+        throw new Exception('All required fields must be filled, and quantity cannot be negative.');
     }
     
     $db = new Database();
@@ -52,25 +52,47 @@ try {
     
     $uploadedImages = [];
     
-    if (!empty($_FILES['image']) && is_array($_FILES['image']['name'])) {
+    if (!empty($_FILES['images']) && is_array($_FILES['images']['name'])) {
         $uploadDir = '../../uploads/products/';
         if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
+            if (!mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
+                throw new Exception(sprintf('Directory "%s" was not created', $uploadDir));
+            }
         }
         
         $imageStmt = $conn->prepare("INSERT INTO product_images (product_id, image_url, display_order) VALUES (?, ?, ?)");
         
-        for ($i = 0; $i < count($_FILES['image']['name']); $i++) {
-            if ($_FILES['image']['error'][$i] == 0) {
-                $fileName = time() . '_' . $_FILES['image']['name'][$i];
-                $filePath = $uploadDir . $fileName;
+        for ($i = 0; $i < count($_FILES['images']['name']); $i++) {
+            if ($_FILES['images']['error'][$i] == UPLOAD_ERR_OK) {
+                $originalFileName = basename($_FILES['images']['name'][$i]);
+                $safeFileName = preg_replace("/[^a-zA-Z0-9._-]/", "", $originalFileName);
+                if (empty($safeFileName) || $safeFileName === '.' || $safeFileName === '..') {
+                    $safeFileName = "image_" . $i . time(); 
+                }
+                $fileExtension = pathinfo($safeFileName, PATHINFO_EXTENSION);
+                if (empty($fileExtension)) {
+                    $safeFileName .= ".jpg";
+                }
                 
-                if (move_uploaded_file($_FILES['image']['tmp_name'][$i], $filePath)) {
-                    $imageUrl = 'backend/uploads/products/' . $fileName;
+                $finalFileName = time() . '_' . uniqid() . '_' . $safeFileName;
+                $filePath = $uploadDir . $finalFileName;
+                
+                if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $filePath)) {
+                    $imageUrl = 'backend/uploads/products/' . $finalFileName;
                     $imageStmt->execute([$productId, $imageUrl, $i]);
                     $uploadedImages[] = $imageUrl;
+                } else {
+                    error_log("Failed to move uploaded file: " . $_FILES['images']['name'][$i] . " to " . $filePath . ". Check permissions and path.");
                 }
+            } else {
+                 error_log("Upload error for file " . ($_FILES['images']['name'][$i] ?? 'unknown_file') . ": " . $_FILES['images']['error'][$i]);
             }
+        }
+    } else {
+        if (empty($_FILES['images'])) {
+            error_log("No files found in \$_FILES['images'] during listing creation for product ID: " . $productId);
+        } else {
+            error_log("Unexpected structure for \$_FILES['images'] or \$_FILES['images']['name'] is not an array for product ID: " . $productId);
         }
     }
     
@@ -83,6 +105,7 @@ try {
     
 } catch (Exception $e) {
     http_response_code(400);
+    error_log("Create Listing Error: " . $e->getMessage());
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()

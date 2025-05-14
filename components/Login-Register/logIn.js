@@ -18,7 +18,7 @@ export default class LogIn {
                     <div class="login-header">
                         <div class="logo">
                             <img src="../assets/images/RamyRxr.png" alt="RamyRXR" class="logo-img">
-                            <h2>RamyRXR</h2>
+                            <h2>TechBuy</h2>
                         </div>
                         <div class="theme-toggle">
                             <button id="login-theme-toggle">

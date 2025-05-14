@@ -833,8 +833,8 @@ export default class SellingContents {
         formData.append('localPickup', listingOptionValue === 'pickup' || listingOptionValue === 'both');
         formData.append('status', type === 'draft' ? 'draft' : 'active');
 
-        this.imageFiles.forEach((imgData, index) => {
-            formData.append(`images[${index}]`, imgData.file);
+        this.imageFiles.forEach((imgData) => {
+            formData.append('images[]', imgData.file);
         });
 
         if (!formData.get('title') || !formData.get('category') || !formData.get('condition') ||
@@ -929,7 +929,7 @@ export default class SellingContents {
         });
 
         this.imageFiles.forEach(imgData => {
-            formData.append('image[]', imgData.file); 
+            formData.append('images[]', imgData.file);
         });
 
 
