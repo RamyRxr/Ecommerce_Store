@@ -91,13 +91,11 @@ class ItemDetails {
                 this.productData.images = [];
             }
 
-            const reviewsRes = await fetch(`../backend/api/profile/get_reviews.php`);
+            const reviewsRes = await fetch(`../backend/api/products/get_product_reviews.php?product_id=${this.productId}`);
             if (reviewsRes.ok) {
                 const reviewsData = await reviewsRes.json();
                 if (reviewsData.success && Array.isArray(reviewsData.reviews)) {
-                    this.reviews = reviewsData.reviews.filter(review =>
-                        String(review.productId) === String(this.productId)
-                    );
+                    this.reviews = reviewsData.reviews;
                 } else {
                     this.reviews = [];
                 }
