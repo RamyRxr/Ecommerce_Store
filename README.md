@@ -61,14 +61,17 @@ Follow these steps to set up and run the project locally:
         // ...
         private $host = "localhost";
         private $db_name = "ecommerce_store";
-        private $username = "your_mysql_username"; // Change if needed
-        private $password = "your_mysql_password"; // Change if needed
+        private $username = "Ramy"; // Change if needed
+        private $password = "Ramy2024"; // Change if needed - in schema.sql i create two user Ramy (Admin) , Rey (Regular user) for tesing so you can use them dirctly
         // ...
         ```
 
 7.  **Access the Project**:
     *   Open your web browser and navigate to:
         `http://localhost/Project-Web/HTML-Pages/login.html`
+        if you copy and run schema.sql without modifying anything you can just use :
+            username : Ramy , Password : Ramy2024  (Admin)
+            username: Rey   , Password : Rey2024 (Regular User)
     *   You can also start by exploring other pages like `signup.html` or `ExplorePage.html`.
 
 ## 🏗️ Project Structure
