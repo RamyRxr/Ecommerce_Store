@@ -68,11 +68,15 @@ Follow these steps to set up and run the project locally:
 
 7.  **Access the Project**:
     *   Open your web browser and navigate to:
-        `http://localhost/Project-Web/HTML-Pages/login.html`
-        if you copy and run schema.sql without modifying anything you can just use :
-            username : Ramy , Password : Ramy2024  (Admin)
-            username: Rey   , Password : Rey2024 (Regular User)
-    *   You can also start by exploring other pages like `signup.html` or `ExplorePage.html`.
+        `http://localhost/Project-Web/HTML-Pages/login.html`.
+    *   If you have imported the `schema.sql` file without modifying anything, you can use the following test credentials:
+        - **Admin User:**  
+            Username: `Ramy`  
+            Password: `Ramy2024`
+        - **Regular User:**  
+            Username: `Rey`  
+            Password: `Rey2024`
+    *   You can also explore other pages directly, such as `signup.html` or `ExplorePage.html`.
 
 ## 🏗️ Project Structure
 
