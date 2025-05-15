@@ -45,4 +45,6 @@ END //
 DELIMITER ;
 
 --Test the procedure on exist order
-CALL GetOrderDetail('ORD-0525-201');
+CALL GetOrderDetail('ORD-0525-802');
+
+CALL GetOrderDetail('ORD-0525-203');
