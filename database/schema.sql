@@ -217,7 +217,7 @@ CREATE TABLE sold_items (
     FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Add this new table definition
+-- Create cancelled_orders_log table
 CREATE TABLE cancelled_orders_log (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id VARCHAR(50) NOT NULL, -- Increased length to match orders.id
@@ -230,7 +230,12 @@ CREATE TABLE cancelled_orders_log (
     KEY idx_cancelled_user_id (user_id)   
 );
 
-
+-- Create banners table
+CREATE TABLE banners (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    image_url VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Add indexes for performance
 CREATE INDEX idx_products_category ON products(category);
