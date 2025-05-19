@@ -207,7 +207,7 @@ export default class LogIn {
                     localStorage.removeItem('rememberedUser');
                 }
 
-                window.location.href = '../HTML-Pages/ExplorePage.html'; 
+                window.location.href = '../HTML-Pages/HomePage.html'; 
             } else {
                 throw new Error(responseData.message || 'Login failed');
             }
