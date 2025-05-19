@@ -32,9 +32,9 @@ export default class BannerSlider {
     render() {
         let bannerImg, controls = '';
         if (!this.images.length) {
-            bannerImg = `<img src="../backend/uploads/banner/4.jpg" class="banner-img" id="banner-img" alt="Banner Placeholder" style="opacity:1;">`;
+            bannerImg = `<img src="../backend/uploads/banner/4.jpg" class="banner-img" id="banner-img" alt="Banner Placeholder">`;
         } else {
-            bannerImg = `<img src="${this.getBannerImage(this.images[this.current].url)}" class="banner-img" id="banner-img" style="opacity:1;">`;
+            bannerImg = `<img src="${this.getBannerImage(this.images[this.current].url)}" class="banner-img" id="banner-img">`;
         }
         if (this.isAdmin) {
             controls = `
