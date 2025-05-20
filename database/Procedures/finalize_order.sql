@@ -1,6 +1,6 @@
 DELIMITER //
 
-CREATE PROCEDURE FinalizeOrder(
+CREATE OR REPLACE PROCEDURE FinalizeOrder(
     IN p_user_id INT,
     IN p_total_price DECIMAL(10, 2),
     IN p_shipping_method VARCHAR(50),
@@ -11,12 +11,19 @@ CREATE PROCEDURE FinalizeOrder(
     IN p_shipping_zip VARCHAR(20),   
     IN p_shipping_country VARCHAR(100),
     IN p_payment_method VARCHAR(50),
+    IN p_items_json JSON,
     OUT p_generated_order_id VARCHAR(50) 
 )
 BEGIN
     DECLARE v_order_count INT;
     DECLARE v_order_number_suffix VARCHAR(2);
     DECLARE v_new_order_id VARCHAR(50);
+    DECLARE i INT DEFAULT 0;
+    DECLARE items_count INT;
+    DECLARE v_product_id INT;
+    DECLARE v_quantity INT;
+    DECLARE v_title VARCHAR(255);
+    DECLARE v_price DECIMAL(10,2);
 
     SELECT COUNT(*) INTO v_order_count FROM orders WHERE user_id = p_user_id;
     SET v_order_number_suffix = LPAD(v_order_count + 1, 2, '0');
@@ -33,34 +40,17 @@ BEGIN
         p_payment_method, 'pending', NOW(), NOW()
     );
 
-    INSERT INTO order_items (order_id, product_id, product_title, quantity, price, created_at)
-    SELECT
-        v_new_order_id,
-        ci.product_id,
-        p.title, 
-        ci.quantity,
-        p.price, 
-        NOW()
-    FROM cart_items ci
-    JOIN products p ON ci.product_id = p.id
-    WHERE ci.user_id = p_user_id;
+    SET items_count = JSON_LENGTH(p_items_json);
+
+    WHILE i < items_count DO
+        SET v_product_id = JSON_UNQUOTE(JSON_EXTRACT(p_items_json, CONCAT('$[', i, '].product_id')));
+        SET v_quantity = JSON_UNQUOTE(JSON_EXTRACT(p_items_json, CONCAT('$[', i, '].quantity')));
+
+        SELECT title, price INTO v_title, v_price FROM products WHERE id = v_product_id LIMIT 1;
+
+        INSERT INTO order_items (order_id, product_id, product_title, quantity, price, created_at)
+        VALUES (v_new_order_id, v_product_id, v_title, v_quantity, v_price, NOW());
+        SET i = i + 1;
+    END WHILE;
 
 END //
-
-DELIMITER ;
-
-SET @generated_id = '';
-CALL FinalizeOrder(
-    2, -- Replace with a valid user ID for testing 
-    150.75, -- p_total_price
-    'standard', -- p_shipping_method
-    5.00, -- p_shipping_cost
-    '123 Test St', -- p_shipping_address
-    'Testville', -- p_shipping_city
-    'TS', -- p_shipping_state
-    '12345', -- p_shipping_zip
-    'Testland', -- p_shipping_country
-    'credit_card', -- p_payment_method
-    @generated_id
-);
-SELECT @generated_id;

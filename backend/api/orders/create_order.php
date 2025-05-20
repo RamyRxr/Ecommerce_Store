@@ -22,82 +22,34 @@ try {
         throw new Exception('Incomplete order data provided.');
     }
 
+    if (count($data['items']) === 0) {
+        throw new Exception('Order must contain at least one item.');
+    }
 
     $db = new Database();
     $conn = $db->getConnection();
-    $conn->beginTransaction();
 
-    $stmt = $conn->prepare("
-        SELECT COUNT(*) as order_count 
-        FROM orders 
-        WHERE user_id = ?
-    ");
-    $stmt->execute([$user_id]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $orderNumber = str_pad($result['order_count'] + 1, 2, '0', STR_PAD_LEFT);
-
-    $orderId = sprintf(
-        "ORD-%s-%d%s",
-        date('my'),
-        $user_id,
-        $orderNumber
-    );
-
-    $stmt = $conn->prepare("
-        INSERT INTO orders (
-            id, user_id, total_price, shipping_method, shipping_cost, 
-            shipping_address, shipping_city, shipping_state, shipping_zip, shipping_country, 
-            payment_method, status
-        ) 
-        VALUES (
-            :order_id, :user_id, :total_price, :shipping_method, :shipping_cost,
-            :shipping_address, :shipping_city, :shipping_state, :shipping_zip, :shipping_country,
-            :payment_method, 'pending'
-        )
-    ");
-
+    $stmt = $conn->prepare("CALL FinalizeOrder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @order_id)");
     $stmt->execute([
-        ':order_id' => $orderId,
-        ':user_id' => $user_id,
-        ':total_price' => $data['total_price'],
-        ':shipping_method' => $data['shipping_method'],
-        ':shipping_cost' => $data['shipping_cost'],
-        ':shipping_address' => $data['shipping_address'],
-        ':shipping_city' => $data['shipping_city'],
-        ':shipping_state' => $data['shipping_state'],
-        ':shipping_zip' => $data['shipping_zip'],
-        ':shipping_country' => $data['shipping_country'],
-        ':payment_method' => $data['payment_method']
+        $user_id,
+        $data['total_price'],
+        $data['shipping_method'],
+        $data['shipping_cost'],
+        $data['shipping_address'],
+        $data['shipping_city'],
+        $data['shipping_state'],
+        $data['shipping_zip'],
+        $data['shipping_country'],
+        $data['payment_method'],
+        json_encode($data['items'])
     ]);
 
-    $itemInsertStmt = $conn->prepare("
-        INSERT INTO order_items (order_id, product_id, product_title, quantity, price) 
-        VALUES (:order_id, :product_id, :product_title, :quantity, :price)
-    ");
+    $orderIdResult = $conn->query("SELECT @order_id AS order_id");
+    $orderIdRow = $orderIdResult->fetch(PDO::FETCH_ASSOC);
+    $orderId = $orderIdRow['order_id'];
 
-    $productTitleStmt = $conn->prepare("SELECT title FROM products WHERE id = :product_id");
-
-    foreach ($data['items'] as $item) {
-        if (!isset($item['product_id']) || !isset($item['quantity']) || !isset($item['price'])) {
-            throw new Exception('Incomplete item data in order.');
-        }
-        $productTitleStmt->execute([':product_id' => $item['product_id']]);
-        $product = $productTitleStmt->fetch(PDO::FETCH_ASSOC);
-        $product_title = $product ? $product['title'] : 'Product Title Not Found';
-
-        $itemInsertStmt->execute([
-            ':order_id' => $orderId,
-            ':product_id' => $item['product_id'],
-            ':product_title' => $product_title,
-            ':quantity' => $item['quantity'],
-            ':price' => $item['price']
-        ]);
-    }
-
-    $clearCart = $conn->prepare("DELETE FROM cart_items WHERE user_id = :user_id");
-    $clearCart->execute([':user_id' => $user_id]);
-
-    $conn->commit();
+    $clearCartStmt = $conn->prepare("DELETE FROM cart_items WHERE user_id = ?");
+    $clearCartStmt->execute([$user_id]);
 
     echo json_encode([
         'success' => true,
@@ -106,9 +58,6 @@ try {
     ]);
 
 } catch (Exception $e) {
-    if (isset($conn) && $conn->inTransaction()) {
-        $conn->rollBack();
-    }
     http_response_code(500);
     error_log("Create Order Error: " . $e->getMessage() . " - Data: " . json_encode($data ?? null));
     echo json_encode([

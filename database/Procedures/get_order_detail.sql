@@ -1,9 +1,10 @@
 DELIMITER //
 
-CREATE PROCEDURE GetOrderDetail(
-    IN p_order_id VARCHAR(50) 
+CREATE OR REPLACE PROCEDURE GetOrderDetail(
+    IN p_order_id VARCHAR(50)
 )
 BEGIN
+    -- Order info
     SELECT
         o.id AS order_id,
         o.user_id,
@@ -19,6 +20,8 @@ BEGIN
         o.shipping_cost,
         o.payment_method,
         o.total_price AS total_amount_payable,
+        o.total_price AS total_price,
+        o.total_price AS subtotal_price,
         o.cancellation_reason,
         o.cancellation_date,
         o.shipped_date,
@@ -28,15 +31,16 @@ BEGIN
     JOIN users u ON o.user_id = u.id
     WHERE o.id = p_order_id;
 
+    -- Order items with all necessary info
     SELECT
         oi.id as order_item_id,
         oi.product_id,
-        oi.product_title,
-        p.description as product_description, 
-        (SELECT pi.image_url FROM product_images pi WHERE pi.product_id = oi.product_id ORDER BY pi.display_order ASC, pi.id ASC LIMIT 1) as product_image,
+        p.title as product_name,
+        p.description as product_description,
+        (SELECT pi.image_url FROM product_images pi WHERE pi.product_id = oi.product_id ORDER BY pi.display_order ASC, pi.id ASC LIMIT 1) as image,
         oi.quantity,
-        oi.price AS price_per_item,
-        (oi.quantity * oi.price) AS item_total_price
+        oi.price AS price,
+        (oi.quantity * oi.price) AS total
     FROM order_items oi
     JOIN products p ON oi.product_id = p.id
     WHERE oi.order_id = p_order_id;
@@ -44,7 +48,7 @@ END //
 
 DELIMITER ;
 
---Test the procedure on exist order
+--Test the procedure on exist order ==> "CALL GetOrderDetail('order id');"
 CALL GetOrderDetail('ORD-0525-802');
 
 CALL GetOrderDetail('ORD-0525-203');
