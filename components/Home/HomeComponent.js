@@ -4,7 +4,6 @@ import CategorySlider from './CategorySlider.js';
 export default class HomeComponent {
     constructor(containerId = 'app') {
         this.container = document.getElementById(containerId);
-        this.categories = ['phones', 'laptops', 'cameras', 'tablets', 'headphones', 'accessories'];
         this.render();
     }
 
@@ -28,10 +27,16 @@ export default class HomeComponent {
         else this.container.appendChild(outer);
 
         new BannerSlider('banner-slider');
+
+        // Fetch all non-empty categories from backend
+        const categoriesRes = await fetch('../backend/api/home/get_non_empty_categories.php');
+        const categoriesData = await categoriesRes.json();
+        const categories = categoriesData.success ? categoriesData.categories : [];
+
         const categoriesSection = document.getElementById('categories-section');
-        for (const cat of this.categories) {
+        for (const cat of categories) {
             const products = await this.fetchCategoryProducts(cat);
-            if (products.length === 0) continue;
+            if (!products.length) continue;
             const catDiv = document.createElement('div');
             catDiv.className = 'category-section';
             catDiv.innerHTML = `<h2 class="category-title">${cat.charAt(0).toUpperCase() + cat.slice(1)}</h2>

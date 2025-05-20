@@ -53,7 +53,12 @@ export default class RightSidebar {
                 <img src="${getProductImage(p.images)}" class="item-img" alt="${p.title}">
                 <div class="item-info">
                     <div class="item-title">${p.title}</div>
-                    <div class="price">$${parseFloat(p.price).toFixed(2)}</div>
+                    <div class="price">
+                        ${parseFloat(p.price).toFixed(2)} $
+                        ${p.original_price && parseFloat(p.original_price) > parseFloat(p.price) ? `
+                            <span class="old-price">${parseFloat(p.original_price).toFixed(2)} $</span>
+                        ` : ''}
+                    </div>
                     <div class="item-desc">${p.description ? p.description.split('\n')[0].slice(0, 40) : ''}</div>
                 </div>
             </div>

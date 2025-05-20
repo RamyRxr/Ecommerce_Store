@@ -45,28 +45,58 @@ try {
         throw new Exception('All required fields must be filled, and quantity cannot be negative.');
     }
 
-    $sql = "UPDATE products SET 
-                title = ?, 
-                description = ?, 
-                price = ?, 
-                category = ?, 
-                `condition` = ?, 
-                brand = ?, 
-                model = ?, 
-                quantity = ?, 
-                shipping = ?, 
-                local_pickup = ?, 
-                status = ?, 
-                updated_at = NOW() 
-            WHERE id = ? AND seller_id = ?";
+    // Fetch current price
+    $currentStmt = $conn->prepare("SELECT price FROM products WHERE id = ?");
+    $currentStmt->execute([$listingId]);
+    $currentProduct = $currentStmt->fetch(PDO::FETCH_ASSOC);
 
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([
-        $title, $description, $price, $category,
-        $condition, $brand, $model, (int)$quantity,
-        $shipping, $localPickup, $status,
-        $listingId, $_SESSION['user']['id']
-    ]);
+    if ($currentProduct && floatval($currentProduct['price']) != floatval($price)) {
+        // Price changed: move old price to original_price
+        $sql = "UPDATE products SET 
+                    title = ?, 
+                    description = ?, 
+                    original_price = price, 
+                    price = ?, 
+                    category = ?, 
+                    `condition` = ?, 
+                    brand = ?, 
+                    model = ?, 
+                    quantity = ?, 
+                    shipping = ?, 
+                    local_pickup = ?, 
+                    status = ?, 
+                    updated_at = NOW() 
+                WHERE id = ? AND seller_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            $title, $description, $price, $category,
+            $condition, $brand, $model, (int)$quantity,
+            $shipping, $localPickup, $status,
+            $listingId, $_SESSION['user']['id']
+        ]);
+    } else {
+        // Price did not change, update as usual
+        $sql = "UPDATE products SET 
+                    title = ?, 
+                    description = ?, 
+                    category = ?, 
+                    `condition` = ?, 
+                    brand = ?, 
+                    model = ?, 
+                    quantity = ?, 
+                    shipping = ?, 
+                    local_pickup = ?, 
+                    status = ?, 
+                    updated_at = NOW() 
+                WHERE id = ? AND seller_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            $title, $description, $category,
+            $condition, $brand, $model, (int)$quantity,
+            $shipping, $localPickup, $status,
+            $listingId, $_SESSION['user']['id']
+        ]);
+    }
 
     if (!empty($_FILES['images']) && is_array($_FILES['images']['name'])) {
         $uploadDir = '../../uploads/products/';

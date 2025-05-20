@@ -192,7 +192,7 @@ class ItemDetails {
                         <span class="product-review-count"><i class='bx bx-message-rounded-dots'></i> ${review_count || 0} Reviews</span>
                         <span class="product-sold-count"><i class='bx bx-package'></i> ${this.soldCount} Sold</span>
                     </div>
-                    <p class="product-price">$${parseFloat(price || 0).toFixed(2)}</p>
+                    <p class="product-price">${parseFloat(price || 0).toFixed(2)}</p>
                     <p class="product-short-description">${shortDescription}</p>
                     <p class="product-stock ${stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}">
                         ${stock_quantity > 0 ? `${stock_quantity} in stock` : 'Out of Stock'}

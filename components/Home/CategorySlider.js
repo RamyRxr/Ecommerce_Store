@@ -67,7 +67,12 @@ export default class CategorySlider {
             <div class="product-card" data-id="${p.id}">
                 <img src="${getProductImage(p.images)}" class="product-img" alt="${p.title}">
                 <div class="product-title">${p.title}</div>
-                <div class="product-price">$${parseFloat(p.price).toFixed(2)}</div>
+                <div class="product-price">
+                    ${parseFloat(p.price).toFixed(2)} $
+                    ${p.original_price && parseFloat(p.original_price) > parseFloat(p.price) ? `
+                        <span class="old-price">${parseFloat(p.original_price).toFixed(2)} $</span>
+                    ` : ''}
+                </div>
             </div>
         `;
     }

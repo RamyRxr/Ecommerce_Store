@@ -492,6 +492,14 @@ body.dark-mode .search-button:hover {
     color: var(--accent);
 }
 
+.product-price::after {
+    content: '$';
+    font-size: 0.8em;
+    margin-left: 4px;
+    font-weight: 700;
+    opacity: 0.9;
+}
+
 .old-price {
     font-size: 14px;
     text-decoration: line-through;

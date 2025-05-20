@@ -460,7 +460,7 @@ export default class SellingContents {
                                 <p class="listing-description">${listing.description.length > 52
                     ? listing.description.substring(0, 52) + '...'
                     : listing.description}</p>
-                                <div class="listing-price">$${parseFloat(listing.price).toFixed(2)}</div>
+                                <div class="listing-price">${parseFloat(listing.price).toFixed(2)} $</div>
                                 <div class="listing-date">
                                     <i class='bx bx-calendar'></i>
                                     Listed on ${formattedDate}
@@ -539,7 +539,7 @@ export default class SellingContents {
                                 <p class="listing-description">${item.description && item.description.length > 52
                 ? item.description.substring(0, 52) + '...'
                 : item.description || ''}</p>
-                                <div class="listing-price">Sold for: $${parseFloat(item.price).toFixed(2)}</div>
+                                <div class="listing-price">Sold for: ${parseFloat(item.price).toFixed(2)} $</div>
                                 <div class="listing-date">
                                     <i class='bx bx-calendar-check'></i>
                                     Sold on ${formattedDate}
@@ -1048,7 +1048,7 @@ export default class SellingContents {
         if (item) {
             alert(`
                 Title: ${item.title}
-                Price: $${item.price.toFixed(2)}
+                Price: ${item.price.toFixed(2)} $
                 Date Sold: ${new Date(item.dateSold).toLocaleDateString()}
                 
                 This is a placeholder for a detailed view of sold item.

@@ -7,7 +7,7 @@ try {
     $stmt = $conn->prepare("SELECT p.*, 
         (SELECT GROUP_CONCAT(image_url) FROM product_images WHERE product_id = p.id) as images 
         FROM products p 
-        ORDER BY p.created_at DESC LIMIT 10");
+        ORDER BY p.updated_at DESC LIMIT 10");
     $stmt->execute();
     $products = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {

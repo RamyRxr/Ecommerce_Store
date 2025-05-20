@@ -362,7 +362,7 @@ export default class ExploreContents {
                     <div class="product-meta">
                         <div class="price-container">
                             ${product.originalPrice ? `<span class="old-price">$${product.originalPrice.toFixed(2)}</span>` : ''}
-                            <span class="product-price">$${product.price.toFixed(2)}</span>
+                            <span class="product-price">${product.price.toFixed(2)}</span>
                         </div>
                         <div class="product-rating">
                             <div class="stars">${starsHTML}</div>

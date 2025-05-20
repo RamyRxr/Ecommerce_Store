@@ -8,7 +8,7 @@ try {
     $stmt = $conn->prepare("SELECT p.*, 
         (SELECT GROUP_CONCAT(image_url) FROM product_images WHERE product_id = p.id) as images 
         FROM products p 
-        WHERE p.category = ? AND p.status = 'active'
+        WHERE p.category = ? AND p.status = 'active' AND p.quantity > 0
         ORDER BY p.created_at DESC");
     $stmt->execute([$category]);
     $products = [];
